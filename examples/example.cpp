@@ -40,11 +40,14 @@ int main() {
     CU_CHECK(cuMemAlloc((CUdeviceptr*) &old_values, n * sizeof(int)));
     CU_CHECK(cuMemAlloc((CUdeviceptr*) &new_values, n * sizeof(int)));
 
-    auto stencil_kernel = Kernel<int, int*, float*>("stencil", "kernel.cu", "tuning_results.json", "", {}, {"-std=c++11"});
+    typedef Kernel<int, int*, float*> StencilKernel;
 
-    stencil_kernel.launch(
-            dim3(1024), 
-            dim3(16), 
+    auto config = Config::load_best_for_current_device("vector_add_results.json", "800000000", "GFLOP/s");
+    auto stencil = StencilKernel("stencil", "kernel.cu", config, {"-std=c++11"});
+
+    stencil(
+            1024, 
+            16, 
             n,
             old_values,
             new_values
