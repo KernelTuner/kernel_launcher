@@ -1,17 +1,22 @@
-#include <exception>
-#include <fstream>
-#include <iterator>
-#include <json.hpp>
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include<iostream>
-#include <sstream>
+#ifndef INCLUDE_KERNEL_LAUNCHER_H_
+#define INCLUDE_KERNEL_LAUNCHER_H_
 
 #define NVRTC_GET_TYPE_NAME 1
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <nvrtc.h>
+
+#include <exception>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include <json.hpp>
 
 namespace kernel_launcher {
 using json = nlohmann::json;
@@ -34,16 +39,14 @@ std::string curesult_as_string(CUresult code) {
 
 class cuda_exception: public std::exception {
     public:
-        cuda_exception(CUresult code): 
-            _code(code), 
+        explicit cuda_exception(CUresult code):
+            _code(code),
             _message(curesult_as_string(code)) {
-
         }
 
-        cuda_exception(CUresult code, const std::string &message): 
-            _code(code), 
+        cuda_exception(CUresult code, const std::string &message):
+            _code(code),
             _message(message) {
-
         }
 
         const char* what() const noexcept {
@@ -67,16 +70,14 @@ void cu_check(CUresult code) {
 
 class nvrtc_exception: public std::exception {
     public:
-        nvrtc_exception(nvrtcResult code): 
-            _code(code), 
+        explicit nvrtc_exception(nvrtcResult code):
+            _code(code),
             _message(nvrtcGetErrorString(_code)) {
-
         }
 
-        nvrtc_exception(nvrtcResult code, const std::string &message): 
-            _code(code), 
+        nvrtc_exception(nvrtcResult code, const std::string &message):
+            _code(code),
             _message(message) {
-
         }
 
         const char* what() const noexcept {
@@ -101,11 +102,10 @@ void nvrtc_check(nvrtcResult code) {
 
 
 class Config {
-
     public:
         static Config load_best(
-                const json &results, 
-                const std::string &problem_size, 
+                const json &results,
+                const std::string &problem_size,
                 const std::string &objective,
                 std::string device_name
         ) {
@@ -118,9 +118,9 @@ class Config {
             std::vector<json> options;
 
             if (!results.contains(device_name)) {
-                std::cerr << "WARNING: GPU " << device_name << "not found in " 
-                    << "tuning results, selecting best configuration across all GPUs."
-                    << std::endl;
+                std::cerr << "WARNING: GPU " << device_name << "not found in "
+                    << "tuning results, selecting best configuration across "
+                    << "all GPUs." << std::endl;
 
                 for (auto &x: results) {
                     for (auto &y: x) {
@@ -130,7 +130,7 @@ class Config {
                     }
                 }
             } else if (!results[device_name].contains(problem_size)) {
-                std::cerr << "WARNING: problem " << problem_size << "not found in " 
+                std::cerr << "WARNING: problem " << problem_size << "not found in "
                     << "tuning results, selecting best configuration across all GPUs."
                     << std::endl;
 
@@ -177,9 +177,9 @@ class Config {
         }
 
         static Config load_best(
-                const std::string &file_name, 
-                const std::string &problem_size, 
-                const std::string &objective, 
+                const std::string &file_name,
+                const std::string &problem_size,
+                const std::string &objective,
                 const std::string &device_name
         ) {
             std::ifstream ifs(file_name);
@@ -193,8 +193,8 @@ class Config {
         }
 
         static Config load_best_for_current_device(
-                const std::string &file_name, 
-                const std::string &problem_size, 
+                const std::string &file_name,
+                const std::string &problem_size,
                 const std::string &objective
         ) {
             CUdevice device;
@@ -211,7 +211,8 @@ class Config {
             //
         }
 
-        Config(std::unordered_map<std::string, int64_t> params): params(params) {
+        explicit Config(std::unordered_map<std::string, int64_t> params):
+            params(params) {
             //
         }
 
@@ -267,7 +268,7 @@ class CudaModule {
         }
 
         CudaModule(const CudaModule&) = delete;
-        CudaModule& operator=(CudaModule& that) = delete;
+        CudaModule& operator=(const CudaModule&) = delete;
 
 
         CudaModule(const void *ptx_image, const char *function_name) {
@@ -276,10 +277,9 @@ class CudaModule {
             try {
                 cu_check(cuModuleGetFunction(&_function, _module, function_name));
             } catch (std::exception &e) {
-                cuModuleUnload(_module); // ignore any errors
+                cuModuleUnload(_module);  // ignore any errors
                 throw;
             }
-
         }
 
         CUfunction get() const {
@@ -287,13 +287,12 @@ class CudaModule {
         }
 
         ~CudaModule() {
-            cuModuleUnload(_module); // ignore any errors
+            cuModuleUnload(_module);  // ignore any errors
         }
 
     private:
         CUmodule _module = nullptr;
         CUfunction _function = nullptr;
-
 };
 
 class CudaCompiler {
@@ -341,10 +340,9 @@ class CudaCompiler {
                         &program,
                         source.c_str(),
                         file_name.c_str(),
-                        (int) hnames.size(),
+                        static_cast<int>(hnames.size()),
                         hnames.data(),
-                        hcontents.data()
-            ));
+                        hcontents.data()));
 
             std::vector<char> ptx;
             std::string lowered_name;
@@ -371,7 +369,7 @@ class CudaCompiler {
                 nvrtc_check(nvrtcGetPTX(program, ptx.data()));
 
 
-                // We must copy name to a new string allocation since 
+                // We must copy name to a new string allocation since
                 // nvrtcDestroyProgram will free the pointer returned
                 // by nvrtcGetLoweredName.
                 const char *name = nullptr;
@@ -379,7 +377,6 @@ class CudaCompiler {
                 lowered_name = name;
 
                 nvrtc_check(nvrtcDestroyProgram(&program));
-
             } catch (std::exception &e) {
                 nvrtcDestroyProgram(&program);
                 throw;
@@ -395,13 +392,12 @@ class CudaCompiler {
         std::vector<std::string> header_names;
         std::vector<std::string> header_contents;
         std::vector<std::string> options;
-
 };
 
 
 CudaModule compile(
-    const std::string &kernel_name, 
-    const std::string &kernel_file, 
+    const std::string &kernel_name,
+    const std::string &kernel_file,
     const Config &params,
     const std::vector<std::string> &compiler_flags = {}
 ) {
@@ -415,12 +411,9 @@ CudaModule compile(
     std::vector<char> source((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     source.push_back('\0');
 
+    // Create compiler instance
     CudaCompiler compiler(kernel_name, kernel_file, source.data());
 
-    // read results file
-    // parse results
-    // TODO: actually do something with results_file
-    
     // Define parameters as marcos.
     for (auto &pair: params.get_all()) {
         std::stringstream option;
@@ -455,16 +448,16 @@ class RawKernel {
         RawKernel() = default;
 
         RawKernel(
-                const std::string &kernel_name, 
-                const std::string &kernel_file, 
+                const std::string &kernel_name,
+                const std::string &kernel_file,
                 const Config params,
-                const std::vector<std::string> compiler_flags = {}
-        ): kernel(compile(
+                const std::vector<std::string> compiler_flags = {}):
+        kernel(compile(
             kernel_name,
             kernel_file,
             params,
-            compiler_flags
-        )), config(params) {
+            compiler_flags)),
+        config(params) {
             //
         }
 
@@ -473,17 +466,16 @@ class RawKernel {
 
             cu_check(cuLaunchKernel(
                         kernel.get(),
-                        grid.x, 
-                        grid.y, 
+                        grid.x,
+                        grid.y,
                         grid.z,
-                        block.x, 
-                        block.y, 
+                        block.x,
+                        block.y,
                         block.z,
                         shared_mem,
                         stream,
                         args,
-                        nullptr
-            ));
+                        nullptr));
         }
 
     private:
@@ -492,64 +484,65 @@ class RawKernel {
 };
 
 namespace detail {
-    template <typename ...Args>
-    struct collect_types_impl;
+template <typename ...Args>
+struct collect_types_impl;
 
-    template <typename T, typename ...Rest>
-    struct collect_types_impl<T, Rest...> {
-        static void call(std::vector<std::string> &output) {
-            std::string result;
-            nvrtc_check(nvrtcGetTypeName<T>(&result));
-            output.push_back(result);
+template <typename T, typename ...Rest>
+struct collect_types_impl<T, Rest...> {
+    static void call(std::vector<std::string> &output) {
+        std::string result;
+        nvrtc_check(nvrtcGetTypeName<T>(&result));
+        output.push_back(result);
 
-            collect_types_impl<Rest...>::call(output);
-        }
-    };
+        collect_types_impl<Rest...>::call(output);
+    }
+};
 
-    template <>
-    struct collect_types_impl<> {
-        static void call(std::vector<std::string> &output) {
-            (void) output;
-        }
-    };
+template <>
+struct collect_types_impl<> {
+    static void call(std::vector<std::string> &output) {
+        (void) output;
+    }
+};
 
-    template <typename ...Args>
-    std::string generate_typed_kernel_name(std::string function_name) {
-        std::string name = "(void(*)(";
-        std::vector<std::string> types;
-        collect_types_impl<Args...>::call(types);
+template <typename ...Args>
+std::string generate_typed_kernel_name(std::string function_name) {
+    std::string name = "(void(*)(";
+    std::vector<std::string> types;
+    collect_types_impl<Args...>::call(types);
 
-        for (size_t i = 0; i < types.size(); i++) {
-            if (i != 0) {
-                name.append(",");
-            }
-
-            name.append(types[i]);
+    for (size_t i = 0; i < types.size(); i++) {
+        if (i != 0) {
+            name.append(",");
         }
 
-        name.append("))");
-        name.append(function_name);
-        return name;
+        name.append(types[i]);
     }
 
-    template <typename ...Args>
-    struct pack_args_impl;
-
-    template <typename T, typename ...Rest>
-    struct pack_args_impl<T, Rest...> {
-        static void call(std::vector<void*> &output, T &arg, Rest&... rest) {
-            output.push_back((void*)(T*) &arg);
-            pack_args_impl<Rest...>::call(output, rest...);
-        }
-    };
-
-    template <>
-    struct pack_args_impl<> {
-        static void call(std::vector<void*> &output) {
-            (void) output;
-        }
-    };
+    name.append("))");
+    name.append(function_name);
+    return name;
 }
+
+template <typename ...Args>
+struct pack_args_impl;
+
+template <typename T, typename ...Rest>
+struct pack_args_impl<T, Rest...> {
+    static void call(std::vector<void*> &output, const T &arg, const Rest&... rest) {
+        output.push_back(reinterpret_cast<void*>(&arg));
+        pack_args_impl<Rest...>::call(output, rest...);
+    }
+};
+
+template <>
+struct pack_args_impl<> {
+    static void call(std::vector<void*> &output) {
+        (void) output;
+    }
+};
+}  // namespace detail
+
 
 template <typename ...Args>
 class Kernel {
@@ -557,11 +550,11 @@ class Kernel {
         Kernel() = default;
 
         Kernel(
-                const std::string &kernel_name, 
-                const std::string &kernel_file, 
+                const std::string &kernel_name,
+                const std::string &kernel_file,
                 const Config &params,
-                const std::vector<std::string> compiler_flags = {}
-        ): kernel(
+                const std::vector<std::string> compiler_flags = {}):
+        kernel(
             detail::generate_typed_kernel_name<Args...>(kernel_name),
             kernel_file,
             params,
@@ -612,6 +605,6 @@ class Kernel {
 };
 
 
+}  // namespace kernel_launcher
 
-
-}
+#endif  // INCLUDE_KERNEL_LAUNCHER_H_
