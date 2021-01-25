@@ -113,7 +113,7 @@ class Config {
             std::vector<json> options;
 
             if (!results.contains(device_name)) {
-                fprintf(stderr, "WARNING: GPU %s not found in results, select best configuration across all GPUs.", device_name);
+                fprintf(stderr, "WARNING: GPU %s not found in results, select best configuration across all GPUs.", device_name.c_str());
 
                 for (auto &x: results) {
                     for (auto &y: x) {
@@ -123,7 +123,7 @@ class Config {
                     }
                 }
             } else if (!results[device_name].contains(problem_size)) {
-                fprintf(stderr, "WARNING: problem %s not found in results, select best configuration across all problems.", problem_size);
+                fprintf(stderr, "WARNING: problem %s not found in results, select best configuration across all problems.", problem_size.c_str());
 
                 for (auto &x: results[device_name]) {
                     for (auto &y: x) {
@@ -140,7 +140,7 @@ class Config {
             json *best_config = nullptr;
             double best_score = 0;
 
-            for (auto option: options) {
+            for (auto &option: options) {
                 double score = option[objective];
 
                 if (score > best_score) {
@@ -153,10 +153,12 @@ class Config {
             for (auto &it: best_config->items()) {
                 try {
                     auto key = it.key();
-                    int64_t value = 0;
-                    it.value().get_to(value);
 
-                    params[key] = value;
+                    if (key != objective) {
+                        int64_t value = 0;
+                        it.value().get_to(value);
+                        params[key] = value;
+                    }
                 } catch (const json::exception &e) {
                     // ignore any type conversion errors.
                 }
@@ -223,6 +225,11 @@ class Config {
         }
 
         const std::unordered_map<std::string, int64_t>& get_all() const {
+            printf("keys: %ld\n", params.size());
+            for (auto &it: params) {
+                printf("%s %ld\n", it.first.c_str(), it.second);
+            }
+
             return params;
         }
 

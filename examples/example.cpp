@@ -35,33 +35,48 @@ int main() {
     CU_CHECK(cuCtxCreate(&ctx, 0, device));
 
     int n = 100;
-    int *old_values;
-    float *new_values;
-    CU_CHECK(cuMemAlloc((CUdeviceptr*) &old_values, n * sizeof(int)));
-    CU_CHECK(cuMemAlloc((CUdeviceptr*) &new_values, n * sizeof(int)));
-
-    typedef Kernel<int, int*, float*> StencilKernel;
-
-    auto config = Config::load_best_for_current_device("vector_add_results.json", "800000000", "GFLOP/s");
-    auto stencil = StencilKernel("stencil", "kernel.cu", config, {"-std=c++11"});
-
-    stencil(
-            1024, 
-            16, 
-            n,
-            old_values,
-            new_values
-    );
-
-    std::vector<int> old_vals(n);
-    std::vector<int> new_vals(n);
-
-    CU_CHECK(cuMemcpy((CUdeviceptr) old_vals.data(), (CUdeviceptr) old_values, n * sizeof(int)));
-    CU_CHECK(cuMemcpy((CUdeviceptr) new_vals.data(), (CUdeviceptr) new_values, n * sizeof(int)));
+    std::vector<float> A(n);
+    std::vector<float> B(n);
+    std::vector<float> C(n);
 
     for (int i = 0; i < n; i++) {
-        printf("%d] %d %d\n", i, new_vals[i], old_vals[i]);
+        A[i] = rand() % 100;
+        B[i] = rand() % 100;
+        C[i] = 0;
+    }
+
+    float *dev_A;
+    float *dev_B;
+    float *dev_C;
+    CU_CHECK(cuMemAlloc((CUdeviceptr*) &dev_A, n * sizeof(float)));
+    CU_CHECK(cuMemAlloc((CUdeviceptr*) &dev_B, n * sizeof(float)));
+    CU_CHECK(cuMemAlloc((CUdeviceptr*) &dev_C, n * sizeof(float)));
+
+    CU_CHECK(cuMemcpy((CUdeviceptr) dev_A, (CUdeviceptr) A.data(), n * sizeof(float)));
+    CU_CHECK(cuMemcpy((CUdeviceptr) dev_B, (CUdeviceptr) B.data(), n * sizeof(float)));
+
+
+    typedef Kernel<float*, float*, float*, int> VectorAddKernel;
+
+    auto config = Config::load_best_for_current_device("vector_add_results.json", "800000000", "GFLOP/s");
+    auto vector_add = VectorAddKernel("vector_add", "vector_add.cu", config, {"-std=c++11"});
+
+    vector_add(
+            4,
+            128, 
+            dev_C,
+            dev_A,
+            dev_B,
+            n
+    );
+
+
+    CU_CHECK(cuMemcpy((CUdeviceptr) C.data(), (CUdeviceptr) dev_C, n * sizeof(float)));
+
+    for (int i = 0; i < n; i++) {
+        printf("%d] %f + %f = %f\n", i, A[i], B[i], C[i]);
     }
 
     printf("keep on trucking\n");
+    return 0;
 }
