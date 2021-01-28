@@ -25,7 +25,7 @@ void cuda_check(cudaError_t code, const char* file, int line, const char* func) 
 int main() {
     CUDA_CHECK(cudaSetDevice(0));
 
-    int n = 100;
+    int n = 1000;
     std::vector<float> A(n);
     std::vector<float> B(n);
     std::vector<float> C(n);
@@ -52,10 +52,15 @@ int main() {
     auto config = Config::load_best_for_current_device("vector_add_results.json", "800000000", "GFLOP/s");
     auto vector_add = VectorAddKernel("vector_add", "vector_add.cu", config, {"-std=c++11"});
 
-    vector_add(4)(dev_C, dev_A, dev_B, n);
+    int block_size = config.get_block_dim().x;
+    int grid_size = (n + block_size - 1) / block_size;
+
+    vector_add(grid_size)(dev_C, dev_A, dev_B, n);
 
     // Alternative way to call kernel is:
     //   vector_add.configure(4).launch(dev_C, dev_A, dev_B, n);
+    // Or launch on a stream:
+    //   vector_add(grid_size, 0, stream)(dev_C, dev_A, dev_B, n);
 
 
     CUDA_CHECK(cudaMemcpy((void*) C.data(), (void*) dev_C, n * sizeof(float), cudaMemcpyDefault));
