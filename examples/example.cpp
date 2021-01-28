@@ -9,30 +9,21 @@
 
 using namespace kernel_launcher;
 
-#define CU_CHECK(expr) cu_check(expr,  __FILE__, __LINE__, __func__);
+#define CUDA_CHECK(expr) cuda_check(expr,  __FILE__, __LINE__, __func__);
 
-void cu_check(CUresult code, const char* file, int line, const char* func) {
-    if (code != CUDA_SUCCESS) {
-        const char* name = "";
-        const char* message = "";
+void cuda_check(cudaError_t code, const char* file, int line, const char* func) {
+    if (code != cudaSuccess) {
+        const char* name = cudaGetErrorName(code);
+        const char* message = cudaGetErrorString(code);
 
-        cuGetErrorName(code, &name);
-        cuGetErrorString(code, &message);
-
-        std::cerr << "ERROR:" << file << ":" << line << ":" << func << ": " 
+        std::cerr << "ERROR:" << file << ":" << line << ":" << func << ": "
             << name << ": " << message << std::endl;
         exit(1);
     }
 }
 
 int main() {
-    CU_CHECK(cuInit(0));
-
-    CUdevice device;
-    CU_CHECK(cuDeviceGet(&device, 0));
-
-    CUcontext ctx;
-    CU_CHECK(cuCtxCreate(&ctx, 0, device));
+    CUDA_CHECK(cudaSetDevice(0));
 
     int n = 100;
     std::vector<float> A(n);
@@ -48,12 +39,12 @@ int main() {
     float *dev_A;
     float *dev_B;
     float *dev_C;
-    CU_CHECK(cuMemAlloc((CUdeviceptr*) &dev_A, n * sizeof(float)));
-    CU_CHECK(cuMemAlloc((CUdeviceptr*) &dev_B, n * sizeof(float)));
-    CU_CHECK(cuMemAlloc((CUdeviceptr*) &dev_C, n * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**) &dev_A, n * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**) &dev_B, n * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**) &dev_C, n * sizeof(float)));
 
-    CU_CHECK(cuMemcpy((CUdeviceptr) dev_A, (CUdeviceptr) A.data(), n * sizeof(float)));
-    CU_CHECK(cuMemcpy((CUdeviceptr) dev_B, (CUdeviceptr) B.data(), n * sizeof(float)));
+    CUDA_CHECK(cudaMemcpy((void*) dev_A, (void*) A.data(), n * sizeof(float), cudaMemcpyDefault));
+    CUDA_CHECK(cudaMemcpy((void*) dev_B, (void*) B.data(), n * sizeof(float), cudaMemcpyDefault));
 
 
     typedef Kernel<float*, float*, float*, int> VectorAddKernel;
@@ -63,7 +54,7 @@ int main() {
 
     vector_add(
             4,
-            128, 
+            128,
             dev_C,
             dev_A,
             dev_B,
@@ -71,7 +62,7 @@ int main() {
     );
 
 
-    CU_CHECK(cuMemcpy((CUdeviceptr) C.data(), (CUdeviceptr) dev_C, n * sizeof(float)));
+    CUDA_CHECK(cudaMemcpy((void*) C.data(), (void*) dev_C, n * sizeof(float), cudaMemcpyDefault));
 
     for (int i = 0; i < n; i++) {
         printf("%d] %f + %f = %f\n", i, A[i], B[i], C[i]);

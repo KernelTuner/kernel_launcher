@@ -1,7 +1,7 @@
 #ifndef INCLUDE_KERNEL_LAUNCHER_H_
 #define INCLUDE_KERNEL_LAUNCHER_H_
 
-#define NVRTC_GET_TYPE_NAME 1
+//#define NVRTC_GET_TYPE_NAME 1
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <nvrtc.h>
@@ -529,7 +529,7 @@ struct pack_args_impl;
 
 template <typename T, typename ...Rest>
 struct pack_args_impl<T, Rest...> {
-    static void call(std::vector<void*> &output, const T &arg, const Rest&... rest) {
+    static void call(std::vector<void*> &output, T &arg, Rest&... rest) {
         output.push_back(reinterpret_cast<void*>(&arg));
         pack_args_impl<Rest...>::call(output, rest...);
     }
