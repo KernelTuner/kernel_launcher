@@ -52,14 +52,10 @@ int main() {
     auto config = Config::load_best_for_current_device("vector_add_results.json", "800000000", "GFLOP/s");
     auto vector_add = VectorAddKernel("vector_add", "vector_add.cu", config, {"-std=c++11"});
 
-    vector_add(
-            4,
-            128,
-            dev_C,
-            dev_A,
-            dev_B,
-            n
-    );
+    vector_add(4)(dev_C, dev_A, dev_B, n);
+
+    // Alternative way to call kernel is:
+    //   vector_add.configure(4).launch(dev_C, dev_A, dev_B, n);
 
 
     CUDA_CHECK(cudaMemcpy((void*) C.data(), (void*) dev_C, n * sizeof(float), cudaMemcpyDefault));

@@ -461,10 +461,10 @@ class RawKernel {
             //
         }
 
-        void launch(dim3 grid, unsigned int shared_mem, CUstream stream, void **args) const {
+        CUresult launch_unchecked(dim3 grid, unsigned int shared_mem, CUstream stream, void **args) const {
             dim3 block = config.get_block_dim();
 
-            cu_check(cuLaunchKernel(
+            return cuLaunchKernel(
                         kernel.get(),
                         grid.x,
                         grid.y,
@@ -475,7 +475,7 @@ class RawKernel {
                         shared_mem,
                         stream,
                         args,
-                        nullptr));
+                        nullptr);
         }
 
     private:
@@ -545,6 +545,46 @@ struct pack_args_impl<> {
 
 
 template <typename ...Args>
+class KernelLaunch {
+    public:
+        KernelLaunch(dim3 grid, unsigned int shared_mem, CUstream stream, bool synchronize, const RawKernel *kernel):
+            grid(grid),
+            shared_mem(shared_mem),
+            stream(stream),
+            synchronize(synchronize),
+            kernel(kernel) {
+            //
+        }
+
+        CUresult launch_unchecked(Args... args) const {
+            std::vector<void*> ptrs;
+            detail::pack_args_impl<Args...>::call(ptrs, args...);
+
+            return kernel->launch_unchecked(grid, shared_mem, stream, ptrs.data());
+        }
+
+        void launch(Args... args) const {
+            cu_check(launch_unchecked(args...));
+
+            if (synchronize) {
+                cu_check(cuStreamSynchronize(stream));
+            }
+        }
+
+        void operator()(Args... args) const {
+            launch(args...);
+        }
+
+    private:
+        const dim3 grid;
+        const unsigned int shared_mem;
+        const CUstream stream;
+        const bool synchronize;
+        const RawKernel *kernel;
+};
+
+
+template <typename ...Args>
 class Kernel {
     public:
         Kernel() = default;
@@ -563,46 +603,43 @@ class Kernel {
             //
         }
 
-        void launch(dim3 grid, Args... args) const {
-            launch_with_shared_memory(grid, 0, args...);
+        KernelLaunch<Args...> configure(dim3 grid) const {
+            return configure(grid, 0);
         }
 
-        void launch_with_shared_memory(dim3 grid, unsigned int shared_mem, Args... args) const {
-            launch_with_shared_memory_async(grid, shared_mem, 0, args...);
-            cu_check(cuStreamSynchronize(nullptr));
+        KernelLaunch<Args...> configure(dim3 grid, unsigned int shared_mem) const {
+            return KernelLaunch<Args...>(grid, shared_mem, 0, true, &kernel);
         }
 
-        void launch_async(dim3 grid, CUstream stream, Args... args) const {
-            launch_with_shared_memory_async(grid, 0, stream, args...);
+        KernelLaunch<Args...> configure_async(dim3 grid, CUstream stream) const {
+            return configure_async(grid, 0, stream);
         }
 
-        void launch_with_shared_memory_async(dim3 grid, unsigned int shared_mem, CUstream stream, Args... args) const {
-            std::vector<void*> ptrs;
-            detail::pack_args_impl<Args...>::call(ptrs, args...);
-
-            kernel.launch(grid, shared_mem, stream, ptrs.data());
+        KernelLaunch<Args...> configure_async(dim3 grid, unsigned int shared_mem, CUstream stream) const {
+            return KernelLaunch<Args...>(grid, shared_mem, stream, false, &kernel);
         }
 
-        void operator()(dim3 grid, Args... args) const {
-            launch(grid, args...);
+        KernelLaunch<Args...> operator()(dim3 grid) const {
+            return configure(grid);
         }
 
-        void operator()(dim3 grid, CUstream stream, Args... args) const {
-            launch(grid, args...);
+        KernelLaunch<Args...> operator()(dim3 grid, CUstream stream) const {
+            return configure_async(grid, 0, stream);
         }
 
-        void operator()(dim3 grid, unsigned int shared_mem, Args... args) const {
-            launch_with_shared_memory(grid, shared_mem, args...);
+        KernelLaunch<Args...> operator()(dim3 grid, unsigned int shared_mem) const {
+            return configure(grid, shared_mem);
         }
 
-        void operator()(dim3 grid, unsigned int shared_mem, CUstream stream, Args... args) const {
-            launch_with_shared_memory_async(grid, shared_mem, stream, args...);
+        KernelLaunch<Args...> operator()(dim3 grid, unsigned int shared_mem, CUstream stream) const {
+            return configure_async(grid, shared_mem, stream);
         }
 
 
     private:
         RawKernel kernel;
 };
+
 
 
 }  // namespace kernel_launcher
