@@ -46,13 +46,10 @@ int main() {
     CUDA_CHECK(cudaMemcpy((void*) dev_A, (void*) A.data(), n * sizeof(float), cudaMemcpyDefault));
     CUDA_CHECK(cudaMemcpy((void*) dev_B, (void*) B.data(), n * sizeof(float), cudaMemcpyDefault));
 
+    using VectorAddKernel = Kernel<float*, float*, float*, int>;
+    auto vector_add = VectorAddKernel("vector_add_results.json", "800000000", {"-std=c++11"});
 
-    typedef Kernel<float*, float*, float*, int> VectorAddKernel;
-
-    auto config = Config::load_best_for_current_device("vector_add_results.json", "800000000", "GFLOP/s");
-    auto vector_add = VectorAddKernel("vector_add", "vector_add.cu", config, {"-std=c++11"});
-
-    int block_size = config.get_block_dim().x;
+    int block_size = vector_add.get_block_dim().x;
     int grid_size = (n + block_size - 1) / block_size;
 
     vector_add(grid_size)(dev_C, dev_A, dev_B, n);

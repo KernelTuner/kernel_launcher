@@ -99,120 +99,11 @@ void nvrtc_check(nvrtcResult code) {
     }
 }
 
-
-
 class Config {
     public:
-        static Config load_best(
-                const json &results,
-                const std::string &problem_size,
-                const std::string &objective,
-                std::string device_name
-        ) {
-            for (char &c: device_name) {
-                if (c == ' ' || c == '-') {
-                    c = '_';
-                }
-            }
-
-            std::vector<json> options;
-
-            if (!results.contains(device_name)) {
-                std::cerr << "WARNING: GPU " << device_name << "not found in "
-                    << "tuning results, selecting best configuration across "
-                    << "all GPUs." << std::endl;
-
-                for (auto &x: results) {
-                    for (auto &y: x) {
-                        for (auto &z: y) {
-                            options.push_back(z);
-                        }
-                    }
-                }
-            } else if (!results[device_name].contains(problem_size)) {
-                std::cerr << "WARNING: problem " << problem_size << "not found in "
-                    << "tuning results, selecting best configuration across all GPUs."
-                    << std::endl;
-
-                for (auto &x: results[device_name]) {
-                    for (auto &y: x) {
-                        options.push_back(y);
-                    }
-                }
-
-            } else {
-                for (auto &x: results[device_name][problem_size]) {
-                    options.push_back(x);
-                }
-            }
-
-            json *best_config = nullptr;
-            double best_score = 0;
-
-            for (auto &option: options) {
-                double score = option[objective];
-
-                if (score > best_score) {
-                    best_config = &option;
-                    best_score = score;
-                }
-            }
-
-            std::unordered_map<std::string, int64_t> params;
-            for (auto &it: best_config->items()) {
-                try {
-                    auto key = it.key();
-
-                    if (key != objective) {
-                        int64_t value = 0;
-                        it.value().get_to(value);
-                        params[key] = value;
-                    }
-                } catch (const json::exception &e) {
-                    // ignore any type conversion errors.
-                }
-            }
-
-            return Config(params);
-        }
-
-        static Config load_best(
-                const std::string &file_name,
-                const std::string &problem_size,
-                const std::string &objective,
-                const std::string &device_name
-        ) {
-            std::ifstream ifs(file_name);
-            if (!ifs) {
-                throw std::runtime_error("error while reading: " + file_name);
-            }
-
-            json results = json::parse(ifs);
-
-            return Config::load_best(results, problem_size, objective, device_name);
-        }
-
-        static Config load_best_for_current_device(
-                const std::string &file_name,
-                const std::string &problem_size,
-                const std::string &objective
-        ) {
-            CUdevice device;
-            cu_check(cuCtxGetDevice(&device));
-
-            static char name[256];
-            cu_check(cuDeviceGetName(name, sizeof(name), device));
-
-            return Config::load_best(file_name, problem_size, objective, name);
-        }
-
-
-        Config() {
-            //
-        }
-
+        Config() = default;
         explicit Config(std::unordered_map<std::string, int64_t> params):
-            params(params) {
+                params(params) {
             //
         }
 
@@ -247,9 +138,154 @@ class Config {
             return params;
         }
 
+        static Config select_best(
+                const json &props,
+                const std::string &problem_size,
+                std::string device_name
+        ) {
+            static const int INVALID = -1;
+            static const int VALID = 1;
+            static const int VALID_DEVICE = 2;
+            static const int VALID_DEVICE_AND_PROBLEM = 3;
+
+            const std::string &objective = props.at("objective");
+            bool higher_is_better = props.at("objective_higher_is_better");
+            std::vector<std::string> param_keys = props.at("tunable_parameters");
+            const json &records = props.at("data");  // Tuning results
+
+            const json *best_record = nullptr;
+            int best_type = INVALID;
+            double best_score = 0.0;
+
+            for (size_t i = 0; i < records.size(); i++) {
+                const json &record = records.at(i);
+                int type = VALID;
+
+                if (record.at("device_name") == device_name) {
+                    type = VALID_DEVICE;
+
+                    if (record.at("problem_size") == problem_size) {
+                        type = VALID_DEVICE_AND_PROBLEM;
+                    }
+                }
+
+                double score = record.at(objective);
+
+                if (type > best_type ||
+                        (higher_is_better && score > best_score) ||
+                        (!higher_is_better && score < best_score)) {
+                    best_score = score;
+                    best_type = type;
+                    best_record = &record;
+                }
+            }
+
+            if (best_record == nullptr) {
+                throw std::runtime_error("could not load configuration, not valid results found");
+            } else if (best_type == VALID) {
+                std::cerr << "WARNING: GPU " << device_name << " not found in "
+                    << "tuning results, selecting best configuration across "
+                    << "all GPUs." << std::endl;
+            } else if (best_type == VALID_DEVICE) {
+                std::cerr << "WARNING: problem " << problem_size << " not found in "
+                    << "tuning results, selecting best configuration across all problem sizes "
+                    << "for GPU " << device_name
+                    << std::endl;
+            }
+
+
+            const json &best_config = best_record->at("tunable_parameters");
+            Config params;
+
+            for (const std::string &key: param_keys) {
+                int64_t value = best_config.at(key);
+                params.set(key, value);
+            }
+
+            return params;
+        }
 
     private:
         std::unordered_map<std::string, int64_t> params;
+};
+
+class KernelDefinition {
+    public:
+        static KernelDefinition select_best(
+                const json &props,
+                const std::string &problem_size,
+                std::string device_name
+        ) {
+            for (char &c: device_name) {
+                if (c == ' ' || c == '-') {
+                    c = '_';
+                }
+            }
+
+            if (props.at("version_number") != "1.0") {
+                throw std::runtime_error("JSON file has invalid format, expecting version 1.0");
+            }
+
+            Config params = Config::select_best(
+                    props,
+                    problem_size,
+                    device_name
+            );
+
+            std::string kernel_name = props.at("kernel_name");
+            std::string kernel_source = props.at("kernel_string");
+
+            return KernelDefinition(kernel_name, kernel_source, params);
+        }
+
+        static KernelDefinition load_best(
+                const std::string &file_name,
+                const std::string &problem_size,
+                const std::string &device_name
+        ) {
+            std::ifstream ifs(file_name);
+            if (!ifs) {
+                throw std::runtime_error("error while reading: " + file_name);
+            }
+
+            json results = json::parse(ifs);
+
+            return KernelDefinition::select_best(results, problem_size, device_name);
+        }
+
+        static KernelDefinition load_best_for_current_device(
+                const std::string &file_name,
+                const std::string &problem_size
+        ) {
+            CUdevice device;
+            cu_check(cuCtxGetDevice(&device));
+
+            static char name[256];
+            cu_check(cuDeviceGetName(name, sizeof(name), device));
+
+            return KernelDefinition::load_best(file_name, problem_size, name);
+        }
+
+
+        KernelDefinition() {
+            //
+        }
+
+        explicit KernelDefinition(
+                std::string kernel_name,
+                std::string kernel_source,
+                Config params):
+            kernel_name(kernel_name),
+            kernel_source(kernel_source),
+            params(params) {
+            //
+        }
+
+
+    //private:
+        std::string kernel_name;
+        std::string kernel_source;
+        Config params;
 };
 
 
@@ -297,9 +333,8 @@ class CudaModule {
 
 class CudaCompiler {
     public:
-        CudaCompiler(std::string function_name, std::string file_name, std::string source):
+        CudaCompiler(std::string function_name, std::string source):
             function_name(function_name),
-            file_name(file_name),
             source(source) {
             //
         }
@@ -397,22 +432,12 @@ class CudaCompiler {
 
 CudaModule compile(
     const std::string &kernel_name,
-    const std::string &kernel_file,
+    const std::string &kernel_source,
     const Config &params,
     const std::vector<std::string> &compiler_flags = {}
 ) {
-    // open file
-    std::ifstream ifs(kernel_file);
-    if (!ifs) {
-        throw std::runtime_error("error while reading: " + kernel_file);
-    }
-
-    // read source code.
-    std::vector<char> source((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-    source.push_back('\0');
-
     // Create compiler instance
-    CudaCompiler compiler(kernel_name, kernel_file, source.data());
+    CudaCompiler compiler(kernel_name, kernel_source.c_str());
 
     // Define parameters as marcos.
     for (auto &pair: params.get_all()) {
@@ -476,6 +501,10 @@ class RawKernel {
                         stream,
                         args,
                         nullptr);
+        }
+
+        const Config& get_config() const {
+            return config;
         }
 
     private:
@@ -590,13 +619,27 @@ class Kernel {
         Kernel() = default;
 
         Kernel(
+                const std::string &tuning_file,
+                const std::string &problem_size,
+                const std::vector<std::string> compiler_flags = {}) {
+            auto def = KernelDefinition::load_best_for_current_device(tuning_file, problem_size);
+
+            this->kernel = RawKernel(
+                    def.kernel_name,
+                    def.kernel_source,
+                    def.params,
+                    compiler_flags
+            );
+        }
+
+        Kernel(
                 const std::string &kernel_name,
-                const std::string &kernel_file,
+                const std::string &kernel_source,
                 const Config &params,
                 const std::vector<std::string> compiler_flags = {}):
         kernel(
             detail::generate_typed_kernel_name<Args...>(kernel_name),
-            kernel_file,
+            kernel_source,
             params,
             compiler_flags
         ) {
@@ -635,6 +678,13 @@ class Kernel {
             return configure_async(grid, shared_mem, stream);
         }
 
+        dim3 get_block_dim() const {
+            return get_config().get_block_dim();
+        }
+
+        const Config& get_config() const {
+            return kernel.get_config();
+        }
 
     private:
         RawKernel kernel;
