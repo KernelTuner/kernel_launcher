@@ -148,6 +148,16 @@ class Config {
             static const int VALID_DEVICE = 2;
             static const int VALID_DEVICE_AND_PROBLEM = 3;
 
+            for (char &c: device_name) {
+                if (c == ' ' || c == '-') {
+                    c = '_';
+                }
+            }
+
+            if (props.at("version_number") != "1.0") {
+                throw std::runtime_error("JSON file has invalid format, expecting version 1.0");
+            }
+
             const std::string &objective = props.at("objective");
             bool higher_is_better = props.at("objective_higher_is_better");
             std::vector<std::string> param_keys = props.at("tunable_parameters");
@@ -202,43 +212,11 @@ class Config {
                 params.set(key, value);
             }
 
+            params.kernel_name = props.at("kernel_name");
             return params;
         }
 
-    private:
-        std::unordered_map<std::string, int64_t> params;
-};
-
-class KernelDefinition {
-    public:
-        static KernelDefinition select_best(
-                const json &props,
-                const std::string &problem_size,
-                std::string device_name
-        ) {
-            for (char &c: device_name) {
-                if (c == ' ' || c == '-') {
-                    c = '_';
-                }
-            }
-
-            if (props.at("version_number") != "1.0") {
-                throw std::runtime_error("JSON file has invalid format, expecting version 1.0");
-            }
-
-            Config params = Config::select_best(
-                    props,
-                    problem_size,
-                    device_name
-            );
-
-            std::string kernel_name = props.at("kernel_name");
-            std::string kernel_source = props.at("kernel_string");
-
-            return KernelDefinition(kernel_name, kernel_source, params);
-        }
-
-        static KernelDefinition load_best(
+        static Config load_best(
                 const std::string &file_name,
                 const std::string &problem_size,
                 const std::string &device_name
@@ -250,10 +228,10 @@ class KernelDefinition {
 
             json results = json::parse(ifs);
 
-            return KernelDefinition::select_best(results, problem_size, device_name);
+            return Config::select_best(results, problem_size, device_name);
         }
 
-        static KernelDefinition load_best_for_current_device(
+        static Config load_best_for_current_device(
                 const std::string &file_name,
                 const std::string &problem_size
         ) {
@@ -263,29 +241,12 @@ class KernelDefinition {
             static char name[256];
             cu_check(cuDeviceGetName(name, sizeof(name), device));
 
-            return KernelDefinition::load_best(file_name, problem_size, name);
+            return Config::load_best(file_name, problem_size, name);
         }
-
-
-        KernelDefinition() {
-            //
-        }
-
-        explicit KernelDefinition(
-                std::string kernel_name,
-                std::string kernel_source,
-                Config params):
-            kernel_name(kernel_name),
-            kernel_source(kernel_source),
-            params(params) {
-            //
-        }
-
 
     //private:
+        std::unordered_map<std::string, int64_t> params;
         std::string kernel_name;
-        std::string kernel_source;
-        Config params;
 };
 
 
@@ -331,11 +292,12 @@ class CudaModule {
         CUfunction _function = nullptr;
 };
 
+
 class CudaCompiler {
     public:
-        CudaCompiler(std::string function_name, std::string source):
+        CudaCompiler(std::string function_name, std::string kernel_file):
             function_name(function_name),
-            source(source) {
+            file_name(kernel_file) {
             //
         }
 
@@ -356,6 +318,12 @@ class CudaCompiler {
 
 
         CudaModule compile() {
+            std::ifstream ifs(file_name);
+            if (!ifs) {
+                throw std::runtime_error("error while reading: " + file_name);
+            }
+
+            std::vector<char> source((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
             source.push_back('\0');
 
             std::vector<const char*> hnames;
@@ -373,7 +341,7 @@ class CudaCompiler {
             nvrtcProgram program = nullptr;
             nvrtc_check(nvrtcCreateProgram(
                         &program,
-                        source.c_str(),
+                        source.data(),
                         file_name.c_str(),
                         static_cast<int>(hnames.size()),
                         hnames.data(),
@@ -423,66 +391,56 @@ class CudaCompiler {
     private:
         std::string function_name;
         std::string file_name;
-        std::string source;
         std::vector<std::string> header_names;
         std::vector<std::string> header_contents;
         std::vector<std::string> options;
 };
 
 
-CudaModule compile(
-    const std::string &kernel_name,
-    const std::string &kernel_source,
-    const Config &params,
-    const std::vector<std::string> &compiler_flags = {}
-) {
-    // Create compiler instance
-    CudaCompiler compiler(kernel_name, kernel_source.c_str());
-
-    // Define parameters as marcos.
-    for (auto &pair: params.get_all()) {
-        std::stringstream option;
-        option << "--define-macro=" << pair.first << "=" << pair.second;
-        compiler.add_option(option.str());
-    }
-
-
-    // Add sm_<major><minor> of the current device as compile flag.
-    CUdevice device;
-    int major, minor;
-    cu_check(cuCtxGetDevice(&device));
-    cu_check(cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, device));
-    cu_check(cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, device));
-
-    std::stringstream arch;
-    arch << "--gpu-architecture=compute_" << major << minor;
-    compiler.add_option(arch.str());
-
-    // add remaining compiler flags
-    for (const std::string &opt: compiler_flags) {
-        compiler.add_option(opt);
-    }
-
-    return compiler.compile();
-}
-
-
-
 class RawKernel {
     public:
+        static RawKernel compile(
+            const Config &&params,
+            const std::string &kernel_name,
+            const std::string &kernel_file,
+            const std::vector<std::string> &compiler_flags = {}
+        ) {
+            // Create compiler instance
+            CudaCompiler compiler(kernel_name, kernel_file);
+
+            // Define parameters as marcos.
+            for (auto &pair: params.get_all()) {
+                std::stringstream option;
+                option << "--define-macro=" << pair.first << "=" << pair.second;
+                compiler.add_option(option.str());
+            }
+
+
+            // Add sm_<major><minor> of the current device as compile flag.
+            CUdevice device;
+            int major, minor;
+            cu_check(cuCtxGetDevice(&device));
+            cu_check(cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, device));
+            cu_check(cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, device));
+
+            std::stringstream arch;
+            arch << "--gpu-architecture=compute_" << major << minor;
+            compiler.add_option(arch.str());
+
+            // add remaining compiler flags
+            for (const std::string &opt: compiler_flags) {
+                compiler.add_option(opt);
+            }
+
+            CudaModule module = compiler.compile();
+            return RawKernel(std::move(module), std::move(params));
+        }
+
         RawKernel() = default;
 
-        RawKernel(
-                const std::string &kernel_name,
-                const std::string &kernel_file,
-                const Config params,
-                const std::vector<std::string> compiler_flags = {}):
-        kernel(compile(
-            kernel_name,
-            kernel_file,
-            params,
-            compiler_flags)),
-        config(params) {
+        RawKernel(CudaModule kernel, Config config):
+                kernel(std::move(kernel)), 
+                config(std::move(config)) {
             //
         }
 
@@ -616,33 +574,33 @@ class KernelLaunch {
 template <typename ...Args>
 class Kernel {
     public:
-        Kernel() = default;
+        static Kernel compile(
+                const Config &&config,
+                const std::string &kernel_file,
+                const std::vector<std::string> &compiler_flags = {}) {
+            std::string kernel_name = detail::generate_typed_kernel_name<Args...>(config.kernel_name);
 
-        Kernel(
-                const std::string &tuning_file,
-                const std::string &problem_size,
-                const std::vector<std::string> compiler_flags = {}) {
-            auto def = KernelDefinition::load_best_for_current_device(tuning_file, problem_size);
-
-            this->kernel = RawKernel(
-                    def.kernel_name,
-                    def.kernel_source,
-                    def.params,
+            return Kernel(RawKernel::compile(
+                    std::move(config),
+                    kernel_name,
+                    kernel_file,
                     compiler_flags
-            );
+            ));
         }
 
-        Kernel(
-                const std::string &kernel_name,
-                const std::string &kernel_source,
-                const Config &params,
-                const std::vector<std::string> compiler_flags = {}):
-        kernel(
-            detail::generate_typed_kernel_name<Args...>(kernel_name),
-            kernel_source,
-            params,
-            compiler_flags
-        ) {
+        static Kernel compile_best_for_current_device(
+                const std::string &tuning_file,
+                const std::string &problem_size,
+                const std::string &kernel_file,
+                const std::vector<std::string> &compiler_flags = {}) {
+            auto config = Config::load_best_for_current_device(tuning_file, problem_size);
+            return Kernel::compile(std::move(config), kernel_file, compiler_flags);
+        }
+
+
+        Kernel() = default;
+
+        explicit Kernel(RawKernel inner): kernel(std::move(inner)) {
             //
         }
 

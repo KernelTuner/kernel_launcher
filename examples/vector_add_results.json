@@ -1,7 +1,7 @@
 {
 "version_number": "1.0",
 "kernel_name": "vector_add",
-"kernel_string": "#include \"vector_add.h\"\n\n\n\n__global__ void vector_add(float *c, float *a, float *b, int n) {\n    int i = blockIdx.x * block_size_x + threadIdx.x;\n    if (i<n) {\n        c[i] = a[i] + b[i];\n    }\n}\n\n",
+"kernel_string": "//#include \"vector_add.h\"\n\n\n\n__global__ void vector_add(float *c, float *a, float *b, int n) {\n    int i = blockIdx.x * block_size_x + threadIdx.x;\n    if (i<n) {\n        c[i] = a[i] + b[i];\n    }\n}\n\n",
 "objective": "GFLOP/s",
 "objective_higher_is_better": true,
 "tunable_parameters": [
