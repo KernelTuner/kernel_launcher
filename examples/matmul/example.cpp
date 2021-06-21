@@ -47,7 +47,7 @@ int main() {
     CUDA_CHECK(cudaMemcpy((void*) dev_B, (void*) B.data(), n * sizeof(float), cudaMemcpyDefault));
 
     auto matmul = CudaKernel<float*, float*, float*>::compile_best_for_current_device(
-            "matmul_results.json", "4096x4096", "matmul.cu", {"-std=c++11"});
+            "matmul_results.json", {4096, 4096}, "matmul.cu", {"-std=c++11"});
 
     auto config = matmul.get_config();
     int block_size_x = matmul.get_block_dim().x;

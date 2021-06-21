@@ -99,11 +99,56 @@ void nvrtc_check(nvrtcResult code) {
     }
 }
 
+class ProblemSize {
+    public:
+        ProblemSize(const ProblemSize&) = default;
+        ProblemSize(ProblemSize&&) = default;
+        ProblemSize() = default;
+
+        ProblemSize(const std::string &p): name(p) {
+            //
+        }
+
+        ProblemSize(const char* p): name(p) {
+            //
+        }
+
+        ProblemSize(int p): name(std::to_string(p)) {
+            //
+        }
+
+        ProblemSize(std::initializer_list<int> list) {
+            size_t index = 0;
+
+            for (int p: list) {
+                if (index++ > 0) {
+                    name += "x";
+                }
+
+                name += std::to_string(p);
+            }
+        }
+
+        ProblemSize(std::pair<int, int> p) {
+            *this = { p.first, p.second };
+        }
+
+        ProblemSize& operator=(const ProblemSize&) = default;
+        ProblemSize& operator=(ProblemSize&&) = default;
+
+        const std::string& get() const {
+            return name;
+        }
+
+    private:
+        std::string name;
+};
+
 class Config {
     public:
         static Config select_best(
                 const json &props,
-                const std::string &problem_size,
+                const ProblemSize &problem_size,
                 std::string device_name
         ) {
             static const int INVALID = -1;
@@ -137,7 +182,7 @@ class Config {
                 if (record.at("device_name") == device_name) {
                     type = VALID_DEVICE;
 
-                    if (record.at("problem_size") == problem_size) {
+                    if (record.at("problem_size") == problem_size.get()) {
                         type = VALID_DEVICE_AND_PROBLEM;
                     }
                 }
@@ -160,7 +205,7 @@ class Config {
                     << "tuning results, selecting best configuration across "
                     << "all GPUs." << std::endl;
             } else if (best_type == VALID_DEVICE) {
-                std::cerr << "WARNING: problem " << problem_size << " not found in "
+                std::cerr << "WARNING: problem " << problem_size.get() << " not found in "
                     << "tuning results, selecting best configuration across all problem sizes "
                     << "for GPU " << device_name
                     << std::endl;
@@ -181,7 +226,7 @@ class Config {
 
         static Config load_best(
                 const std::string &file_name,
-                const std::string &problem_size,
+                const ProblemSize &problem_size,
                 const std::string &device_name
         ) {
             std::ifstream ifs(file_name);
@@ -197,7 +242,7 @@ class Config {
 
         static Config load_best_for_current_device(
                 const std::string &file_name,
-                const std::string &problem_size
+                const ProblemSize &problem_size
         ) {
             CUdevice device;
             cu_check(cuCtxGetDevice(&device));
@@ -405,7 +450,7 @@ class CudaCompiler {
 class RawCudaKernel {
     public:
         static RawCudaKernel compile(
-            const Config &&params,
+            Config params,
             const std::string &kernel_name,
             const std::string &kernel_file,
             const std::vector<std::string> &compiler_flags = {}
@@ -442,8 +487,9 @@ class RawCudaKernel {
         }
 
         RawCudaKernel() = default;
+        RawCudaKernel(RawCudaKernel&&) = default;
 
-        RawCudaKernel(CudaModule kernel, Config config):
+        RawCudaKernel(CudaModule &&kernel, Config &&config):
                 kernel(std::move(kernel)),
                 config(std::move(config)) {
             //
@@ -580,7 +626,7 @@ template <typename ...Args>
 class CudaKernel {
     public:
         static CudaKernel compile(
-                const Config &&config,
+                const Config config,
                 const std::string &kernel_file,
                 const std::vector<std::string> &compiler_flags = {}) {
             std::string kernel_name = detail::generate_typed_kernel_name<Args...>(config.kernel_name);
@@ -595,7 +641,7 @@ class CudaKernel {
 
         static CudaKernel compile_best_for_current_device(
                 const std::string &tuning_file,
-                const std::string &problem_size,
+                const ProblemSize &problem_size,
                 const std::string &kernel_file,
                 const std::vector<std::string> &compiler_flags = {}) {
             auto config = Config::load_best_for_current_device(tuning_file, problem_size);
