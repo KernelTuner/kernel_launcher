@@ -47,7 +47,7 @@ int main() {
     CUDA_CHECK(cudaMemcpy((void*) dev_B, (void*) B.data(), n * sizeof(float), cudaMemcpyDefault));
 
     //using VectorAddKernel = Kernel<float*, float*, float*, int>;
-    auto vector_add = Kernel<float*, float*, float*, int>::compile_best_for_current_device(
+    auto vector_add = CudaKernel<float*, float*, float*, int>::compile_best_for_current_device(
             "vector_add_results.json", "800000000", "vector_add.cu", {"-std=c++11"});
 
     int block_size = vector_add.get_block_dim().x;

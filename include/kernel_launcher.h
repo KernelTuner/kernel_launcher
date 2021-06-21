@@ -101,43 +101,6 @@ void nvrtc_check(nvrtcResult code) {
 
 class Config {
     public:
-        Config() = default;
-        explicit Config(std::unordered_map<std::string, int64_t> params):
-                params(params) {
-            //
-        }
-
-        void set(std::string key, int64_t value) {
-            params[key] = value;
-        }
-
-        int64_t get(const std::string &key) const {
-            return params.at(key);
-        }
-
-        int64_t get(const std::string &key, int64_t def) const {
-            auto it = params.find(key);
-
-            if (it == params.end()) {
-                return def;
-            } else {
-                return it->second;
-            }
-        }
-
-
-        dim3 get_block_dim() const {
-            dim3 block;
-            block.x = get("block_size_x", 1);
-            block.y = get("block_size_y", 1);
-            block.z = get("block_size_z", 1);
-            return block;
-        }
-
-        const std::unordered_map<std::string, int64_t>& get_all() const {
-            return params;
-        }
-
         static Config select_best(
                 const json &props,
                 const std::string &problem_size,
@@ -205,16 +168,16 @@ class Config {
 
 
             const json &best_config = best_record->at("tunable_parameters");
-            Config params;
+            Config params(props.at("kernel_name"));
 
             for (const std::string &key: param_keys) {
                 int64_t value = best_config.at(key);
                 params.set(key, value);
             }
 
-            params.kernel_name = props.at("kernel_name");
             return params;
         }
+
 
         static Config load_best(
                 const std::string &file_name,
@@ -231,6 +194,7 @@ class Config {
             return Config::select_best(results, problem_size, device_name);
         }
 
+
         static Config load_best_for_current_device(
                 const std::string &file_name,
                 const std::string &problem_size
@@ -244,9 +208,50 @@ class Config {
             return Config::load_best(file_name, problem_size, name);
         }
 
+
+        Config(const std::string &&kernel_name): kernel_name(kernel_name) {
+            //
+        }
+
+        void set(std::string key, int64_t value) {
+            params[key] = value;
+        }
+
+        int64_t get(const std::string &key) const {
+            return params.at(key);
+        }
+
+        int64_t get(const std::string &key, int64_t def) const {
+            auto it = params.find(key);
+
+            if (it == params.end()) {
+                return def;
+            } else {
+                return it->second;
+            }
+        }
+
+
+        dim3 get_block_dim() const {
+            dim3 block;
+            block.x = get("block_size_x", 1);
+            block.y = get("block_size_y", 1);
+            block.z = get("block_size_z", 1);
+            return block;
+        }
+
+        const std::string& get_kernel_name() const {
+            return kernel_name;
+        }
+
+        const std::unordered_map<std::string, int64_t>& get_all() const {
+            return params;
+        }
+
+
     //private:
+        const std::string kernel_name;
         std::unordered_map<std::string, int64_t> params;
-        std::string kernel_name;
 };
 
 
@@ -295,7 +300,7 @@ class CudaModule {
 
 class CudaCompiler {
     public:
-        CudaCompiler(std::string function_name, std::string kernel_file):
+        CudaCompiler(const std::string &function_name, const std::string &kernel_file):
             function_name(function_name),
             file_name(kernel_file) {
             //
@@ -397,9 +402,9 @@ class CudaCompiler {
 };
 
 
-class RawKernel {
+class RawCudaKernel {
     public:
-        static RawKernel compile(
+        static RawCudaKernel compile(
             const Config &&params,
             const std::string &kernel_name,
             const std::string &kernel_file,
@@ -433,13 +438,13 @@ class RawKernel {
             }
 
             CudaModule module = compiler.compile();
-            return RawKernel(std::move(module), std::move(params));
+            return RawCudaKernel(std::move(module), std::move(params));
         }
 
-        RawKernel() = default;
+        RawCudaKernel() = default;
 
-        RawKernel(CudaModule kernel, Config config):
-                kernel(std::move(kernel)), 
+        RawCudaKernel(CudaModule kernel, Config config):
+                kernel(std::move(kernel)),
                 config(std::move(config)) {
             //
         }
@@ -532,9 +537,9 @@ struct pack_args_impl<> {
 
 
 template <typename ...Args>
-class KernelLaunch {
+class CudaKernelLaunch {
     public:
-        KernelLaunch(dim3 grid, unsigned int shared_mem, CUstream stream, bool synchronize, const RawKernel *kernel):
+        CudaKernelLaunch(dim3 grid, unsigned int shared_mem, CUstream stream, bool synchronize, const RawCudaKernel *kernel):
             grid(grid),
             shared_mem(shared_mem),
             stream(stream),
@@ -567,20 +572,20 @@ class KernelLaunch {
         const unsigned int shared_mem;
         const CUstream stream;
         const bool synchronize;
-        const RawKernel *kernel;
+        const RawCudaKernel *kernel;
 };
 
 
 template <typename ...Args>
-class Kernel {
+class CudaKernel {
     public:
-        static Kernel compile(
+        static CudaKernel compile(
                 const Config &&config,
                 const std::string &kernel_file,
                 const std::vector<std::string> &compiler_flags = {}) {
             std::string kernel_name = detail::generate_typed_kernel_name<Args...>(config.kernel_name);
 
-            return Kernel(RawKernel::compile(
+            return CudaKernel(RawCudaKernel::compile(
                     std::move(config),
                     kernel_name,
                     kernel_file,
@@ -588,64 +593,68 @@ class Kernel {
             ));
         }
 
-        static Kernel compile_best_for_current_device(
+        static CudaKernel compile_best_for_current_device(
                 const std::string &tuning_file,
                 const std::string &problem_size,
                 const std::string &kernel_file,
                 const std::vector<std::string> &compiler_flags = {}) {
             auto config = Config::load_best_for_current_device(tuning_file, problem_size);
-            return Kernel::compile(std::move(config), kernel_file, compiler_flags);
+            return CudaKernel::compile(std::move(config), kernel_file, compiler_flags);
         }
 
 
-        Kernel() = default;
+        CudaKernel() = default;
 
-        explicit Kernel(RawKernel inner): kernel(std::move(inner)) {
+        explicit CudaKernel(RawCudaKernel &&inner): kernel(std::move(inner)) {
             //
         }
 
-        KernelLaunch<Args...> configure(dim3 grid) const {
+        CudaKernelLaunch<Args...> configure(dim3 grid) const {
             return configure(grid, 0);
         }
 
-        KernelLaunch<Args...> configure(dim3 grid, unsigned int shared_mem) const {
-            return KernelLaunch<Args...>(grid, shared_mem, 0, true, &kernel);
+        CudaKernelLaunch<Args...> configure(dim3 grid, unsigned int shared_mem) const {
+            return CudaKernelLaunch<Args...>(grid, shared_mem, 0, true, &kernel);
         }
 
-        KernelLaunch<Args...> configure_async(dim3 grid, CUstream stream) const {
+        CudaKernelLaunch<Args...> configure_async(dim3 grid, CUstream stream) const {
             return configure_async(grid, 0, stream);
         }
 
-        KernelLaunch<Args...> configure_async(dim3 grid, unsigned int shared_mem, CUstream stream) const {
-            return KernelLaunch<Args...>(grid, shared_mem, stream, false, &kernel);
+        CudaKernelLaunch<Args...> configure_async(dim3 grid, unsigned int shared_mem, CUstream stream) const {
+            return CudaKernelLaunch<Args...>(grid, shared_mem, stream, false, &kernel);
         }
 
-        KernelLaunch<Args...> operator()(dim3 grid) const {
+        CudaKernelLaunch<Args...> operator()(dim3 grid) const {
             return configure(grid);
         }
 
-        KernelLaunch<Args...> operator()(dim3 grid, CUstream stream) const {
+        CudaKernelLaunch<Args...> operator()(dim3 grid, CUstream stream) const {
             return configure_async(grid, 0, stream);
         }
 
-        KernelLaunch<Args...> operator()(dim3 grid, unsigned int shared_mem) const {
+        CudaKernelLaunch<Args...> operator()(dim3 grid, unsigned int shared_mem) const {
             return configure(grid, shared_mem);
         }
 
-        KernelLaunch<Args...> operator()(dim3 grid, unsigned int shared_mem, CUstream stream) const {
+        CudaKernelLaunch<Args...> operator()(dim3 grid, unsigned int shared_mem, CUstream stream) const {
             return configure_async(grid, shared_mem, stream);
-        }
-
-        dim3 get_block_dim() const {
-            return get_config().get_block_dim();
         }
 
         const Config& get_config() const {
             return kernel.get_config();
         }
 
+        dim3 get_block_dim() const {
+            return get_config().get_block_dim();
+        }
+
+        const std::string& get_kernel_name() const {
+            return get_config().get_kernel_name();
+        }
+
     private:
-        RawKernel kernel;
+        RawCudaKernel kernel;
 };
 
 
