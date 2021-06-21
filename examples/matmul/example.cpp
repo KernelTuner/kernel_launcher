@@ -49,7 +49,13 @@ int main() {
     auto matmul = CudaKernel<float*, float*, float*>::compile_best_for_current_device(
             "matmul_results.json", "4096x4096", "matmul.cu", {"-std=c++11"});
 
-    dim3 grid(4096 / matmul.get_block_dim().x, 4096 / matmul.get_block_dim().y, 1);
+    auto config = matmul.get_config();
+    int block_size_x = matmul.get_block_dim().x;
+    int block_size_y = matmul.get_block_dim().y;
+    int tile_size_x = config.get("tile_size_x");
+    int tile_size_y = config.get("tile_size_y");
+
+    dim3 grid(4096 / (block_size_x * tile_size_x), 4096 / (block_size_y * tile_size_y), 1);
 
     matmul(grid)(dev_C, dev_A, dev_B);
 
