@@ -339,7 +339,7 @@ class CudaCompiler {
             }
 
             std::vector<const char*> opts;
-            for (auto opt: options) {
+            for (auto &opt: options) {
                 opts.push_back(opt.c_str());
             }
 
