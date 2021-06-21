@@ -1,0 +1,26 @@
+{
+"version_number": "1.0",
+"kernel_name": "matmul_kernel",
+"kernel_string": "/**\n * The kernel is assumed to be tuned to each device by selecting\n * the best performing combination of thread block dimensions \n * and tiling factors in X and Y. In this implementation tiling\n * in X increases the amount of work per thread block and tiling\n * in Y increases the amount of work per thread within the block. \n * \n * @author Ben van Werkhoven <b.vanwerkhoven@esciencecenter.nl>\n * \n */\n\n#define WIDTH 4096\n/*\n * Optimized CUDA kernel for matrix multiplication\n *\n * This kernel is optimized according to the directions given\n * in: \"Better performance at lower occupancy\" by V. Volkov,\n * GPU Technology Conference, GTC 2010.\n *\n * The thread block dimensions (block_size_x, block_size_y) \n * and tiling factors (tile_size_x, tile_size_y) are to be\n * tuned towards each GPU. This kernel assumes that\n * block_size_x = block_size_y * tile_size_y.\n *\n * The kernel computes C=A*B, where A, B, and C are square\n * matrices with height and width equal to WIDTH\n */\n__global__ void matmul_kernel(float *C, float *A, float *B) {\n\n    __shared__ float sA[block_size_y*tile_size_y][block_size_x];\n    __shared__ float sB[block_size_y*tile_size_y][block_size_x * tile_size_x];\n\n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * block_size_x * tile_size_x + threadIdx.x;\n    int y = blockIdx.y * block_size_y * tile_size_y + threadIdx.y;\n    int k, kb;\n\n    float sum[tile_size_y][tile_size_x];\n    #pragma unroll\n    for (int i = 0; i < tile_size_y; i++) {\n        #pragma unroll\n        for (int j = 0; j < tile_size_x; j++) {\n            sum[i][j] = 0.0f;\n        }\n    }\n\n    for (k = 0; k < WIDTH; k += block_size_x) {\n\n        __syncthreads();\n        #pragma unroll\n        for (int i = 0; i < tile_size_y; i++) {\n            sA[ty + block_size_y * i][tx] = A[(y+i*block_size_y) * WIDTH + k + tx];\n\n            #pragma unroll\n            for (int j = 0; j < tile_size_x; j++) {\n                sB[ty + block_size_y * i][tx + j * block_size_x] = B[(k + ty + block_size_y * i) * WIDTH + x + j * block_size_x];\n            }\n        }\n        __syncthreads();\n\n        //compute\n        #pragma unroll\n        for (kb = 0; kb < block_size_x; kb++) {\n\n            #pragma unroll\n            for (int i = 0; i < tile_size_y; i++) {\n            #pragma unroll\n                for (int j = 0; j < tile_size_x; j++) {\n                    sum[i][j] += sA[ty + block_size_y * i][kb] * sB[kb][tx + j * block_size_x];\n                }\n            }\n\n        }\n\n    }\n\n    //store result\n    #pragma unroll\n    for (int i = 0; i < tile_size_y; i++) {\n        #pragma unroll\n        for (int j = 0; j < tile_size_x; j++) {\n            C[y * WIDTH + x + block_size_y * i * WIDTH + j * block_size_x] = sum[i][j];\n        }\n    }\n\n}\n\n\n\n\n",
+"objective": "time",
+"objective_higher_is_better": false,
+"tunable_parameters": [
+"block_size_x",
+"block_size_y",
+"tile_size_x",
+"tile_size_y"
+],
+"data": [
+{
+"device_name": "GeForce_GTX_TITAN_X",
+"problem_size": "4096x4096",
+"tunable_parameters": {
+"block_size_x": 32,
+"block_size_y": 8,
+"tile_size_x": 4,
+"tile_size_y": 4
+},
+"time": 53.11627686023712
+}
+]
+}
