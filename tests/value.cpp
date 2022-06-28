@@ -4,14 +4,16 @@
 
 using namespace kernel_launcher;
 
-TEST_CASE("test TunableValue") {
-    TunableValue empty;
-    TunableValue intval(300);
-    TunableValue floatval(8.0);
-    TunableValue boolval(true);
-    TunableValue strval("abc");
-    TunableValue trueval(true);
-    TunableValue falseval(false);
+TEST_CASE("test T") {
+    using T = TunableValue;
+
+    T empty;
+    T intval(300);
+    T floatval(8.0);
+    T boolval(true);
+    T strval("abc");
+    T trueval(true);
+    T falseval(false);
 
     SECTION("basics conversion") {
         CHECK(empty.is_empty());
@@ -41,7 +43,7 @@ TEST_CASE("test TunableValue") {
         CHECK(floatval.is_double());
         CHECK(floatval.to_bool() == true);
         CHECK(floatval.to_string() == "8.000000");
-        CHECK_THROWS(floatval.to_integer());
+        CHECK(floatval.to_integer() == 8);
         CHECK(floatval.to_double() == 8.0);
 
         CHECK(boolval.is_empty() == false);
@@ -87,20 +89,20 @@ TEST_CASE("test TunableValue") {
         CHECK_THROWS(empty + strval);
 
         CHECK_THROWS(intval + empty);
-        CHECK(intval + intval == TunableValue(600));
-        CHECK(intval + floatval == TunableValue(300.0 + 8.0));
-        CHECK(intval + boolval == TunableValue(300 + 1));
+        CHECK(intval + intval == T(600));
+        CHECK(intval + floatval == T(300.0 + 8.0));
+        CHECK(intval + boolval == T(300 + 1));
         CHECK_THROWS(intval + strval);
 
         CHECK_THROWS(floatval + empty);
-        CHECK(floatval + intval == TunableValue(300.0 + 8.0));
-        CHECK(floatval + floatval == TunableValue(8.0 + 8.0));
-        CHECK(floatval + boolval == TunableValue(8.0 + 1.0));
+        CHECK(floatval + intval == T(300.0 + 8.0));
+        CHECK(floatval + floatval == T(8.0 + 8.0));
+        CHECK(floatval + boolval == T(8.0 + 1.0));
         CHECK_THROWS(floatval + strval);
 
         CHECK_THROWS(boolval + empty);
-        CHECK(boolval + intval == TunableValue(300 + 1));
-        CHECK(boolval + floatval == TunableValue(8.0 + 1.0));
+        CHECK(boolval + intval == T(300 + 1));
+        CHECK(boolval + floatval == T(8.0 + 1.0));
         CHECK_THROWS(boolval + strval);
         CHECK(boolval * boolval == trueval);
 
@@ -124,20 +126,20 @@ TEST_CASE("test TunableValue") {
         CHECK_THROWS(empty * strval);
 
         CHECK_THROWS(intval * empty);
-        CHECK(intval * intval == TunableValue(300 * 300));
-        CHECK(intval * floatval == TunableValue(300.0 * 8.0));
-        CHECK(intval * boolval == TunableValue(300));
+        CHECK(intval * intval == T(300 * 300));
+        CHECK(intval * floatval == T(300.0 * 8.0));
+        CHECK(intval * boolval == T(300));
         CHECK_THROWS(intval * strval);
 
         CHECK_THROWS(floatval * empty);
-        CHECK(floatval * intval == TunableValue(300.0 * 8.0));
-        CHECK(floatval * floatval == TunableValue(8.0 * 8.0));
-        CHECK(floatval * boolval == TunableValue(8.0));
+        CHECK(floatval * intval == T(300.0 * 8.0));
+        CHECK(floatval * floatval == T(8.0 * 8.0));
+        CHECK(floatval * boolval == T(8.0));
         CHECK_THROWS(floatval * strval);
 
         CHECK_THROWS(boolval * empty);
-        CHECK(boolval * intval == TunableValue(300));
-        CHECK(boolval * floatval == TunableValue(8.0));
+        CHECK(boolval * intval == T(300));
+        CHECK(boolval * floatval == T(8.0));
         CHECK_THROWS(boolval * strval);
         CHECK(boolval * boolval == trueval);
 
@@ -153,7 +155,111 @@ TEST_CASE("test TunableValue") {
         CHECK(falseval * falseval == falseval);
     }
 
-    SECTION("operator==") {}
+    SECTION("operator== and operator!=") {
+        CHECK(empty == empty);
+        CHECK(empty != intval);
+        CHECK(empty != floatval);
+        CHECK(empty != boolval);
+        CHECK(empty != strval);
+
+        CHECK(intval != empty);
+        CHECK(intval == intval);
+        CHECK(intval != floatval);
+        CHECK(intval != boolval);
+        CHECK(intval != strval);
+
+        CHECK(floatval != empty);
+        CHECK(floatval != intval);
+        CHECK(floatval == floatval);
+        CHECK(floatval != boolval);
+        CHECK(floatval != strval);
+
+        CHECK(boolval != empty);
+        CHECK(boolval != intval);
+        CHECK(boolval != floatval);
+        CHECK(boolval != strval);
+        CHECK(boolval == boolval);
+
+        CHECK(strval != empty);
+        CHECK(strval != intval);
+        CHECK(strval != floatval);
+        CHECK(strval != boolval);
+        CHECK(strval == strval);
+
+        CHECK(trueval == trueval);
+        CHECK(trueval != falseval);
+        CHECK(falseval != trueval);
+        CHECK(falseval == falseval);
+
+        // int vs double vs bool comparisons
+        CHECK(T(0) == T(0.0));
+        CHECK(T(0) == T(false));
+        CHECK(T(0) == T(0));
+        CHECK(T(false) == T(0.0));
+        CHECK(T(false) == T(false));
+        CHECK(T(false) == T(0));
+        CHECK(T(0.0) == T(0.0));
+        CHECK(T(0.0) == T(false));
+        CHECK(T(0.0) == T(0));
+
+        CHECK(T(1) == T(1.0));
+        CHECK(T(1) == T(true));
+        CHECK(T(1) == T(1));
+        CHECK(T(true) == T(1.0));
+        CHECK(T(true) == T(true));
+        CHECK(T(true) == T(1));
+        CHECK(T(1.0) == T(1.0));
+        CHECK(T(1.0) == T(true));
+        CHECK(T(1.0) == T(1));
+
+        CHECK(T(2) != T(3.0));
+        CHECK(T(2) != T(true));
+        CHECK(T(2) != T(3));
+        CHECK(T(true) != T(3.0));
+        CHECK(T(false) != T(true));
+        CHECK(T(true) != T(3));
+        CHECK(T(2.0) != T(3.0));
+        CHECK(T(2.0) != T(false));
+        CHECK(T(2.0) != T(3));
+
+        // Some nasty int vs double corner cases
+        int64_t x = std::numeric_limits<int64_t>::max();
+        CHECK(T(x) != T(double(x)));
+
+        double v = 1.5;
+        CHECK_THROWS(T(v).to_integer());
+        CHECK(T(v) == T(v));
+
+        v = double(std::numeric_limits<uint64_t>::max());
+        CHECK_THROWS(T(v).to_integer());
+        CHECK(T(v) == T(v));
+
+        v = std::numeric_limits<double>::max();
+        CHECK_THROWS(T(v).to_integer());
+        CHECK(T(v) == T(v));
+
+        v = std::numeric_limits<double>::infinity();
+        CHECK_THROWS(T(v).to_integer());
+        CHECK(T(v) == T(v));
+
+        v = std::numeric_limits<double>::quiet_NaN();
+        CHECK_THROWS(T(v).to_integer());
+        CHECK(T(v) != T(v));
+    }
 
     // TODO: repeat for remaining operators
+
+    SECTION("test TunableParam") {
+        TunableParam x {"foo", {1, 2, 3}, 4};
+        CHECK(x.name() == "foo");
+        CHECK(x.default_value() == 4);
+        CHECK(x[2] == 3);
+        CHECK_THROWS(x[3]);
+        CHECK(x.size() == 3);
+
+        TunableParam y {"foo", {1, 2, 3}, 4};
+        TunableParam z = x;
+        CHECK(x != y);
+        CHECK(x == z);
+    }
 }

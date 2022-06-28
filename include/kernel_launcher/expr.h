@@ -4,16 +4,22 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "value.h"
+#include "kernel_launcher/value.h"
 
 namespace kernel_launcher {
 
 struct Eval;
 
+template<typename T>
+struct Expr;
+using AnyExpr = Expr<TunableValue>;
+struct ScalarExpr;
+
 struct BaseExpr {
     virtual ~BaseExpr() {};
     virtual std::string to_string() const = 0;
     virtual TunableValue eval(const Eval& eval) const = 0;
+    virtual AnyExpr resolve(const Eval& eval) const = 0;
 };
 
 using TunableMap = std::unordered_map<TunableParam, TunableValue>;
@@ -32,12 +38,71 @@ struct Eval {
         return expr.eval(*this);
     }
 
-    TunableValue operator()(const BaseExpr& expr) const {
-        return eval(expr);
+    template<typename T>
+    T operator()(const Expr<T>& expr) const {
+        return expr.get(*this);
     }
 
   private:
     const TunableMap& inner_;
+};
+
+namespace detail {
+    std::true_type is_expr_helper(const BaseExpr*);
+    std::false_type is_expr_helper(...);
+}  // namespace detail
+
+template<typename T>
+constexpr bool is_expr = decltype(detail::is_expr_helper(
+    std::declval<typename std::decay<T>::type*>()))::value;
+
+struct SharedExpr: BaseExpr {
+    SharedExpr(std::shared_ptr<BaseExpr> inner) : inner_(std::move(inner)) {}
+
+    const BaseExpr& inner() const {
+        return *inner_.get();
+    }
+
+  private:
+    std::shared_ptr<BaseExpr> inner_ {};
+};
+
+template<typename T>
+struct Expr: SharedExpr {
+    Expr(T value = {}) : SharedExpr(std::make_shared<ScalarExpr>(value)) {}
+
+    template<typename E, typename = typename std::enable_if<is_expr<E>>::type>
+    Expr(E&& expr) :
+        SharedExpr(std::make_shared<typename std::decay<E>::type>(
+            std::forward<E>(expr))) {}
+
+    Expr(Expr&) = default;
+    Expr(const Expr&) = default;
+    Expr(Expr&&) noexcept = default;
+    Expr& operator=(const Expr&) = default;
+    Expr& operator=(Expr&&) noexcept = default;
+
+    std::string to_string() const override {
+        return inner().to_string();
+    }
+
+    T get(const Eval& ctx) const {
+        return inner().eval(ctx).template to<T>();
+    }
+
+    TunableValue eval(const Eval& ctx) const override {
+        return get(ctx);
+    }
+
+    AnyExpr resolve(const Eval& eval) const override {
+        AnyExpr result = this->resolve(eval);
+
+        while (const Expr* v = dynamic_cast<const Expr*>(&result.inner())) {
+            result = *v;
+        }
+
+        return result;
+    }
 };
 
 struct ScalarExpr: BaseExpr {
@@ -48,6 +113,14 @@ struct ScalarExpr: BaseExpr {
     }
 
     TunableValue eval(const Eval& ctx) const override {
+        return value_;
+    }
+
+    AnyExpr resolve(const Eval& eval) const override {
+        return *this;
+    }
+
+    const TunableValue& value() const {
         return value_;
     }
 
@@ -77,72 +150,26 @@ struct ParamExpr: BaseExpr {
         return param_;
     }
 
+    AnyExpr resolve(const Eval& eval) const override {
+        return *this;
+    }
+
   private:
     TunableParam param_;
 };
 
-namespace detail {
-    std::true_type is_expr_helper(const BaseExpr*);
-    std::false_type is_expr_helper(...);
-}  // namespace detail
-
-template<typename T>
-constexpr bool is_expr = decltype(detail::is_expr_helper(
-    std::declval<typename std::decay<T>::type*>()))::value;
-
-struct ErasedExpr: BaseExpr {
-    ErasedExpr(std::shared_ptr<BaseExpr> inner) : inner_(std::move(inner)) {}
-
-    const BaseExpr& inner() const {
-        return *inner_.get();
-    }
-
-  private:
-    std::shared_ptr<BaseExpr> inner_ {};
-};
-
-template<typename T>
-struct TypedExpr: ErasedExpr {
-    TypedExpr(T value = {}) : ErasedExpr(std::make_shared<ScalarExpr>(value)) {}
-
-    template<typename E, typename = typename std::enable_if<is_expr<E>>::type>
-    TypedExpr(E&& expr) :
-        ErasedExpr(std::make_shared<typename std::decay<E>::type>(
-            std::forward<E>(expr))) {}
-
-    TypedExpr(TypedExpr&) = default;
-    TypedExpr(const TypedExpr&) = default;
-    TypedExpr(TypedExpr&&) = default;
-    TypedExpr& operator=(const TypedExpr&) = default;
-    TypedExpr& operator=(TypedExpr&&) = default;
-
-    std::string to_string() const override {
-        return inner().to_string();
-    }
-
-    T get(const Eval& ctx) const {
-        return inner().eval(ctx).template to<T>();
-    }
-
-    TunableValue eval(const Eval& ctx) const override {
-        return get(ctx);
-    }
-};
-
 template<typename T, typename E>
-TypedExpr<T> cast(E&& value) {
+Expr<T> cast(E&& value) {
     return {std::forward<E>(value)};
 }
 
-using Expr = TypedExpr<TunableValue>;
-
 template<typename E>
-Expr into_expr(E&& value) {
-    return Expr {std::forward<E>(value)};
+AnyExpr into_expr(E&& value) {
+    return {std::forward<E>(value)};
 }
 
 struct SelectExpr: BaseExpr {
-    SelectExpr(Expr index, std::vector<Expr> options) :
+    SelectExpr(AnyExpr index, std::vector<AnyExpr> options) :
         cond_(std::move(index)),
         options_(std::move(options)) {}
 
@@ -166,25 +193,97 @@ struct SelectExpr: BaseExpr {
         return ss.str();
     }
 
+    AnyExpr resolve(const Eval& eval) const override {
+        std::vector<AnyExpr> options;
+        for (const auto& v : options_) {
+            options.push_back(v.resolve(eval));
+        }
+
+        return SelectExpr(cond_.resolve(eval), options);
+    }
+
     const BaseExpr& condition() const {
         return cond_.inner();
     }
 
-    const std::vector<Expr>& operands() const {
+    const std::vector<AnyExpr>& operands() const {
         return options_;
     }
 
   private:
-    Expr cond_;
-    std::vector<Expr> options_;
+    AnyExpr cond_;
+    std::vector<AnyExpr> options_;
 };
 
 template<typename C, typename... Es>
 SelectExpr select(C&& cond, Es&&... operands) {
     return {
         into_expr(std::forward<C>(cond)),
-        {into_expr(std::forward<Es>(operands)...)}};
+        {into_expr(std::forward<Es>(operands))...}};
 }
+
+struct UnaryExpr: BaseExpr {
+    enum struct Op {
+        Plus,
+        Minus,
+        LogicNot,
+        //BitNot,
+    };
+
+    UnaryExpr(Op op, AnyExpr operand) :
+        operator_(op),
+        operand_(std::move(operand)) {}
+
+    TunableValue eval(const Eval& ctx) const override {
+        TunableValue operand = operand_.eval(ctx);
+
+        switch (operator_) {
+            case Op::Plus:
+                return +operand;
+            case Op::Minus:
+                return -operand;
+            case Op::LogicNot:
+                return !operand;
+            default:
+                throw std::runtime_error("invalid operator");
+        }
+    }
+
+    std::string op_name() const {
+        switch (operator_) {
+            case Op::Plus:
+                return "-";
+            case Op::Minus:
+                return "-";
+            case Op::LogicNot:
+                return "!";
+            default:
+                return "???";
+        }
+    }
+
+    std::string to_string() const override {
+        std::stringstream ss;
+        ss << "(" << op_name() << " " << operand_.to_string() << ")";
+        return ss.str();
+    }
+
+    Op op() const {
+        return operator_;
+    }
+
+    AnyExpr resolve(const Eval& eval) const override {
+        return UnaryExpr(operator_, operand_.resolve(eval));
+    }
+
+    const BaseExpr& operand() const {
+        return operand_.inner();
+    }
+
+  private:
+    Op operator_;
+    AnyExpr operand_;
+};
 
 struct BinaryExpr: BaseExpr {
     enum struct Op {
@@ -209,7 +308,7 @@ struct BinaryExpr: BaseExpr {
         //Shr,
     };
 
-    BinaryExpr(Op op, Expr left, Expr right) :
+    BinaryExpr(Op op, AnyExpr left, AnyExpr right) :
         operator_(op),
         lhs_(std::move(left)),
         rhs_(std::move(right)) {}
@@ -290,6 +389,10 @@ struct BinaryExpr: BaseExpr {
         return ss.str();
     }
 
+    AnyExpr resolve(const Eval& eval) const override {
+        return BinaryExpr(operator_, lhs_.resolve(eval), rhs_.resolve(eval));
+    }
+
     Op op() const {
         return operator_;
     }
@@ -304,11 +407,17 @@ struct BinaryExpr: BaseExpr {
 
   private:
     Op operator_;
-    Expr lhs_;
-    Expr rhs_;
+    AnyExpr lhs_;
+    AnyExpr rhs_;
 };
 
-#define KERNEL_LAUNCHER_EXPR_OP_IMPL(op, name)                              \
+#define KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(op, name)                              \
+    template<typename E, typename = typename std::enable_if<is_expr<E>>::type> \
+    UnaryExpr operator op(E expr) {                                            \
+        return {UnaryExpr::Op::name, into_expr(expr)};                         \
+    }
+
+#define KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(op, name)                          \
     template<                                                               \
         typename L,                                                         \
         typename R,                                                         \
@@ -317,20 +426,25 @@ struct BinaryExpr: BaseExpr {
         return {BinaryExpr::Op::name, into_expr(left), into_expr(right)};   \
     }
 
-KERNEL_LAUNCHER_EXPR_OP_IMPL(+, Add)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(-, Sub)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(*, Mul)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(/, Div)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(%, Mod)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(==, Eq)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(!=, Neq)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(<, Lt)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(>, Gt)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(<=, Lte)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(>=, Gte)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(&&, LogicAnd)
-KERNEL_LAUNCHER_EXPR_OP_IMPL(||, LogicOr)
-#undef KERNEL_LAUNCHER_EXPR_OP_IMPL
+KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(+, Plus)
+KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(-, Minus)
+KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(!, LogicNot)
+
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(+, Add)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(-, Sub)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(*, Mul)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(/, Div)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(%, Mod)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(==, Eq)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(!=, Neq)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(<, Lt)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(>, Gt)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(<=, Lte)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(>=, Gte)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(&&, LogicAnd)
+KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(||, LogicOr)
+#undef KERNEL_LAUNCHER_EXPR_UN_OP_IMPL
+#undef KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL
 
 }  // namespace kernel_launcher
 

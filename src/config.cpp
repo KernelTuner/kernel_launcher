@@ -34,7 +34,7 @@ TunableParam ConfigSpace::add(
     return p;
 }
 
-void ConfigSpace::restriction(TypedExpr<bool> e) {
+void ConfigSpace::restriction(Expr<bool> e) {
     restrictions_.push_back(e);
 }
 

@@ -3,8 +3,8 @@
 
 #include <unordered_map>
 
-#include "expr.h"
-#include "value.h"
+#include "kernel_launcher/expr.h"
+#include "kernel_launcher/value.h"
 
 namespace kernel_launcher {
 
@@ -20,6 +20,7 @@ struct Config {
     const TunableValue& at(const TunableParam& param) const;
 
     void insert(TunableParam k, TunableValue v) {
+        // FIXME: check for duplicate parameters
         inner_[std::move(k)] = std::move(v);
     }
 
@@ -54,7 +55,11 @@ struct Config {
     std::unordered_map<TunableParam, TunableValue> inner_;
 };
 
+struct KernelBuilderSerializerHack;
+
 struct ConfigSpace {
+    friend KernelBuilderSerializerHack;
+
     ConfigSpace() = default;
     ConfigSpace(ConfigSpace&&) = default;
     explicit ConfigSpace(const ConfigSpace&) = default;
@@ -78,7 +83,7 @@ struct ConfigSpace {
         return tune(std::move(name), begin(values), end(values), default_value);
     }
 
-    template<typename Collection, typename T = typename Collection::value_type>
+    template<typename Collection, typename = typename Collection::value_type>
     ParamExpr tune(std::string name, const Collection& values) {
         if (values.size() == 0) {
             throw std::invalid_argument("empty list of values");
@@ -92,10 +97,8 @@ struct ConfigSpace {
     }
 
     template<typename T>
-    ParamExpr tune(
-        std::string name,
-        const std::initializer_list<T>& values,
-        T default_value) {
+    ParamExpr
+    tune(std::string name, std::initializer_list<T> values, T default_value) {
         return tune(
             std::move(name),
             values.begin(),
@@ -104,25 +107,29 @@ struct ConfigSpace {
     }
 
     template<typename T>
-    ParamExpr tune(std::string name, const std::initializer_list<T>& values) {
-        if (values.size() == 0) {
+    ParamExpr tune(std::string name, std::initializer_list<T> values) {
+        if (values.begin() == values.end()) {
             throw std::invalid_argument("empty list of values");
         }
 
-        return tune(std::move(name), values, *values.begin());
+        return tune(
+            std::move(name),
+            values.begin(),
+            values.end(),
+            *values.begin());
     }
 
     TunableParam
     add(std::string name,
         std::vector<TunableValue> values,
         TunableValue default_value);
-    void restriction(TypedExpr<bool> e);
+    void restriction(Expr<bool> e);
     Config default_config() const;
     bool is_valid(const Config& config) const;
 
   private:
     std::vector<TunableParam> params_;
-    std::vector<TypedExpr<bool>> restrictions_;
+    std::vector<Expr<bool>> restrictions_;
 };
 
 };  // namespace kernel_launcher

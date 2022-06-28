@@ -200,6 +200,27 @@ inline bool in_range(T val) {
         std::numeric_limits<R>::max());
 }
 
+template<typename L, typename R>
+auto div_ceil(L left, R right) {
+    return (left / right) + (left % right != 0);
+}
+
+inline bool safe_double_to_int64(double input, int64_t& output) {
+    static constexpr double min_val =
+        static_cast<double>(std::numeric_limits<int64_t>::min());
+    static constexpr double max_val = static_cast<double>(
+        static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1);
+    int64_t v = static_cast<int64_t>(input);
+
+    if (input >= min_val && input < max_val && input == double(v)) {
+        output = v;
+        return true;
+    }
+
+    output = 0;
+    return false;
+}
+
 using hash_t = uint64_t;
 
 inline hash_t hash_string(const char* buffer, size_t num_bytes) {
