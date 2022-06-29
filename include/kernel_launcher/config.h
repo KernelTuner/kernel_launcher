@@ -18,11 +18,7 @@ struct Config {
 
     const TunableValue& at(const std::string& param) const;
     const TunableValue& at(const TunableParam& param) const;
-
-    void insert(TunableParam k, TunableValue v) {
-        // FIXME: check for duplicate parameters
-        inner_[std::move(k)] = std::move(v);
-    }
+    void insert(TunableParam k, TunableValue v);
 
     const TunableValue& operator[](const std::string& name) const {
         return at(name);
@@ -108,15 +104,7 @@ struct ConfigSpace {
 
     template<typename T>
     ParamExpr tune(std::string name, std::initializer_list<T> values) {
-        if (values.begin() == values.end()) {
-            throw std::invalid_argument("empty list of values");
-        }
-
-        return tune(
-            std::move(name),
-            values.begin(),
-            values.end(),
-            *values.begin());
+        return tune(std::move(name), std::vector<T> {values});
     }
 
     TunableParam

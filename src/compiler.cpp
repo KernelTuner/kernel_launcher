@@ -7,42 +7,6 @@
 
 namespace kernel_launcher {
 
-KernelModule::KernelModule(const char* image, const char* fun_name) {
-    //FIXME: error checking
-    cuModuleLoadDataEx(&module_, image, 0, nullptr, nullptr);
-    cuModuleGetFunction(&fun_ptr_, module_, fun_name);
-}
-
-KernelModule::~KernelModule() {
-    if (valid()) {
-        //FIXME: error checking
-        cuModuleUnload(module_);
-        module_ = nullptr;
-        fun_ptr_ = nullptr;
-    }
-}
-
-void KernelModule::launch(
-    CUstream stream,
-    dim3 grid_size,
-    dim3 block_size,
-    uint32_t shared_mem,
-    void** args) const {
-    //FIXME: error checking
-    cuLaunchKernel(
-        fun_ptr_,
-        grid_size.x,
-        grid_size.y,
-        grid_size.z,
-        block_size.x,
-        block_size.y,
-        block_size.z,
-        shared_mem,
-        stream,
-        args,
-        nullptr);
-}
-
 inline void nvrtc_check(nvrtcResult result) {
     if (result != NVRTC_SUCCESS) {
         std::stringstream ss;
@@ -180,7 +144,7 @@ static std::string generate_expression(
     return oss.str();
 }
 
-KernelModule NvrtcCompiler::compile(const KernelDef& spec) const {
+CudaModule NvrtcCompiler::compile(const KernelDef& spec) const {
     std::string lowered_name;
     std::string ptx;
     compile_ptx(spec, ptx, lowered_name);
@@ -189,30 +153,18 @@ KernelModule NvrtcCompiler::compile(const KernelDef& spec) const {
 
 static void add_std_flag(std::vector<std::string>& options) {
     for (const std::string& opt : options) {
-        if (opt.find("--std") == 0)
+        if (opt.find("--std") == 0 || opt.find("-std") == 0) {
             return;
-        if (opt.find("-std") == 0)
-            return;
+        }
     }
 
-    options.emplace_back("-std=c++11");
+    options.emplace_back("--std=c++11");
 }
 
-static void add_arch_flag(std::vector<std::string>& options) {
-#define KERNEL_LAUNCHER_ASSERT(e) e
-    //FIXME: ERROR CHECKING!
-    CUdevice device;
-    KERNEL_LAUNCHER_ASSERT(cuCtxGetDevice(&device));
-
-    int major, minor;
-    KERNEL_LAUNCHER_ASSERT(cuDeviceGetAttribute(
-        &minor,
-        CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR,
-        device));
-    KERNEL_LAUNCHER_ASSERT(cuDeviceGetAttribute(
-        &major,
-        CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR,
-        device));
+static void
+add_arch_flag(std::vector<std::string>& options, CudaDevice device) {
+    int minor = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
+    int major = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
 
     std::stringstream oss;
     oss << "--gpu-architecture=compute_" << major << minor;
@@ -222,7 +174,8 @@ static void add_arch_flag(std::vector<std::string>& options) {
 void NvrtcCompiler::compile_ptx(
     const KernelDef& def,
     std::string& ptx,
-    std::string& symbol_name) const {
+    std::string& symbol_name,
+    CudaDevice device) const {
     std::string symbol = generate_expression(
         def.kernel_name,
         def.template_args,
@@ -241,7 +194,7 @@ void NvrtcCompiler::compile_ptx(
     }
 
     add_std_flag(options);
-    add_arch_flag(options);
+    add_arch_flag(options, device);
 
     std::vector<const char*> raw_options;
     for (const std::string& opt : options) {
@@ -291,7 +244,16 @@ void NvrtcCompiler::compile_ptx(
             std::string(content.begin(), content.end()));
     }
 
-    throw NvrtcException("NVRTC error: " + log);
+    throw NvrtcException("NVRTC compilation failed: " + log);
+}
+
+int NvrtcCompiler::version() {
+    int major, minor;
+    if (nvrtcVersion(&major, &minor) == NVRTC_SUCCESS) {
+        return 1000 * major + 10 * minor;
+    } else {
+        return 0;
+    }
 }
 
 }  // namespace kernel_launcher

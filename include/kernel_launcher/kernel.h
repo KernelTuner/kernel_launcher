@@ -1,6 +1,8 @@
 #ifndef KERNEL_LAUNCHER_KERNEL_H
 #define KERNEL_LAUNCHER_KERNEL_H
 
+#include <cuda.h>
+
 #include <iostream>
 
 #include "kernel_launcher/compiler.h"
@@ -12,7 +14,7 @@ struct KernelInstance {
     KernelInstance() = default;
 
     KernelInstance(
-        KernelModule module,
+        CudaModule module,
         dim3 block_size,
         dim3 grid_divisor,
         uint32_t shared_mem) :
@@ -32,7 +34,7 @@ struct KernelInstance {
     }
 
   private:
-    KernelModule module_;
+    CudaModule module_;
     dim3 block_size_;
     dim3 grid_divisor_;
     uint32_t shared_mem_;
@@ -182,7 +184,7 @@ struct KernelBuilder: ConfigSpace {
         const Config& config,
         const std::vector<TypeInfo>& param_types,
         const CompilerBase& compiler) const {
-        KernelModule module = compiler.compile(build(config, param_types));
+        CudaModule module = compiler.compile(build(config, param_types));
 
         Eval eval = {config.get()};
         dim3 block_size = {

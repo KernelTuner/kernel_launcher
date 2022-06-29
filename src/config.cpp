@@ -2,6 +2,19 @@
 
 namespace kernel_launcher {
 
+void Config::insert(TunableParam k, TunableValue v) {
+    const std::string& name = k.name();
+
+    for (const auto& it : inner_) {
+        if (it.first.name() == name) {
+            throw std::runtime_error(
+                "duplicate parameter: key " + name + " already exists");
+        }
+    }
+
+    inner_.insert({std::move(k), std::move(v)});
+}
+
 const TunableValue& Config::at(const std::string& param) const {
     for (const auto& it : inner_) {
         if (it.first.name() == param) {
@@ -9,14 +22,13 @@ const TunableValue& Config::at(const std::string& param) const {
         }
     }
 
-    throw std::invalid_argument("unknown parameter");
+    throw std::invalid_argument("unknown parameter: " + param);
 }
 
 const TunableValue& Config::at(const TunableParam& param) const {
     auto it = inner_.find(param);
-
     if (it == inner_.end()) {
-        throw std::invalid_argument("unknown parameter");
+        throw std::invalid_argument("unknown parameter: " + param.name());
     }
 
     return it->second;
@@ -78,9 +90,9 @@ bool ConfigSpace::is_valid(const Config& config) const {
         }
     }
 
-    for (const auto& r : restrictions_) {
-        Eval eval = {config.get()};
+    Eval eval = {config.get()};
 
+    for (const auto& r : restrictions_) {
         if (!r.get(eval)) {
             return false;
         }

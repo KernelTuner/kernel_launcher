@@ -9,6 +9,10 @@
 
 namespace kernel_launcher {
 
+std::ostream& log_debug();
+std::ostream& log_info();
+std::ostream& log_warning();
+
 std::string demangle_type_info(const std::type_info& type);
 
 struct TypeInfo {

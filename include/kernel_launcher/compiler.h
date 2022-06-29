@@ -2,7 +2,6 @@
 #define KERNEL_LAUNCHER_COMPILER_H
 
 #include <cuda.h>
-#include <cuda_runtime_api.h>
 
 #include <memory>
 #include <stdexcept>
@@ -10,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "kernel_launcher/cuda.h"
 #include "kernel_launcher/fs.h"
 #include "kernel_launcher/utils.h"
 
@@ -50,43 +50,6 @@ struct KernelSource {
     bool has_content_;
 };
 
-struct KernelModule {
-    KernelModule(const char* image, const char* fun_name);
-    ~KernelModule();
-    KernelModule() = default;
-    KernelModule(const KernelModule&) = delete;
-    KernelModule& operator=(const KernelModule&) = delete;
-
-    KernelModule(KernelModule&& that) noexcept {
-        *this = std::move(that);
-    }
-
-    KernelModule& operator=(KernelModule&& that) noexcept {
-        std::swap(that.module_, module_);
-        std::swap(that.fun_ptr_, fun_ptr_);
-        return *this;
-    }
-
-    void launch(
-        CUstream stream,
-        dim3 grid_size,
-        dim3 block_size,
-        uint32_t shared_mem,
-        void** args) const;
-
-    CUfunction function() const {
-        return fun_ptr_;
-    }
-
-    bool valid() const {
-        return module_ != nullptr;
-    }
-
-  private:
-    CUfunction fun_ptr_ = nullptr;
-    CUmodule module_ = nullptr;
-};
-
 struct KernelDef {
     std::string kernel_name;
     KernelSource source;
@@ -97,7 +60,7 @@ struct KernelDef {
 
 struct CompilerBase {
     virtual ~CompilerBase() {}
-    virtual KernelModule compile(const KernelDef&) const = 0;
+    virtual CudaModule compile(const KernelDef&) const = 0;
 };
 
 struct Compiler: CompilerBase {
@@ -111,7 +74,7 @@ struct Compiler: CompilerBase {
         inner_(std::make_shared<typename std::decay<C>::type>(
             std::forward<C>(compiler))) {}
 
-    KernelModule compile(const KernelDef& def) const override {
+    CudaModule compile(const KernelDef& def) const override {
         return inner_->compile(def);
     }
 
@@ -128,12 +91,15 @@ struct NvrtcCompiler: CompilerBase {
         default_options_(std::move(options)),
         fs_(std::move(fs)) {}
 
+    static int version();
+
     void compile_ptx(
         const KernelDef& def,
         std::string& ptx,
-        std::string& symbol_name) const;
+        std::string& symbol_name,
+        CudaDevice = CudaDevice::current()) const;
 
-    KernelModule compile(const KernelDef& spec) const override;
+    CudaModule compile(const KernelDef& spec) const override;
 
   private:
     mutable std::vector<std::pair<std::string, std::string>> file_cache_;
