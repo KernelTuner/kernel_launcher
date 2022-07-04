@@ -24,12 +24,16 @@ struct Config {
         return at(name);
     }
 
-    const TunableValue& operator[](const ParamExpr& expr) const {
-        return at(expr.parameter());
-    }
-
     const TunableValue& operator[](const TunableParam& param) const {
         return at(param);
+    }
+
+    const TunableValue& operator[](const ParamExpr& param) const {
+        return at(param.parameter());
+    }
+
+    void insert(const ParamExpr& k, TunableValue v) {
+        insert(k.parameter(), std::move(v));
     }
 
     size_t size() const {
@@ -79,7 +83,7 @@ struct ConfigSpace {
         return tune(std::move(name), begin(values), end(values), default_value);
     }
 
-    template<typename Collection, typename = typename Collection::value_type>
+    template<typename Collection, typename T = typename Collection::value_type>
     ParamExpr tune(std::string name, const Collection& values) {
         if (values.size() == 0) {
             throw std::invalid_argument("empty list of values");
@@ -107,10 +111,15 @@ struct ConfigSpace {
         return tune(std::move(name), std::vector<T> {values});
     }
 
+    ParamExpr operator[](const std::string& name) const {
+        return at(name);
+    }
+
     TunableParam
     add(std::string name,
         std::vector<TunableValue> values,
         TunableValue default_value);
+    ParamExpr at(const std::string& name) const;
     void restriction(Expr<bool> e);
     Config default_config() const;
     bool is_valid(const Config& config) const;
@@ -120,7 +129,7 @@ struct ConfigSpace {
     std::vector<Expr<bool>> restrictions_;
 };
 
-};  // namespace kernel_launcher
+}  // namespace kernel_launcher
 
 namespace std {
 template<>

@@ -1,3 +1,5 @@
+#include "kernel_launcher/wisdom.h"
+
 #include <unistd.h>
 
 #include <chrono>
@@ -7,7 +9,6 @@
 
 #include "kernel_launcher/expr.h"
 #include "kernel_launcher/fs.h"
-#include "kernel_launcher/wisdom.h"
 #include "nlohmann/json.hpp"
 
 namespace kernel_launcher {
@@ -411,6 +412,7 @@ void write_wisdom_file(
             problem_size,
             inputs,
             outputs);
+
         std::string content_str = content_json.dump(4);
         std::vector<char> content(content_str.begin(), content_str.end());
 

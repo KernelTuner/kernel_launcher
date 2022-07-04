@@ -141,70 +141,14 @@ struct KernelBuilder: ConfigSpace {
         return param;
     }
 
-    KernelDef build(
-        const Config& config,
-        const std::vector<TypeInfo>& param_types) const {
-        if (!is_valid(config)) {
-            throw std::runtime_error("invalid config");
-        }
-
-        Eval eval = {config.get()};
-
-        std::vector<TemplateArg> template_args;
-        for (const auto& p : template_args_) {
-            template_args.emplace_back(eval(p));
-        }
-
-        std::vector<std::string> options;
-        for (const auto& p : compile_flags_) {
-            std::string option = eval(p);
-
-            if (!option.empty()) {
-                options.emplace_back(std::move(option));
-            }
-        }
-
-        for (const auto& p : defines_) {
-            options.push_back("--define-macro");
-            options.push_back(p.first + "=" + eval(p.second));
-        }
-
-        options.push_back("-DKERNEL_LAUNCHER=1");
-        options.push_back("-Dkernel_tuner=1");
-
-        return KernelDef {
-            kernel_name_,
-            kernel_source_,
-            template_args,
-            param_types,
-            options};
-    }
+    KernelDef
+    build(const Config& config, const std::vector<TypeInfo>& param_types) const;
 
     KernelInstance compile(
         const Config& config,
         const std::vector<TypeInfo>& param_types,
-        const CompilerBase& compiler) const {
-        CudaModule module = compiler.compile(build(config, param_types));
-
-        Eval eval = {config.get()};
-        dim3 block_size = {
-            eval(block_size_[0]),
-            eval(block_size_[1]),
-            eval(block_size_[2])};
-
-        dim3 grid_divisor = {
-            eval(grid_divisors_[0]),
-            eval(grid_divisors_[1]),
-            eval(grid_divisors_[2])};
-
-        uint32_t shared_mem = eval(shared_mem_);
-
-        return KernelInstance(
-            std::move(module),
-            block_size,
-            grid_divisor,
-            shared_mem);
-    }
+        const CompilerBase& compiler = NvrtcCompiler {},
+        CudaContextHandle ctx = CudaContextHandle::current()) const;
 
   private:
     std::string kernel_name_;
@@ -253,11 +197,13 @@ struct Kernel {
     void compile(
         const KernelBuilder& builder,
         const Config& config,
-        const CompilerBase& compiler) {
+        const CompilerBase& compiler,
+        CudaContextHandle ctx = CudaContextHandle::current()) {
         instance_ = builder.compile(
             config,
             std::vector<TypeInfo> {type_of<Args>()...},
-            compiler);
+            compiler,
+            ctx);
     }
 
     launch_type instantiate(cudaStream_t stream, dim3 problem_size) {

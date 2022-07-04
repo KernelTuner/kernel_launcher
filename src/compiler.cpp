@@ -7,6 +7,27 @@
 
 namespace kernel_launcher {
 
+extern const std::unordered_map<std::string, std::string>& jitsafe_headers();
+
+KernelDef::KernelDef(std::string name, KernelSource source) :
+    name(std::move(name)),
+    source(source) {
+    add_compiler_option("-DKERNEL_LAUNCHER=1");
+    add_compiler_option("-Dkernel_tuner=1");
+}
+
+void KernelDef::add_template_arg(TemplateArg arg) {
+    template_args.push_back(std::move(arg));
+}
+
+void KernelDef::add_parameter(TypeInfo dtype) {
+    param_types.push_back(std::move(dtype));
+}
+
+void KernelDef::add_compiler_option(std::string option) {
+    options.push_back(std::move(option));
+}
+
 inline void nvrtc_check(nvrtcResult result) {
     if (result != NVRTC_SUCCESS) {
         std::stringstream ss;
@@ -15,92 +36,90 @@ inline void nvrtc_check(nvrtcResult result) {
     }
 }
 
+NvrtcCompiler::NvrtcCompiler(
+    std::vector<std::string> options,
+    std::shared_ptr<FileLoader> fs) :
+    fs_(fs ? std::move(fs) : std::make_shared<DefaultLoader>()),
+    default_options_(std::move(options)) {}
+
+// RAII wrapper to ensure nvrtcDestroy is always called
+struct NvrtcProgramDestroyer {
+    ~NvrtcProgramDestroyer() {
+        if (program_) {
+            nvrtcDestroyProgram(&program_);
+            program_ = nullptr;
+        }
+    }
+
+    operator nvrtcProgram&() {
+        return program_;
+    }
+
+  private:
+    nvrtcProgram program_ = nullptr;
+};
+
 static bool nvrtc_compile(
     const std::string& kernel_source,
     const std::string& kernel_file,
     const std::string& symbol_name,
     const std::vector<const char*>& options,
-    const std::vector<const char*>& headers_names,
-    const std::vector<const char*>& headers_content,
+    const std::unordered_map<std::string, std::string>& headers,
     std::string& lowered_name,
     std::string& ptx,
     std::string& log) {
-    nvrtcProgram program = nullptr;
+    std::vector<const char*> headers_names;
+    std::vector<const char*> headers_content;
+
+    size_t num_headers = headers.size() + jitsafe_headers().size();
+    headers_names.reserve(num_headers);
+    headers_content.reserve(num_headers);
+
+    for (const auto& p : headers) {
+        headers_names.push_back(p.first.c_str());
+        headers_content.push_back(p.second.c_str());
+    }
+
+    for (const auto& p : jitsafe_headers()) {
+        headers_names.push_back(p.first.c_str());
+        headers_content.push_back(p.second.c_str());
+    }
+
+    NvrtcProgramDestroyer program;
     nvrtc_check(nvrtcCreateProgram(
-        &program,
+        &(nvrtcProgram&)program,
         kernel_source.c_str(),
         kernel_file.c_str(),
-        (int)std::min(headers_names.size(), headers_content.size()),
-        headers_names.data(),
-        headers_content.data()));
+        static_cast<int>(num_headers),
+        headers_content.data(),
+        headers_names.data()));
 
-    try {
-        nvrtc_check(nvrtcAddNameExpression(program, symbol_name.data()));
-        nvrtcResult result =
-            nvrtcCompileProgram(program, (int)options.size(), options.data());
+    nvrtc_check(nvrtcAddNameExpression(program, symbol_name.data()));
+    nvrtcResult result =
+        nvrtcCompileProgram(program, (int)options.size(), options.data());
 
-        if (result != NVRTC_SUCCESS && result != NVRTC_ERROR_COMPILATION) {
-            nvrtc_check(result);
-        }
-
-        size_t log_size = 0;
-        nvrtc_check(nvrtcGetProgramLogSize(program, &log_size));
-        log.resize(log_size + 1);
-        nvrtc_check(nvrtcGetProgramLog(program, &log[0]));
-
-        if (result == NVRTC_SUCCESS) {
-            const char* ptr = nullptr;
-            nvrtc_check(nvrtcGetLoweredName(program, symbol_name.data(), &ptr));
-            lowered_name = ptr;
-
-            size_t ptx_size = 0;
-            nvrtc_check(nvrtcGetPTXSize(program, &ptx_size));
-
-            ptx.resize(ptx_size + 1);
-            nvrtc_check(nvrtcGetPTX(program, &ptx[0]));
-        }
-
-        nvrtcDestroyProgram(&program);
-        return result == NVRTC_SUCCESS;
-    } catch (std::exception&) {
-        nvrtcDestroyProgram(&program);
-        throw;
-    }
-}
-
-static bool extract_include_info_from_compile_error(
-    std::string log,
-    std::string& name,
-    std::string& parent) {
-    static const std::vector<std::string> pattern = {
-        "could not open source file \"",
-        "cannot open source file \""};
-
-    for (auto& p : pattern) {
-        size_t beg;
-        size_t end;
-
-        if ((beg = log.find(p)) == std::string::npos) {
-            continue;
-        }
-
-        beg += p.size();
-
-        if ((end = log.find("\"", beg)) == std::string::npos) {
-            continue;
-        }
-
-        name = log.substr(beg, end - beg);
-
-        size_t line_beg = log.rfind("\n", beg);
-        line_beg = line_beg == std::string::npos ? 0 : line_beg + 1;
-        size_t split = log.find("(", line_beg);
-        parent = log.substr(line_beg, split - line_beg);
-
-        return true;
+    if (result != NVRTC_SUCCESS && result != NVRTC_ERROR_COMPILATION) {
+        nvrtc_check(result);
     }
 
-    return false;
+    size_t log_size = 0;
+    nvrtc_check(nvrtcGetProgramLogSize(program, &log_size));
+    log.resize(log_size + 1);
+    nvrtc_check(nvrtcGetProgramLog(program, &log[0]));
+
+    if (result == NVRTC_SUCCESS) {
+        const char* ptr = nullptr;
+        nvrtc_check(nvrtcGetLoweredName(program, symbol_name.data(), &ptr));
+        lowered_name = ptr;
+
+        size_t ptx_size = 0;
+        nvrtc_check(nvrtcGetPTXSize(program, &ptx_size));
+
+        ptx.resize(ptx_size + 1);
+        nvrtc_check(nvrtcGetPTX(program, &ptx[0]));
+    }
+
+    return result == NVRTC_SUCCESS;
 }
 
 static std::string generate_expression(
@@ -144,10 +163,15 @@ static std::string generate_expression(
     return oss.str();
 }
 
-CudaModule NvrtcCompiler::compile(const KernelDef& spec) const {
+CudaModule NvrtcCompiler::compile(CudaContextHandle ctx, KernelDef def) const {
+    CudaDevice device = ctx.device();
+    int minor = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
+    int major = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
+    int arch = major * 10 + minor;  // Is this always the case?
+
     std::string lowered_name;
     std::string ptx;
-    compile_ptx(spec, ptx, lowered_name);
+    compile_ptx(def, arch, ptx, lowered_name);
     return {ptx.c_str(), lowered_name.c_str()};
 }
 
@@ -161,29 +185,85 @@ static void add_std_flag(std::vector<std::string>& options) {
     options.emplace_back("--std=c++11");
 }
 
-static void
-add_arch_flag(std::vector<std::string>& options, CudaDevice device) {
-    int minor = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
-    int major = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
-
+static void add_arch_flag(std::vector<std::string>& options, int arch_version) {
     std::stringstream oss;
-    oss << "--gpu-architecture=compute_" << major << minor;
+    oss << "--gpu-architecture=compute_" << arch_version;
     options.push_back(oss.str());
+}
+
+static void add_default_device_flag(std::vector<std::string>& options) {
+    for (const std::string& opt : options) {
+        if (opt == "--device-as-default-execution-space"
+            || opt == "-default-device") {
+            return;
+        }
+    }
+
+    options.emplace_back("--device-as-default-execution-space");
+}
+
+static std::vector<std::string>
+extract_include_dirs(const std::vector<std::string>& options) {
+    std::vector<std::string> result;
+
+    for (size_t i = 0; i < options.size(); i++) {
+        if (options[i].find("--include-path=") == 0) {
+            result.emplace_back(options[i], strlen("--include-path="));
+        }
+
+        if (options[i].find("-I") == 0) {
+            if (options[i].size() > strlen("-I")) {
+                result.emplace_back(options[i], strlen("-I"));
+            } else if (i < options.size()) {
+                result.push_back(options[i + 1]);
+            } else {
+                //???
+            }
+        }
+    }
+
+    return result;
+}
+
+static bool extract_unknown_header_from_log(
+    const std::string& log,
+    std::string& filename_out) {
+    static constexpr auto patterns = {
+        "could not open source file \"",
+        "cannot open source file \""};
+
+    for (const char* pattern : patterns) {
+        size_t begin = log.find(pattern);
+
+        if (begin == std::string::npos) {
+            continue;
+        }
+
+        begin += strlen(pattern);
+        size_t end = log.find('\"', begin + 1);
+
+        if (end == std::string::npos || end <= begin) {
+            continue;
+        }
+
+        filename_out = log.substr(begin, end - begin);
+        return true;
+    }
+
+    return false;
 }
 
 void NvrtcCompiler::compile_ptx(
     const KernelDef& def,
+    int arch_version,
     std::string& ptx,
-    std::string& symbol_name,
-    CudaDevice device) const {
-    std::string symbol = generate_expression(
-        def.kernel_name,
-        def.template_args,
-        def.param_types);
-    std::string source = def.source.read(fs_);
+    std::string& symbol_name) const {
+    constexpr size_t max_attempts = 25;
+
+    std::string symbol =
+        generate_expression(def.name, def.template_args, def.param_types);
     std::string log;
 
-    bool mentions_std = false;
     std::vector<std::string> options;
     for (const std::string& opt : default_options_) {
         options.push_back(opt);
@@ -194,54 +274,63 @@ void NvrtcCompiler::compile_ptx(
     }
 
     add_std_flag(options);
-    add_arch_flag(options, device);
+    add_arch_flag(options, arch_version);
+    add_default_device_flag(options);
 
     std::vector<const char*> raw_options;
     for (const std::string& opt : options) {
         raw_options.push_back(opt.c_str());
     }
 
-    std::vector<const char*> headers_names;
-    std::vector<const char*> headers_content;
+    std::unordered_map<std::string, std::string> headers;
+    std::vector<std::string> dirs = extract_include_dirs(options);
+    std::string source = def.source.read(*fs_, dirs);
 
-    while (true) {
-        headers_names.clear();
-        headers_content.clear();
+    log_debug() << "compiling " << def.name << " (" << def.source.file_name()
+                << "): " << source << "\n";
 
-        for (const auto& p : file_cache_) {
-            headers_names.push_back(p.first.c_str());
-            headers_content.push_back(p.second.c_str());
-        }
-
+    for (size_t attempt = 0; attempt < max_attempts; attempt++) {
         bool success = nvrtc_compile(
             source,
             def.source.file_name(),
             symbol,
             raw_options,
-            headers_names,
-            headers_content,
+            headers,
             symbol_name,
             ptx,
             log);
 
+        log_debug() << "NVRTC compilation of " << def.source.file_name() << ": "
+                    << log << std::endl;
+
         if (success) {
+            return;
+        }
+
+        // See if compilation failed due to missing header file
+        std::string header_name;
+        if (!extract_unknown_header_from_log(log, header_name)) {
             break;
         }
 
-        std::string missing_file;
-        std::string parent_file;
-        if (extract_include_info_from_compile_error(
-                log,
-                missing_file,
-                parent_file)) {
+        // Header already loaded. Something is wrong?
+        if (headers.count(header_name) > 0) {
             break;
         }
 
-        std::vector<char> content = fs_.read(missing_file);
+        // Load missing header file
+        std::vector<char> header_content;
+        try {
+            header_content = fs_->load(header_name, dirs);
+        } catch (const std::exception& e) {
+            log_warning() << "retrying compilation after error: " << e.what()
+                          << std::endl;
+        }
 
-        file_cache_.emplace_back(
-            std::move(missing_file),
-            std::string(content.begin(), content.end()));
+        header_content.push_back('\0');
+        headers.emplace(
+            std::move(header_name),
+            std::string(header_content.data()));
     }
 
     throw NvrtcException("NVRTC compilation failed: " + log);

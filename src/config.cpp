@@ -38,12 +38,44 @@ TunableParam ConfigSpace::add(
     std::string name,
     std::vector<TunableValue> values,
     TunableValue default_value) {
+    if (name.empty()) {
+        throw std::runtime_error("name cannot be empty");
+    }
+
+    bool found = false;
+    for (const auto& p : values) {
+        found |= p == default_value;
+    }
+
+    if (!found) {
+        throw std::runtime_error(
+            "default value for parameter " + name
+            + " must be a valid value for this parameter");
+    }
+
+    for (const auto& p : params_) {
+        if (p.name() == name) {
+            throw std::runtime_error(
+                "duplicate parameter: key " + name + " already exists");
+        }
+    }
+
     TunableParam p {
         std::move(name),
         std::move(values),
         std::move(default_value)};
     params_.push_back(p);
     return p;
+}
+
+ParamExpr ConfigSpace::at(const std::string& name) const {
+    for (const auto& p : params_) {
+        if (p.name() == name) {
+            return p;
+        }
+    }
+
+    throw std::runtime_error("could not find key: " + name);
 }
 
 void ConfigSpace::restriction(Expr<bool> e) {
@@ -77,7 +109,6 @@ bool ConfigSpace::is_valid(const Config& config) const {
             return false;
         }
 
-        const TunableParam& key = it->first;
         const TunableValue& value = it->second;
         bool in_list = false;
 
@@ -100,5 +131,4 @@ bool ConfigSpace::is_valid(const Config& config) const {
 
     return true;
 }
-
 }  // namespace kernel_launcher

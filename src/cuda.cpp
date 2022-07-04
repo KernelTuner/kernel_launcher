@@ -112,4 +112,29 @@ std::string CudaDevice::uuid() const {
 
     return result.str();
 }
+
+CudaContextHandle CudaContextHandle::current() {
+    CUcontext c;
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetCurrent(&c));
+    return CudaContextHandle(c);
+}
+
+CudaDevice CudaContextHandle::device() const {
+    CUdevice d = -1;
+    with([&]() { KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetDevice(&d)); });
+    return CudaDevice(d);
+}
+
+void CudaContextHandle::with(std::function<void()> f) const {
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxPushCurrent(context_));
+    try {
+        f();
+        KERNEL_LAUNCHER_CUDA_CHECK(cuCtxPopCurrent(nullptr));
+    } catch (...) {
+        // Ignore errors. There is not much we can do at this point.
+        cuCtxPopCurrent(nullptr);
+        throw;
+    }
+}
+
 }  // namespace kernel_launcher

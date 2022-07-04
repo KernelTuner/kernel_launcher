@@ -13,14 +13,21 @@ bool write_file(
     const std::vector<char>& content,
     bool overwrite = false);
 
-struct FileResolver {
-    explicit FileResolver(std::vector<std::string> dirs);
-    FileResolver() : FileResolver(std::vector<std::string> {}) {}
-    std::vector<char> read(const std::string& path) const;
+struct FileLoader {
+    virtual ~FileLoader() = default;
+    virtual std::vector<char> load(
+        const std::string& file_name,
+        const std::vector<std::string>& dirs = {}) const = 0;
+};
 
-    const std::vector<std::string>& directories() const {
-        return search_dirs_;
-    }
+struct DefaultLoader: FileLoader {
+    explicit DefaultLoader(
+        const std::vector<std::string>& dirs,
+        bool include_cwd = true);
+    DefaultLoader() : DefaultLoader(std::vector<std::string> {}) {}
+    std::vector<char> load(
+        const std::string& file_name,
+        const std::vector<std::string>& include_dirs) const override;
 
   private:
     std::vector<std::string> search_dirs_;

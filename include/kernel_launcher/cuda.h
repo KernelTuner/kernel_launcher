@@ -4,6 +4,7 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
+#include <functional>
 #include <stdexcept>
 #include <string>
 
@@ -84,6 +85,17 @@ struct CudaDevice {
 
   private:
     CUdevice device_ = -1;
+};
+
+struct CudaContextHandle {
+    CudaContextHandle() = default;
+    CudaContextHandle(CUcontext c) : context_(c) {};
+    static CudaContextHandle current();
+    CudaDevice device() const;
+    void with(std::function<void()> f) const;
+
+  private:
+    CUcontext context_ = nullptr;
 };
 
 }  // namespace kernel_launcher

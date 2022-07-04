@@ -35,12 +35,14 @@ struct KernelSource {
         return filename_;
     }
 
-    std::string read(const FileResolver& fs) const {
-        if (has_content_) {
-            return content_;
+    std::string
+    read(const FileLoader& fs, const std::vector<std::string>& dirs) const {
+        if (!has_content_) {
+            std::vector<char> content = fs.load(filename_, dirs);
+            content.push_back('\0');
+            return std::string(content.data());
         } else {
-            const std::vector<char>& content = fs.read(filename_);
-            return std::string(content.begin(), content.end());
+            return content_;
         }
     }
 
@@ -51,7 +53,12 @@ struct KernelSource {
 };
 
 struct KernelDef {
-    std::string kernel_name;
+    KernelDef(std::string name, KernelSource source);
+    void add_template_arg(TemplateArg arg);
+    void add_parameter(TypeInfo dtype);
+    void add_compiler_option(std::string option);
+
+    std::string name;
     KernelSource source;
     std::vector<TemplateArg> template_args;
     std::vector<TypeInfo> param_types;
@@ -60,7 +67,7 @@ struct KernelDef {
 
 struct CompilerBase {
     virtual ~CompilerBase() {}
-    virtual CudaModule compile(const KernelDef&) const = 0;
+    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const = 0;
 };
 
 struct Compiler: CompilerBase {
@@ -74,8 +81,8 @@ struct Compiler: CompilerBase {
         inner_(std::make_shared<typename std::decay<C>::type>(
             std::forward<C>(compiler))) {}
 
-    CudaModule compile(const KernelDef& def) const override {
-        return inner_->compile(def);
+    CudaModule compile(CudaContextHandle ctx, KernelDef def) const override {
+        return inner_->compile(ctx, std::move(def));
     }
 
   private:
@@ -87,24 +94,23 @@ struct NvrtcException: std::runtime_error {
 };
 
 struct NvrtcCompiler: CompilerBase {
-    NvrtcCompiler(std::vector<std::string> options = {}, FileResolver fs = {}) :
-        default_options_(std::move(options)),
-        fs_(std::move(fs)) {}
+    NvrtcCompiler(
+        std::vector<std::string> options = {},
+        std::shared_ptr<FileLoader> fs = {});
 
     static int version();
 
     void compile_ptx(
         const KernelDef& def,
-        std::string& ptx,
-        std::string& symbol_name,
-        CudaDevice = CudaDevice::current()) const;
+        int arch_version,
+        std::string& ptx_out,
+        std::string& name_out) const;
 
-    CudaModule compile(const KernelDef& spec) const override;
+    CudaModule compile(CudaContextHandle ctx, KernelDef def) const override;
 
   private:
-    mutable std::vector<std::pair<std::string, std::string>> file_cache_;
+    std::shared_ptr<FileLoader> fs_;
     std::vector<std::string> default_options_;
-    FileResolver fs_;
 };
 
 }  // namespace kernel_launcher

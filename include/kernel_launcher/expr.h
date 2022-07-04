@@ -15,8 +15,10 @@ struct Expr;
 using AnyExpr = Expr<TunableValue>;
 struct ScalarExpr;
 
+struct ParamExpr;
+
 struct BaseExpr {
-    virtual ~BaseExpr() {};
+    virtual ~BaseExpr() = default;
     virtual std::string to_string() const = 0;
     virtual TunableValue eval(const Eval& eval) const = 0;
     virtual AnyExpr resolve(const Eval& eval) const = 0;
@@ -60,7 +62,7 @@ struct SharedExpr: BaseExpr {
     SharedExpr(std::shared_ptr<BaseExpr> inner) : inner_(std::move(inner)) {}
 
     const BaseExpr& inner() const {
-        return *inner_.get();
+        return *inner_;
     }
 
   private:
@@ -70,6 +72,8 @@ struct SharedExpr: BaseExpr {
 template<typename T>
 struct Expr: SharedExpr {
     Expr(T value = {}) : SharedExpr(std::make_shared<ScalarExpr>(value)) {}
+
+    Expr(TunableParam v) : SharedExpr(std::make_shared<ParamExpr>(v)) {}
 
     template<typename E, typename = typename std::enable_if<is_expr<E>>::type>
     Expr(E&& expr) :
@@ -95,7 +99,7 @@ struct Expr: SharedExpr {
     }
 
     AnyExpr resolve(const Eval& eval) const override {
-        AnyExpr result = this->resolve(eval);
+        AnyExpr result = inner().resolve(eval);
 
         while (const Expr* v = dynamic_cast<const Expr*>(&result.inner())) {
             result = *v;

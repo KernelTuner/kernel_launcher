@@ -4,12 +4,15 @@
 #include <fstream>
 #include <sstream>
 
-#define KERNEL_LAUNCHER_EMBEDDED_DATA (0)
+#ifndef KERNEL_LAUNCHER_EMBEDDED_DATA
+    #define KERNEL_LAUNCHER_EMBEDDED_DATA (0)
+#endif
 #if KERNEL_LAUNCHER_EMBEDDED_DATA
     #include <dlfcn.h>
 #endif
 
 #include "kernel_launcher/fs.h"
+#include "kernel_launcher/utils.h"
 
 namespace kernel_launcher {
 bool read_file(const std::string& path, std::vector<char>& result) {
@@ -55,6 +58,40 @@ bool write_file(
     }
 
     return false;
+}
+
+static void add_env_directories(std::vector<std::string>& result) {
+    static constexpr const char* ENV_KEY = "KERNEL_LAUNCHER_INCLUDE";
+    const char* paths = getenv(ENV_KEY);
+
+    if (paths) {
+        while (true) {
+            if (paths[0] == '\0') {
+                break;
+            }
+
+            if (paths[0] == ';') {
+                paths++;
+                continue;
+            }
+
+            size_t count = 0;
+
+            while (true) {
+                char c = paths[count];
+                if (c == '\0' || c == ';') {
+                    break;
+                }
+                count++;
+            }
+
+            if (count > 0) {
+                result.emplace_back(paths, count);
+            }
+
+            paths += count;
+        }
+    }
 }
 
 // This code based on jitify.hpp from NVIDIA/jitify
@@ -110,57 +147,7 @@ struct EmbeddedData {
   private:
     void* app_;
 };
-#else
-struct EmbeddedData {
-    bool find(const std::string& key, std::vector<char>& result) {
-        return false;
-    }
-};
 #endif
-
-static void add_env_directories(std::vector<std::string>& result) {
-    static constexpr const char* ENV_KEY = "KERNEL_LAUNCHER_INCLUDE_PATH";
-    const char* paths = getenv(ENV_KEY);
-
-    if (paths) {
-        size_t offset = 0;
-        while (paths[offset] != '\0') {
-            size_t count = 0;
-
-            while (true) {
-                char c = paths[offset + count];
-                if (c == '\0' || c == ';') {
-                    break;
-                }
-                count++;
-            }
-
-            if (count > 0) {
-                result.push_back(std::string(paths + offset, count));
-            }
-
-            offset += count + 1;
-        }
-    }
-}
-
-FileResolver::FileResolver(std::vector<std::string> dirs) {
-    // working directory
-    char cwd[PATH_MAX + 1];
-    if (getcwd(cwd, sizeof cwd)) {
-        search_dirs_.push_back(cwd);
-    }
-
-    // directories given by user
-    for (const std::string& d : dirs) {
-        if (!d.empty()) {
-            dirs.push_back(d);
-        }
-    }
-
-    // directories on file path
-    add_env_directories(search_dirs_);
-}
 
 static std::string
 join_paths(const std::string& left, const std::string& right) {
@@ -181,36 +168,62 @@ join_paths(const std::string& left, const std::string& right) {
     return result;
 }
 
-std::vector<char> FileResolver::read(const std::string& path) const {
-    if (!path.empty()) {
-        std::vector<char> result;
-        if (read_file(path, result)) {
-            return result;
+DefaultLoader::DefaultLoader(
+    const std::vector<std::string>& dirs,
+    bool include_cwd) {
+    // Add environment directories first
+    add_env_directories(search_dirs_);
+
+    // working directory
+    if (include_cwd) {
+        char cwd[PATH_MAX + 1];
+        if (getcwd(cwd, sizeof cwd)) {
+            search_dirs_.push_back(cwd);
         }
+    }
 
-        for (const std::string& dir : search_dirs_) {
-            std::string full_path = join_paths(dir, path);
+    // directories given by user
+    for (const std::string& d : dirs) {
+        search_dirs_.push_back(d);
+    }
+}
 
-            if (read_file(full_path, result)) {
-                return result;
+std::vector<char> DefaultLoader::load(
+    const std::string& file_name,
+    const std::vector<std::string>& more_dirs) const {
+    if (!file_name.empty()) {
+        std::vector<char> result;
+
+        for (const std::vector<std::string>& dirs : {search_dirs_, more_dirs}) {
+            for (const std::string& dir : dirs) {
+                if (dir.empty()) {
+                    continue;
+                }
+
+                std::string full_path = join_paths(dir, file_name);
+
+                if (read_file(full_path, result)) {
+                    return result;
+                }
             }
         }
 
-        EmbeddedData data;
-        if (data.find(path, result)) {
+#if KERNEL_LAUNCHER_EMBEDDED_DATA
+        if (EmbeddedData().find(file_name, result)) {
             return result;
+        }
+#endif
+    }
+
+    log_info() << "could not find file " << file_name
+               << ", searched following directories:" << std::endl;
+    for (const std::vector<std::string>& dirs : {search_dirs_, more_dirs}) {
+        for (const std::string& dir : dirs) {
+            log_info() << " - " << dir << std::endl;
         }
     }
 
-    std::stringstream msg;
-    msg << "could not found file \"" << path
-        << "\" in the following directories: \".\"";
-
-    for (const std::string& dir : search_dirs_) {
-        msg << ", \"" << dir << "\"";
-    }
-
-    throw std::runtime_error(msg.str());
+    throw std::runtime_error("could not find file: " + file_name);
 }
 
 }  // namespace kernel_launcher
