@@ -43,7 +43,7 @@ enum struct LogLevel {
 };
 
 struct DummyStream: std::ostream {
-    DummyStream() noexcept = default;
+    DummyStream() = default;
 };
 
 static std::ostream& log_level(LogLevel level) {
