@@ -27,7 +27,7 @@ struct is_valid_kernel_arg {
 template<typename T>
 struct KernelArgScalar: KernelArg {
     static_assert(is_valid_kernel_arg<T>::value, "type must be trivial");
-    KernelArgScalar(T v): data_(std::move(v)) {}
+    KernelArgScalar(T v) : data_(std::move(v)) {}
 
     bool is_scalar() const override {
         return true;

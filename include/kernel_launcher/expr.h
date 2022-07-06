@@ -2,8 +2,8 @@
 #define KERNEL_LAUNCHER_EXPR_H
 
 #include <sstream>
-#include <unordered_map>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "kernel_launcher/value.h"
 
@@ -62,7 +62,7 @@ constexpr bool is_expr = decltype(detail::is_expr_helper(
 struct SharedExpr: BaseExpr {
     SharedExpr() noexcept = default;
 
-    template <typename E>
+    template<typename E>
     SharedExpr(std::shared_ptr<E> inner) : inner_(std::move(inner)) {}
 
     const BaseExpr& inner() const {

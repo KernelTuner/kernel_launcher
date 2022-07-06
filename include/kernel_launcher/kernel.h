@@ -2,6 +2,7 @@
 #define KERNEL_LAUNCHER_KERNEL_H
 
 #include <cuda.h>
+
 #include <iostream>
 
 #include "kernel_launcher/compiler.h"
@@ -109,6 +110,11 @@ struct KernelBuilder: ConfigSpace {
         return *this;
     }
 
+    KernelBuilder& define(std::string name, TunableValue value) {
+        defines_.emplace(std::move(name), value.to_string());
+        return *this;
+    }
+
     KernelBuilder& define(std::string name, Expr<std::string> value) {
         defines_.emplace(std::move(name), std::move(value));
         return *this;
@@ -138,6 +144,11 @@ struct KernelBuilder: ConfigSpace {
         Expr<T> param = this->tune(name, values);
         define(std::move(name), param);
         return param;
+    }
+
+    template<typename T>
+    Expr<T> tune_define(std::string name, std::initializer_list<T> values) {
+        return tune_define(name, std::vector<T>(values));
     }
 
     KernelDef

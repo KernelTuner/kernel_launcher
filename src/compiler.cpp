@@ -46,7 +46,8 @@ void KernelDef::add_compiler_option(std::string option) {
 
 CudaModule Compiler::compile(CudaContextHandle ctx, KernelDef def) const {
     if (!inner_) {
-        throw std::runtime_error("kernel_launcher::Compiler has not been initialized");
+        throw std::runtime_error(
+            "kernel_launcher::Compiler has not been initialized");
     }
 
     return inner_->compile(ctx, std::move(def));
@@ -320,8 +321,8 @@ void NvrtcCompiler::compile_ptx(
     std::vector<std::string> dirs = extract_include_dirs(options);
     std::string source = def.sources[0].read(*fs_, dirs);
 
-    log_debug() << "compiling " << def.name << " (" << def.sources[0].file_name()
-                << "): " << source << "\n";
+    log_debug() << "compiling " << def.name << " ("
+                << def.sources[0].file_name() << "): " << source << "\n";
 
     for (size_t attempt = 0; attempt < max_attempts; attempt++) {
         bool success = nvrtc_compile(
@@ -334,8 +335,8 @@ void NvrtcCompiler::compile_ptx(
             ptx,
             log);
 
-        log_debug() << "NVRTC compilation of " << def.sources[0].file_name() << ": "
-                    << log << std::endl;
+        log_debug() << "NVRTC compilation of " << def.sources[0].file_name()
+                    << ": " << log << std::endl;
 
         if (success) {
             return;

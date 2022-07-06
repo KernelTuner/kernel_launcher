@@ -36,7 +36,5 @@ TEST_CASE("test fs") {
         CHECK(path_join("/a/", "/b") == "/b");
         CHECK(path_join("/a/", "/") == "/");
         CHECK(path_join("//", "/b") == "/b");
-
     }
-
 }
