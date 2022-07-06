@@ -95,7 +95,7 @@ WisdomResult read_wisdom_file(
     CudaDevice device,
     Config& config_out);
 
-WisdomResult read_wisdom_file(
+inline WisdomResult read_wisdom_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& path,
