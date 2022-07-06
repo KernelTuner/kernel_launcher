@@ -14,7 +14,7 @@ struct KernelArg {
     virtual bool is_scalar() const = 0;
     virtual TypeInfo type_info() const = 0;
     virtual std::vector<char> to_bytes() const = 0;
-    virtual void* as_ptr() const = 0;
+    virtual const void* as_ptr() const = 0;
 };
 
 template<typename T>
@@ -27,6 +27,7 @@ struct is_valid_kernel_arg {
 template<typename T>
 struct KernelArgScalar: KernelArg {
     static_assert(is_valid_kernel_arg<T>::value, "type must be trivial");
+    KernelArgScalar(T v): data_(std::move(v)) {}
 
     bool is_scalar() const override {
         return true;
@@ -42,8 +43,8 @@ struct KernelArgScalar: KernelArg {
         return result;
     }
 
-    void* as_ptr() const {
-        return static_cast<void*>(&data_);
+    const void* as_ptr() const {
+        return static_cast<const void*>(&data_);
     }
 
   private:
@@ -72,8 +73,8 @@ struct KernelArgArray: KernelArg {
         return result;
     }
 
-    void* as_ptr() const {
-        return static_cast<void*>(&ptr_);
+    const void* as_ptr() const {
+        return static_cast<const void*>(&ptr_);
     }
 
   private:

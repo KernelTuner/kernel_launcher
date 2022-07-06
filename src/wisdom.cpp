@@ -344,6 +344,8 @@ static json kernel_args_to_json(
             entry["kind"] = "scalar";
             entry["data"] = data;
         }
+
+        result.push_back(entry);
     }
 
     return result;
