@@ -23,7 +23,7 @@ std::string sanitize_tuning_key(std::string key) {
             output << c;
         } else {
             output << '$' << std::hex << std::setw(2) << std::setfill('0')
-                   << ((unsigned char)c);
+                   << ((unsigned int)(unsigned char)c);
         }
     }
 
@@ -277,7 +277,7 @@ static const DataFile& write_kernel_arg(
     std::mt19937 rng {std::random_device {}()};
 
     for (size_t retry = 0; retry < 10; retry++) {
-        std::string file_name = tuning_key;
+        std::string file_name = sanitize_tuning_key(tuning_key);
         file_name += "_";
 
         for (size_t i = 0; i < random_suffix_length; i++) {
