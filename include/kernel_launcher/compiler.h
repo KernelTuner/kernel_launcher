@@ -49,9 +49,10 @@ struct KernelDef {
     void add_template_arg(TemplateArg arg);
     void add_parameter(TypeInfo dtype);
     void add_compiler_option(std::string option);
+    void add_source(KernelSource source);
 
     std::string name;
-    KernelSource source;
+    std::vector<KernelSource> sources;
     std::vector<TemplateArg> template_args;
     std::vector<TypeInfo> param_types;
     std::vector<std::string> options;
@@ -67,15 +68,15 @@ struct Compiler: CompilerBase {
     Compiler(Compiler&) = default;
     Compiler(const Compiler&) = default;
     Compiler(Compiler&&) = default;
+    Compiler& operator=(const Compiler&) = default;
+    Compiler& operator=(Compiler&&) = default;
 
     template<typename C>
     Compiler(C&& compiler) :
         inner_(std::make_shared<typename std::decay<C>::type>(
             std::forward<C>(compiler))) {}
 
-    CudaModule compile(CudaContextHandle ctx, KernelDef def) const override {
-        return inner_->compile(ctx, std::move(def));
-    }
+    CudaModule compile(CudaContextHandle ctx, KernelDef def) const override;
 
   private:
     std::shared_ptr<CompilerBase> inner_;

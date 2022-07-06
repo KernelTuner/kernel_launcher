@@ -23,7 +23,7 @@ std::string KernelSource::read(
 
 KernelDef::KernelDef(std::string name, KernelSource source) :
     name(std::move(name)),
-    source(source) {
+    sources({source}) {
     add_compiler_option("-DKERNEL_LAUNCHER=1");
     add_compiler_option("-Dkernel_tuner=1");
 }
@@ -36,8 +36,20 @@ void KernelDef::add_parameter(TypeInfo dtype) {
     param_types.push_back(std::move(dtype));
 }
 
+void KernelDef::add_source(KernelSource source) {
+    sources.push_back(std::move(source));
+}
+
 void KernelDef::add_compiler_option(std::string option) {
     options.push_back(std::move(option));
+}
+
+CudaModule Compiler::compile(CudaContextHandle ctx, KernelDef def) const {
+    if (!inner_) {
+        throw std::runtime_error("kernel_launcher::Compiler has not been initialized");
+    }
+
+    return inner_->compile(ctx, std::move(def));
 }
 
 inline void nvrtc_check(nvrtcResult result) {
@@ -264,6 +276,16 @@ static bool extract_unknown_header_from_log(
 
     return false;
 }
+/*
+static std::string source_to_temporary_file(
+    const KernelSource& source,
+    const FileLoader& fs,
+    const std::vector<std::string>& dirs
+) {
+    std::string content = source.read(fs, dirs);
+//    ::tmpnam_r();
+    throw std::runtime_error("unimplemented");
+}*/
 
 void NvrtcCompiler::compile_ptx(
     const KernelDef& def,
@@ -296,15 +318,15 @@ void NvrtcCompiler::compile_ptx(
 
     std::unordered_map<std::string, std::string> headers;
     std::vector<std::string> dirs = extract_include_dirs(options);
-    std::string source = def.source.read(*fs_, dirs);
+    std::string source = def.sources[0].read(*fs_, dirs);
 
-    log_debug() << "compiling " << def.name << " (" << def.source.file_name()
+    log_debug() << "compiling " << def.name << " (" << def.sources[0].file_name()
                 << "): " << source << "\n";
 
     for (size_t attempt = 0; attempt < max_attempts; attempt++) {
         bool success = nvrtc_compile(
             source,
-            def.source.file_name(),
+            def.sources[0].file_name(),
             symbol,
             raw_options,
             headers,
@@ -312,7 +334,7 @@ void NvrtcCompiler::compile_ptx(
             ptx,
             log);
 
-        log_debug() << "NVRTC compilation of " << def.source.file_name() << ": "
+        log_debug() << "NVRTC compilation of " << def.sources[0].file_name() << ": "
                     << log << std::endl;
 
         if (success) {
