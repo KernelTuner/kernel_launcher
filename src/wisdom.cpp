@@ -95,9 +95,7 @@ static std::vector<json> expr_list_to_json(C collection) {
     return result;
 }
 
-static json environment_json(
-    const std::string& tuning_key,
-    CudaDevice device = CudaDevice::current()) {
+static json environment_json(const std::string& tuning_key, CudaDevice device) {
     int driver_version = -1, runtime_version = -1;
     cuDriverGetVersion(&driver_version);  // ignore errors
     cudaRuntimeGetVersion(&runtime_version);
@@ -128,7 +126,7 @@ static json environment_json(
 static void check_environment_json(
     const json& env,
     const std::string& tuning_key,
-    CudaDevice device = CudaDevice::current()) {
+    CudaDevice device) {
     // The key MUST match. All other checks are just warnings
     if (tuning_key != env["key"]) {
         throw std::runtime_error("expecting tuning key " + tuning_key + ", but"
@@ -245,14 +243,30 @@ static json builder_to_json(const KernelBuilder& builder) {
     return KernelBuilderSerializerHack::builder_to_json(builder);
 }
 
-static std::string write_kernel_arg(
+struct DataFile {
+    hash_t hash;
+    size_t size;
+    std::string file_name;
+};
+
+static const DataFile& write_kernel_arg(
     const std::string& tuning_key,
     const std::string& data_dir,
-    const std::vector<char>& data) {
+    const std::vector<char>& data,
+    std::vector<DataFile>& previous_files) {
     static constexpr size_t random_suffix_length = 8;
     static constexpr char random_chars[] =
         "0123456789"
         "abcdefghijklmnopqrstuvwxyz";
+
+    hash_t hash = hash_string(data);
+
+    // Find if a previous file has the same hash and size
+    for (const auto& p : previous_files) {
+        if (p.hash == hash && p.size == data.size()) {
+            return p;
+        }
+    }
 
     // -2 since:
     //  * uniform_int_distribution is inclusive
@@ -279,7 +293,9 @@ static std::string write_kernel_arg(
 
         log_debug() << "writing " << data.size() << " bytes to " << path
                     << " for kernel " << tuning_key << std::endl;
-        return file_name;
+
+        previous_files.push_back({hash, data.size(), file_name});
+        return previous_files.back();
     }
 
     throw std::runtime_error("failed to write data to: " + path);
@@ -288,44 +304,45 @@ static std::string write_kernel_arg(
 static json kernel_args_to_json(
     const std::string& tuning_key,
     const std::string& data_dir,
-    const std::vector<const KernelArg*>& inputs) {
-    struct DataFile {
-        hash_t hash;
-        size_t size;
-        std::string file_name;
-    };
-
+    const std::vector<const KernelArg*>& inputs,
+    const std::vector<const KernelArg*>& outputs) {
     std::vector<DataFile> previous_files;
     std::vector<json> result;
 
-    for (const KernelArg* input : inputs) {
+    for (size_t i = 0; i < inputs.size(); i++) {
+        const KernelArg* input = inputs[i];
+        std::vector<char> data = input->to_bytes();
+
         json entry;
         entry["type"] = input->type_info().name();
 
         if (input->type_info().is_pointer()) {
-            std::vector<char> data = input->to_bytes();
-            hash_t hash = hash_string(data);
-            std::string file_name;
-
-            // Find if a previous file has the same hash and size
-            for (const auto& p : previous_files) {
-                if (p.hash == hash && p.size == data.size()) {
-                    file_name = p.file_name;
-                }
-            }
-
-            // No file with same data, it must be unique. Create a new file.
-            if (file_name.empty()) {
-                file_name = write_kernel_arg(tuning_key, data_dir, data);
-                previous_files.push_back({hash, data.size(), file_name});
-            }
+            const DataFile& input_file =
+                write_kernel_arg(tuning_key, data_dir, data, previous_files);
 
             entry["kind"] = "array";
-            entry["hash"] = hash;
-            entry["file"] = file_name;
+            entry["hash"] = input_file.hash;
+            entry["file"] = input_file.file_name;
+
+            if (i < outputs.size()) {
+                data = outputs[i]->to_bytes();
+
+                const DataFile& output_file = write_kernel_arg(
+                    tuning_key,
+                    data_dir,
+                    data,
+                    previous_files);
+
+                // Only add the output reference file if it does not match the
+                // input file.
+                if (input_file.hash != output_file.hash) {
+                    entry["reference_file"] = output_file.file_name;
+                    entry["reference_hash"] = output_file.hash;
+                }
+            }
         } else {
             entry["kind"] = "scalar";
-            entry["data"] = input->to_bytes();
+            entry["data"] = data;
         }
     }
 
@@ -338,11 +355,13 @@ static json wisdom_to_json(
     const std::string& data_dir,
     dim3 problem_size,
     const std::vector<const KernelArg*>& inputs,
-    const std::vector<const KernelArg*>& outputs) {
+    const std::vector<const KernelArg*>& outputs,
+    CudaDevice device) {
     json result;
-    result["environment"] = environment_json(tuning_key);
+    result["environment"] = environment_json(tuning_key, device);
     result["kernel"] = builder_to_json(builder);
-    result["arguments"] = kernel_args_to_json(tuning_key, data_dir, inputs);
+    result["arguments"] =
+        kernel_args_to_json(tuning_key, data_dir, inputs, outputs);
     result["config"] = nullptr;
     result["problem_size"] = std::vector<unsigned int> {
         problem_size.x,
@@ -361,6 +380,7 @@ WisdomResult read_wisdom_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& path,
+    const CudaDevice device,
     Config& config) {
     std::string file_path =
         path + "/" + sanitize_tuning_key(tuning_key) + ".json";
@@ -382,7 +402,7 @@ WisdomResult read_wisdom_file(
         }
 
         // Check if environment is correct
-        check_environment_json(input["environment"], tuning_key);
+        check_environment_json(input["environment"], tuning_key, device);
 
         config = json_to_config(input["config"], builder);
         return WisdomResult::Success;
@@ -400,7 +420,8 @@ void write_wisdom_file(
     const std::string& data_dir,
     dim3 problem_size,
     const std::vector<const KernelArg*>& inputs,
-    const std::vector<const KernelArg*>& outputs = {}) {
+    const std::vector<const KernelArg*>& outputs,
+    CudaDevice device) {
     std::string file_name =
         wisdom_dir + "/" + sanitize_tuning_key(tuning_key) + ".json";
 
@@ -411,7 +432,8 @@ void write_wisdom_file(
             data_dir,
             problem_size,
             inputs,
-            outputs);
+            outputs,
+            device);
 
         std::string content_str = content_json.dump(4);
         std::vector<char> content(content_str.begin(), content_str.end());

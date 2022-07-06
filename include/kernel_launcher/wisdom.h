@@ -84,7 +84,7 @@ struct KernelArgArray: KernelArg {
 enum struct WisdomResult {
     Success,  // Wisdom file was found with valid configuration
     Invalid,  // Wisdom file was found, but without a valid configuration
-    NotFound,  // Wisdom file was not found, it can be written
+    NotFound,  // Wisdom file was not found, it should be written
     IoError,  // An error occurred while reading or parsing files
 };
 
@@ -92,24 +92,31 @@ WisdomResult read_wisdom_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& path,
-    Config& config);
+    CudaDevice device,
+    Config& config_out);
+
+WisdomResult read_wisdom_file(
+    const std::string& tuning_key,
+    const KernelBuilder& builder,
+    const std::string& path,
+    Config& config_out) {
+    return read_wisdom_file(
+        tuning_key,
+        builder,
+        path,
+        CudaDevice::current(),
+        config_out);
+}
 
 void write_wisdom_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& path,
     const std::string& data_dir,
-    const std::vector<KernelArg>& inputs,
-    const std::vector<KernelArg>& outputs = {});
-
-void write_wisdom_file(
-    const std::string& tuning_key,
-    const KernelBuilder& builder,
-    const std::string& path,
-    const std::vector<KernelArg>& inputs,
-    const std::vector<KernelArg>& outputs = {}) {
-    write_wisdom_file(tuning_key, builder, path, path, inputs, outputs);
-}
+    dim3 problem_size,
+    const std::vector<const KernelArg*>& inputs,
+    const std::vector<const KernelArg*>& outputs = {},
+    CudaDevice device = CudaDevice::current());
 
 }  // namespace kernel_launcher
 
