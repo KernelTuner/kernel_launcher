@@ -15,6 +15,21 @@
 #include "kernel_launcher/utils.h"
 
 namespace kernel_launcher {
+
+std::string path_join(const std::string& left, const std::string& right) {
+    if (left.empty() || left == "." || right.front() == '/') {
+        return right;
+    }
+
+    std::string result = left;
+    if (result.back() != '/') {
+        result += '/';
+    }
+
+    result += right;
+    return result;
+}
+
 bool read_file(const std::string& path, std::vector<char>& result) {
     std::ifstream stream(path);
 
@@ -149,25 +164,6 @@ struct EmbeddedData {
 };
 #endif
 
-static std::string
-join_paths(const std::string& left, const std::string& right) {
-    if (right.empty() || right[0] == '/') {
-        return left;
-    }
-
-    if (left.empty() || left == ".") {
-        return right;
-    }
-
-    std::string result = left;
-    if (result.back() != '/') {
-        result += '/';
-    }
-
-    result += right;
-    return result;
-}
-
 DefaultLoader::DefaultLoader(
     const std::vector<std::string>& dirs,
     bool include_cwd) {
@@ -200,7 +196,7 @@ std::vector<char> DefaultLoader::load(
                     continue;
                 }
 
-                std::string full_path = join_paths(dir, file_name);
+                std::string full_path = path_join(dir, file_name);
 
                 if (read_file(full_path, result)) {
                     return result;

@@ -7,6 +7,8 @@
 
 namespace kernel_launcher {
 
+std::string path_join(const std::string& left, const std::string& right);
+
 bool read_file(const std::string& path, std::vector<char>& result);
 bool write_file(
     const std::string& path,

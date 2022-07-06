@@ -286,7 +286,7 @@ static const DataFile& write_kernel_arg(
 
         file_name += ".bin";
 
-        path = data_dir + "/" + file_name;
+        path = path_join(data_dir, file_name);
         if (!write_file(path, data)) {
             continue;
         }
@@ -379,11 +379,11 @@ static Config json_to_config(const json& config, const KernelBuilder& builder) {
 WisdomResult read_wisdom_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
-    const std::string& path,
+    const std::string& wisdom_dir,
     const CudaDevice device,
     Config& config) {
     std::string file_path =
-        path + "/" + sanitize_tuning_key(tuning_key) + ".json";
+        path_join(wisdom_dir, sanitize_tuning_key(tuning_key) + ".json");
     std::vector<char> content;
 
     log_debug() << "reading wisdom file from " << file_path << " for kernel "
@@ -423,7 +423,7 @@ void write_wisdom_file(
     const std::vector<const KernelArg*>& outputs,
     CudaDevice device) {
     std::string file_name =
-        wisdom_dir + "/" + sanitize_tuning_key(tuning_key) + ".json";
+        path_join(wisdom_dir, sanitize_tuning_key(tuning_key) + ".json");
 
     try {
         json content_json = wisdom_to_json(
