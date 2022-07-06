@@ -3,6 +3,7 @@
 #include <cstring>
 #include <mutex>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 
 namespace kernel_launcher {
@@ -45,13 +46,7 @@ static const char* data_type_name(TunableValue::DataType dtype) {
 
 const std::string& intern_string(const char* input) {
     auto equal = [](const char* a, const char* b) { return strcmp(a, b) == 0; };
-    auto hash = [](const char* v) {
-        size_t h = 0;
-        for (; *v; v++) {
-            h = h * 31 + *v;
-        }
-        return h;
-    };
+    auto hash = [](const char* v) { return hash_string(v, ::strlen(v)); };
 
     static std::mutex lock;
     static std::unordered_map<
@@ -72,7 +67,7 @@ const std::string& intern_string(const char* input) {
         it = result.first;
     }
 
-    return *(it->second.get());
+    return *(it->second);
 }
 
 TunableValue& TunableValue::operator=(const TunableValue& that) {
@@ -109,8 +104,11 @@ size_t TunableValue::hash() const {
         case type_bool:
             return std::hash<integer_type> {}(bool_val_);
         case type_double:
-            safe_double_to_int64(double_val_, v);
-            return std::hash<integer_type> {}(v);
+            if (safe_double_to_int64(double_val_, v)) {
+                return std::hash<integer_type> {}(v);
+            } else {
+                return 0;
+            }
         case type_string:
             return std::hash<std::string> {}(*string_val_);
         default:

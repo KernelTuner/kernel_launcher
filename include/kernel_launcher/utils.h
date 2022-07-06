@@ -5,6 +5,7 @@
 #include <limits>
 #include <string>
 #include <type_traits>
+#include <typeindex>
 #include <vector>
 
 namespace kernel_launcher {
@@ -15,16 +16,36 @@ std::ostream& log_warning();
 
 std::string demangle_type_info(const std::type_info& type);
 
-struct TypeInfo {
-  private:
-    struct Impl {
+namespace detail {
+    template<typename T>
+    const std::string& demangle_type_info_for() {
+        static std::string result = demangle_type_info(typeid(T));
+        return result;
+    }
+
+    struct TypeInfoInternalImpl {
         size_t alignment;
         size_t size;
-        bool is_const;
         const std::type_info& type_info;
-        std::string name;
-        const Impl* pointee_type;
+        const std::string& (*name_fun)();
+        const TypeInfoInternalImpl* remove_pointer_type;
+        bool is_const;
     };
+
+    template<typename T>
+    static constexpr TypeInfoInternalImpl type_impl_for = {
+        alignof(T),
+        sizeof(T),
+        typeid(T),
+        demangle_type_info_for<T>,
+        &type_impl_for<typename std::remove_pointer<T>::type>,
+        std::is_const<T>::value,
+    };
+}  // namespace detail
+
+struct TypeInfo {
+  private:
+    using Impl = detail::TypeInfoInternalImpl;
 
     TypeInfo(const Impl* impl) : impl_(impl) {}
 
@@ -33,23 +54,11 @@ struct TypeInfo {
 
     template<typename T>
     static TypeInfo of() {
-        static const Impl result = {
-            alignof(T),
-            sizeof(T),
-            std::is_const<T>::value,
-            typeid(T),
-            demangle_type_info(typeid(T)),
-            std::is_pointer<T>::value
-                ? TypeInfo::template of<typename std::remove_pointer<T>::type>()
-                      .impl_
-                : nullptr,
-        };
-
-        return TypeInfo {&result};
+        return &detail::type_impl_for<T>;
     }
 
     const std::string& name() const {
-        return impl_->name;
+        return (impl_->name_fun)();
     }
 
     size_t size() const {
@@ -61,23 +70,27 @@ struct TypeInfo {
     }
 
     bool is_pointer() const {
-        return impl_->pointee_type != nullptr;
+        return impl_->remove_pointer_type != impl_;
+    }
+
+    TypeInfo remove_pointer() const {
+        return impl_->remove_pointer_type;
     }
 
     bool is_const() const {
         return impl_->is_const;
     }
 
-    TypeInfo remove_pointer() const {
-        return is_pointer() ? TypeInfo {impl_->pointee_type} : *this;
-    }
-
     bool operator==(const TypeInfo& that) const {
-        return this->impl_->type_info == that.impl_->type_info;
+        return this->impl_->type_info == that.impl_->type_info
+            && this->impl_->is_const == that.impl_->is_const;
     }
 
     bool operator!=(const TypeInfo& that) const {
         return !(*this == that);
+    }
+    uint64_t hash() const {
+        return std::type_index(impl_->type_info).hash_code();
     }
 
   private:
@@ -209,34 +222,11 @@ auto div_ceil(L left, R right) {
     return (left / right) + (left % right != 0);
 }
 
-inline bool safe_double_to_int64(double input, int64_t& output) {
-    static constexpr double min_val =
-        static_cast<double>(std::numeric_limits<int64_t>::min());
-    static constexpr double max_val = static_cast<double>(
-        static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1);
-    int64_t v = static_cast<int64_t>(input);
-
-    if (input >= min_val && input < max_val && input == double(v)) {
-        output = v;
-        return true;
-    }
-
-    output = 0;
-    return false;
-}
+bool safe_double_to_int64(double input, int64_t& output);
 
 using hash_t = uint64_t;
 
-inline hash_t hash_string(const char* buffer, size_t num_bytes) {
-    hash_t hash = 0xcbf29ce484222325;
-    hash_t prime = 0x100000001b3;
-
-    for (size_t i = 0; i < num_bytes; i++) {
-        hash = (hash ^ (hash_t)(unsigned char)buffer[i]) * prime;
-    }
-
-    return hash;
-}
+hash_t hash_string(const char* buffer, size_t num_bytes);
 
 inline hash_t hash_string(const std::vector<char>& v) {
     return hash_string(v.data(), v.size());
@@ -251,5 +241,14 @@ inline hash_t hash_combine(hash_t a, hash_t b) {
 }
 
 }  // namespace kernel_launcher
+
+namespace std {
+template<>
+struct hash<kernel_launcher::TypeInfo> {
+    size_t operator()(const kernel_launcher::TypeInfo& info) const {
+        return info.hash();
+    }
+};
+}  // namespace std
 
 #endif  //KERNEL_LAUNCHER_UTILS_H

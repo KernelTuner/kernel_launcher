@@ -6,20 +6,45 @@ using namespace kernel_launcher;
 
 TEST_CASE("test TypeInfo") {
     TypeInfo x = TypeInfo::of<int>();
+    TypeInfo y = TypeInfo::of<int*>();
+    TypeInfo z = TypeInfo::of<const int>();
+    TypeInfo w = TypeInfo::of<const int*>();
+    TypeInfo v = TypeInfo::of<int* const>();
+
+    CHECK(typeid(int) == typeid(const int));
+
     CHECK(x.size() == sizeof(int));
     CHECK(x.alignment() == alignof(int));
     CHECK(x.name() == "int");
     CHECK(x.is_pointer() == false);
     CHECK(x.is_const() == false);
-    CHECK(x.remove_pointer() == x);
 
-    TypeInfo y = TypeInfo::of<int*>();
     CHECK(y.size() == sizeof(int*));
     CHECK(y.alignment() == alignof(int*));
     CHECK(y.name() == "int*");
     CHECK(y.is_pointer() == true);
     CHECK(y.is_const() == false);
     CHECK(y.remove_pointer() == x);
+
+    CHECK(z.size() == sizeof(int));
+    CHECK(z.alignment() == alignof(int));
+    CHECK(z.name() == "int");
+    CHECK(z.is_pointer() == false);
+    CHECK(z.is_const() == true);
+
+    CHECK(w.size() == sizeof(int*));
+    CHECK(w.alignment() == alignof(int*));
+    CHECK(w.name() == "int const*");
+    CHECK(w.is_pointer() == true);
+    CHECK(w.is_const() == false);
+    CHECK(w.remove_pointer() == z);
+
+    CHECK(v.size() == sizeof(int*));
+    CHECK(v.alignment() == alignof(int*));
+    CHECK(v.name() == "int*");
+    CHECK(v.is_pointer() == true);
+    CHECK(v.is_const() == true);
+    CHECK(v.remove_pointer() == x);
 
     CHECK(type_of<int>() == x);
     CHECK(type_of((int)5) == x);

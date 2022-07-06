@@ -100,4 +100,31 @@ std::ostream& log_warning() {
     return log_level(LogLevel::Warning);
 }
 
+bool safe_double_to_int64(double input, int64_t& output) {
+    static constexpr double min_val =
+        static_cast<double>(std::numeric_limits<int64_t>::min());
+    static constexpr double max_val = static_cast<double>(
+        static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1);
+    int64_t v = static_cast<int64_t>(input);
+
+    if (input >= min_val && input < max_val && input == double(v)) {
+        output = v;
+        return true;
+    }
+
+    output = 0;
+    return false;
+}
+
+hash_t hash_string(const char* buffer, size_t num_bytes) {
+    hash_t hash = 0xcbf29ce484222325;
+    hash_t prime = 0x100000001b3;
+
+    for (size_t i = 0; i < num_bytes; i++) {
+        hash = (hash ^ (hash_t)(unsigned char)buffer[i]) * prime;
+    }
+
+    return hash;
+}
+
 }  // namespace kernel_launcher

@@ -9,6 +9,18 @@ namespace kernel_launcher {
 
 extern const std::unordered_map<std::string, std::string>& jitsafe_headers();
 
+std::string KernelSource::read(
+    const FileLoader& fs,
+    const std::vector<std::string>& dirs) const {
+    if (!has_content_) {
+        std::vector<char> content = fs.load(filename_, dirs);
+        content.push_back('\0');
+        return std::string(content.data());
+    } else {
+        return content_;
+    }
+}
+
 KernelDef::KernelDef(std::string name, KernelSource source) :
     name(std::move(name)),
     source(source) {

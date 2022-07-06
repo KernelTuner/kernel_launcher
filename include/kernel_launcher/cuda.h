@@ -98,6 +98,17 @@ struct CudaContextHandle {
     CUcontext context_ = nullptr;
 };
 
+void cuda_raw_copy(const void* src, void* dst, size_t num_bytes);
+
+template<typename T>
+void cuda_copy(const T* src, T* dst, size_t num_elements) {
+    static_assert(std::is_trivially_copyable<T>::value, "must be trivial type");
+    cuda_raw_copy(
+        static_cast<const void*>(src),
+        static_cast<void*>(dst),
+        num_elements * sizeof(T));
+}
+
 }  // namespace kernel_launcher
 
 #endif  //KERNEL_LAUNCHER_CUDA_H

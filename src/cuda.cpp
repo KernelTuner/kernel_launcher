@@ -137,4 +137,11 @@ void CudaContextHandle::with(std::function<void()> f) const {
     }
 }
 
+void cuda_raw_copy(const void* src, void* dst, size_t num_bytes) {
+    KERNEL_LAUNCHER_CUDA_CHECK(cuMemcpy(
+        reinterpret_cast<CUdeviceptr>(dst),
+        reinterpret_cast<CUdeviceptr>(src),
+        num_bytes));
+}
+
 }  // namespace kernel_launcher
