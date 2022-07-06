@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <stdexcept>
 
 #include "kernel_launcher/value.h"
 
@@ -59,9 +60,16 @@ constexpr bool is_expr = decltype(detail::is_expr_helper(
     std::declval<typename std::decay<T>::type*>()))::value;
 
 struct SharedExpr: BaseExpr {
-    SharedExpr(std::shared_ptr<BaseExpr> inner) : inner_(std::move(inner)) {}
+    SharedExpr() noexcept = default;
+
+    template <typename E>
+    SharedExpr(std::shared_ptr<E> inner) : inner_(std::move(inner)) {}
 
     const BaseExpr& inner() const {
+        if (!inner_) {
+            throw std::runtime_error("null pointer in SharedExpr");
+        }
+
         return *inner_;
     }
 
@@ -71,7 +79,7 @@ struct SharedExpr: BaseExpr {
 
 template<typename T>
 struct Expr: SharedExpr {
-    Expr(T value = {}) : SharedExpr(std::make_shared<ScalarExpr>(value)) {}
+    Expr(T value) : SharedExpr(std::make_shared<ScalarExpr>(value)) {}
 
     Expr(TunableParam v) : SharedExpr(std::make_shared<ParamExpr>(v)) {}
 
@@ -80,6 +88,7 @@ struct Expr: SharedExpr {
         SharedExpr(std::make_shared<typename std::decay<E>::type>(
             std::forward<E>(expr))) {}
 
+    Expr() = delete;
     Expr(Expr&) = default;
     Expr(const Expr&) = default;
     Expr(Expr&&) noexcept = default;
