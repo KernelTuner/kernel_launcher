@@ -57,7 +57,7 @@ struct KernelArgArray: KernelArg {
 
     KernelArgArray(T* ptr, size_t num_elements) :
         ptr_(ptr),
-        num_elements_(num_elements_) {}
+        num_elements_(num_elements) {}
 
     bool is_scalar() const override {
         return false;
