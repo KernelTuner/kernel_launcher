@@ -2,7 +2,6 @@
 #define KERNEL_LAUNCHER_KERNEL_H
 
 #include <cuda.h>
-
 #include <iostream>
 
 #include "kernel_launcher/compiler.h"
@@ -23,7 +22,7 @@ struct KernelInstance {
         grid_divisor_(grid_divisor),
         shared_mem_(shared_mem) {}
 
-    void launch(cudaStream_t stream, dim3 problem_size, void** args) {
+    void launch(cudaStream_t stream, dim3 problem_size, void** args) const {
         dim3 grid_size = {
             div_ceil(problem_size.x, grid_divisor_.x),
             div_ceil(problem_size.y, grid_divisor_.y),
@@ -82,7 +81,7 @@ struct KernelBuilder: ConfigSpace {
     }
 
     KernelBuilder& template_arg(TemplateArg arg) {
-        return template_arg(Expr<TemplateArg>(arg));
+        return template_arg(Expr<TemplateArg>(std::move(arg)));
     }
 
     template<typename T, typename... Ts>
@@ -111,7 +110,7 @@ struct KernelBuilder: ConfigSpace {
     }
 
     KernelBuilder& define(std::string name, Expr<std::string> value) {
-        defines_[name] = std::move(value);
+        defines_.emplace(std::move(name), std::move(value));
         return *this;
     }
 
@@ -174,7 +173,7 @@ struct KernelLaunch {
         //
     }
 
-    void launch(Args... args) {
+    void launch(Args... args) const {
         std::array<void*, sizeof...(Args)> raw_args = {&args...};
         kernel_ref_.launch(stream_, problem_size_, raw_args.data());
     }
