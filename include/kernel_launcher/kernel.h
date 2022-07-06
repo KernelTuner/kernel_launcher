@@ -58,7 +58,7 @@ struct KernelBuilder: ConfigSpace {
         block_size_[0] = std::move(x);
         block_size_[1] = std::move(y);
         block_size_[2] = std::move(z);
-        return *this;
+        return grid_divisors(block_size_[0], block_size_[1], block_size_[2]);
     }
 
     KernelBuilder& grid_divisors(
