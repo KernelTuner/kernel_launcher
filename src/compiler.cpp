@@ -1,6 +1,7 @@
 #include "kernel_launcher/compiler.h"
 
 #include <nvrtc.h>
+#include <unistd.h>
 
 #include <cstring>
 #include <sstream>
@@ -23,7 +24,7 @@ std::string KernelSource::read(
 
 KernelDef::KernelDef(std::string name, KernelSource source) :
     name(std::move(name)),
-    sources({source}) {
+    source({source}) {
     add_compiler_option("-DKERNEL_LAUNCHER=1");
     add_compiler_option("-Dkernel_tuner=1");
 }
@@ -36,8 +37,8 @@ void KernelDef::add_parameter(TypeInfo dtype) {
     param_types.push_back(std::move(dtype));
 }
 
-void KernelDef::add_source(KernelSource source) {
-    sources.push_back(std::move(source));
+void KernelDef::add_preincluded_header(KernelSource s) {
+    preheaders.push_back(std::move(s));
 }
 
 void KernelDef::add_compiler_option(std::string option) {
@@ -88,11 +89,16 @@ static bool nvrtc_compile(
     const std::string& kernel_source,
     const std::string& kernel_file,
     const std::string& symbol_name,
-    const std::vector<const char*>& options,
+    const std::vector<std::string>& options,
     const std::unordered_map<std::string, std::string>& headers,
     std::string& lowered_name,
     std::string& ptx,
     std::string& log) {
+    std::vector<const char*> raw_options;
+    for (const auto& opt : options) {
+        raw_options.push_back(opt.c_str());
+    }
+
     std::vector<const char*> headers_names;
     std::vector<const char*> headers_content;
 
@@ -121,7 +127,7 @@ static bool nvrtc_compile(
 
     nvrtc_check(nvrtcAddNameExpression(program, symbol_name.data()));
     nvrtcResult result =
-        nvrtcCompileProgram(program, (int)options.size(), options.data());
+        nvrtcCompileProgram(program, (int)options.size(), raw_options.data());
 
     if (result != NVRTC_SUCCESS && result != NVRTC_ERROR_COMPILATION) {
         nvrtc_check(result);
@@ -277,16 +283,36 @@ static bool extract_unknown_header_from_log(
 
     return false;
 }
-/*
-static std::string source_to_temporary_file(
-    const KernelSource& source,
-    const FileLoader& fs,
-    const std::vector<std::string>& dirs
-) {
-    std::string content = source.read(fs, dirs);
-//    ::tmpnam_r();
-    throw std::runtime_error("unimplemented");
-}*/
+
+struct TempFile {
+    explicit TempFile(const std::string& content) {
+        const std::string& prefix = "header_";
+        const std::string& suffix = ".cuh";
+        path = prefix + "XXXXXX" + suffix;
+
+        int fd = ::mkstemps(&path[0], (int)suffix.size());
+        if (fd < 0) {
+            throw std::runtime_error(
+                "failed to create temporary file: " + path);
+        }
+
+        ssize_t result = ::write(fd, content.c_str(), content.size());
+        ::close(fd);
+
+        if (result != static_cast<ssize_t>(content.size())) {
+            throw std::runtime_error("failed to write temporary file: " + path);
+        }
+    }
+
+    ~TempFile() {
+        if (!path.empty()) {
+            unlink(path.c_str());
+            path = "";
+        }
+    }
+
+    std::string path;
+};
 
 void NvrtcCompiler::compile_ptx(
     const KernelDef& def,
@@ -295,7 +321,7 @@ void NvrtcCompiler::compile_ptx(
     std::string& symbol_name) const {
     constexpr size_t max_attempts = 25;
 
-    std::string symbol =
+    std::string expression =
         generate_expression(def.name, def.template_args, def.param_types);
     std::string log;
 
@@ -312,31 +338,32 @@ void NvrtcCompiler::compile_ptx(
     add_arch_flag(options, arch_version);
     add_default_device_flag(options);
 
-    std::vector<const char*> raw_options;
-    for (const std::string& opt : options) {
-        raw_options.push_back(opt.c_str());
+    std::vector<std::string> dirs = extract_include_dirs(options);
+    std::string source = def.source.read(*fs_, dirs);
+    std::vector<TempFile> preheaders;
+
+    for (const auto& preheader : def.preheaders) {
+        preheaders.emplace_back(preheader.read(*fs_, dirs));
+        options.push_back("--pre-include=" + preheaders.back().path);
     }
 
+    log_debug() << "compiling " << def.name << " (" << def.source.file_name()
+                << "): " << source << "\n";
+
     std::unordered_map<std::string, std::string> headers;
-    std::vector<std::string> dirs = extract_include_dirs(options);
-    std::string source = def.sources[0].read(*fs_, dirs);
-
-    log_debug() << "compiling " << def.name << " ("
-                << def.sources[0].file_name() << "): " << source << "\n";
-
     for (size_t attempt = 0; attempt < max_attempts; attempt++) {
         bool success = nvrtc_compile(
             source,
-            def.sources[0].file_name(),
-            symbol,
-            raw_options,
+            def.source.file_name(),
+            expression,
+            options,
             headers,
             symbol_name,
             ptx,
             log);
 
-        log_debug() << "NVRTC compilation of " << def.sources[0].file_name()
-                    << ": " << log << std::endl;
+        log_debug() << "NVRTC compilation of " << def.source.file_name() << ": "
+                    << log << std::endl;
 
         if (success) {
             return;

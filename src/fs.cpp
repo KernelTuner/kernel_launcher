@@ -55,7 +55,8 @@ bool read_file(const std::string& path, std::vector<char>& result) {
 
 bool write_file(
     const std::string& path,
-    const std::vector<char>& content,
+    const char* content,
+    size_t nbytes,
     bool overwrite) {
     std::ofstream stream(path, std::ios::ate);
 
@@ -64,7 +65,7 @@ bool write_file(
             return false;
         }
 
-        stream.write(content.data(), std::streamsize(content.size()));
+        stream.write(content, std::streamsize(nbytes));
 
         // Check if the stream is still valid after writing
         if (stream) {

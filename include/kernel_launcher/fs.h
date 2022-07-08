@@ -12,8 +12,23 @@ std::string path_join(const std::string& left, const std::string& right);
 bool read_file(const std::string& path, std::vector<char>& result);
 bool write_file(
     const std::string& path,
-    const std::vector<char>& content,
+    const char* content,
+    size_t nbytes,
     bool overwrite = false);
+
+inline bool write_file(
+    const std::string& path,
+    const std::vector<char>& content,
+    bool overwrite = false) {
+    return write_file(path, content.data(), content.size(), overwrite);
+}
+
+inline bool write_file(
+    const std::string& path,
+    const std::string& content,
+    bool overwrite = false) {
+    return write_file(path, content.data(), content.size(), overwrite);
+}
 
 struct FileLoader {
     virtual ~FileLoader() = default;

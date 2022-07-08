@@ -15,8 +15,6 @@
 
 namespace kernel_launcher {
 
-/***
- */
 struct KernelSource {
     KernelSource(std::string filename) :
         filename_(std::move(filename)),
@@ -49,10 +47,11 @@ struct KernelDef {
     void add_template_arg(TemplateArg arg);
     void add_parameter(TypeInfo dtype);
     void add_compiler_option(std::string option);
-    void add_source(KernelSource source);
+    void add_preincluded_header(KernelSource source);
 
     std::string name;
-    std::vector<KernelSource> sources;
+    KernelSource source;
+    std::vector<KernelSource> preheaders;
     std::vector<TemplateArg> template_args;
     std::vector<TypeInfo> param_types;
     std::vector<std::string> options;
