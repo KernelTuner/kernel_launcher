@@ -45,6 +45,31 @@ void KernelDef::add_compiler_option(std::string option) {
     options.push_back(std::move(option));
 }
 
+CudaModule CompilerBase::compile(CudaContextHandle ctx, KernelDef def) const {
+    CudaDevice device = ctx.device();
+    int minor = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
+    int major = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
+    int arch = major * 10 + minor;  // Is this always the case?
+
+    std::string lowered_name;
+    std::string ptx;
+    compile_ptx(def, arch, ptx, lowered_name);
+    return {ptx.c_str(), lowered_name.c_str()};
+}
+
+void Compiler::compile_ptx(
+    const KernelDef& def,
+    int arch_version,
+    std::string& ptx_out,
+    std::string& symbol_out) const {
+    if (!inner_) {
+        throw std::runtime_error(
+            "kernel_launcher::Compiler has not been initialized");
+    }
+
+    return inner_->compile_ptx(def, arch_version, ptx_out, symbol_out);
+}
+
 CudaModule Compiler::compile(CudaContextHandle ctx, KernelDef def) const {
     if (!inner_) {
         throw std::runtime_error(
@@ -192,18 +217,6 @@ static std::string generate_expression(
     }
 
     return oss.str();
-}
-
-CudaModule NvrtcCompiler::compile(CudaContextHandle ctx, KernelDef def) const {
-    CudaDevice device = ctx.device();
-    int minor = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
-    int major = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
-    int arch = major * 10 + minor;  // Is this always the case?
-
-    std::string lowered_name;
-    std::string ptx;
-    compile_ptx(def, arch, ptx, lowered_name);
-    return {ptx.c_str(), lowered_name.c_str()};
 }
 
 static void add_std_flag(std::vector<std::string>& options) {

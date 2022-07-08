@@ -59,7 +59,13 @@ struct KernelDef {
 
 struct CompilerBase {
     virtual ~CompilerBase() {}
-    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const = 0;
+    virtual void compile_ptx(
+        const KernelDef& def,
+        int arch_version,
+        std::string& ptx_out,
+        std::string& symbol_out) const = 0;
+
+    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const;
 };
 
 struct Compiler: CompilerBase {
@@ -75,6 +81,11 @@ struct Compiler: CompilerBase {
         inner_(std::make_shared<typename std::decay<C>::type>(
             std::forward<C>(compiler))) {}
 
+    void compile_ptx(
+        const KernelDef& def,
+        int arch_version,
+        std::string& ptx_out,
+        std::string& symbol_out) const override;
     CudaModule compile(CudaContextHandle ctx, KernelDef def) const override;
 
   private:
@@ -96,9 +107,7 @@ struct NvrtcCompiler: CompilerBase {
         const KernelDef& def,
         int arch_version,
         std::string& ptx_out,
-        std::string& name_out) const;
-
-    CudaModule compile(CudaContextHandle ctx, KernelDef def) const override;
+        std::string& name_out) const override;
 
   private:
     std::shared_ptr<FileLoader> fs_;
