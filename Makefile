@@ -9,7 +9,7 @@ test: ${BUILD_DIR}
 
 ${BUILD_DIR}:
 	mkdir ${BUILD_DIR}
-	cd ${BUILD_DIR} && cmake -DKERNEL_LAUNCHER_BUILD_TEST=1 ..
+	cd ${BUILD_DIR} && cmake -DKERNEL_LAUNCHER_BUILD_TEST=1 -DCMAKE_BUILD_TYPE=debug ..
 
 all: fmt test
 clean:
