@@ -46,8 +46,8 @@ struct KernelBuilder: ConfigSpace {
     friend KernelBuilderSerializerHack;
 
     KernelBuilder(std::string kernel_name, KernelSource kernel_source) :
-        kernel_name_(kernel_name),
-        kernel_source_(kernel_source) {}
+        kernel_name_(std::move(kernel_name)),
+        kernel_source_(std::move(kernel_source)) {}
 
     const std::string& kernel_name() const {
         return kernel_name_;
@@ -72,7 +72,7 @@ struct KernelBuilder: ConfigSpace {
     }
 
     KernelBuilder& shared_memory(Expr<uint32_t> smem) {
-        shared_mem_ = smem;
+        shared_mem_ = std::move(smem);
         return *this;
     }
 
@@ -111,12 +111,13 @@ struct KernelBuilder: ConfigSpace {
         return *this;
     }
 
-    KernelBuilder& define(const ParamExpr& p) {
-        return define(p.parameter().name(), p);
+    KernelBuilder& define(ParamExpr p) {
+        const std::string& name = p.parameter().name();
+        return define(name, std::move(p));
     }
 
     void assertion(Expr<bool> e) {
-        assertions_.push_back(e);
+        assertions_.push_back(std::move(e));
     }
 
     std::array<Expr<uint32_t>, 3> tune_block_size(
