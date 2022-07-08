@@ -50,15 +50,6 @@ struct Eval {
     const TunableMap& inner_;
 };
 
-namespace detail {
-    std::true_type is_expr_helper(const BaseExpr*);
-    std::false_type is_expr_helper(...);
-}  // namespace detail
-
-template<typename T>
-constexpr bool is_expr = decltype(detail::is_expr_helper(
-    std::declval<typename std::decay<T>::type*>()))::value;
-
 struct SharedExpr: BaseExpr {
     SharedExpr() noexcept = default;
 
@@ -77,47 +68,6 @@ struct SharedExpr: BaseExpr {
     std::shared_ptr<BaseExpr> inner_ {};
 };
 
-template<typename T>
-struct Expr: SharedExpr {
-    Expr(T value) : SharedExpr(std::make_shared<ScalarExpr>(value)) {}
-
-    Expr(TunableParam v) : SharedExpr(std::make_shared<ParamExpr>(v)) {}
-
-    template<typename E, typename = typename std::enable_if<is_expr<E>>::type>
-    Expr(E&& expr) :
-        SharedExpr(std::make_shared<typename std::decay<E>::type>(
-            std::forward<E>(expr))) {}
-
-    Expr() = delete;
-    Expr(Expr&) = default;
-    Expr(const Expr&) = default;
-    Expr(Expr&&) noexcept = default;
-    Expr& operator=(const Expr&) = default;
-    Expr& operator=(Expr&&) noexcept = default;
-
-    std::string to_string() const override {
-        return inner().to_string();
-    }
-
-    T get(const Eval& ctx) const {
-        return inner().eval(ctx).template to<T>();
-    }
-
-    TunableValue eval(const Eval& ctx) const override {
-        return get(ctx);
-    }
-
-    AnyExpr resolve(const Eval& eval) const override {
-        AnyExpr result = inner().resolve(eval);
-
-        while (const Expr* v = dynamic_cast<const Expr*>(&result.inner())) {
-            result = *v;
-        }
-
-        return result;
-    }
-};
-
 struct ScalarExpr: BaseExpr {
     ScalarExpr(TunableValue v) : value_(std::move(v)) {}
 
@@ -129,9 +79,7 @@ struct ScalarExpr: BaseExpr {
         return value_;
     }
 
-    AnyExpr resolve(const Eval& eval) const override {
-        return *this;
-    }
+    AnyExpr resolve(const Eval& eval) const override;
 
     const TunableValue& value() const {
         return value_;
@@ -163,12 +111,102 @@ struct ParamExpr: BaseExpr {
         return param_;
     }
 
-    AnyExpr resolve(const Eval& eval) const override {
-        return *this;
-    }
+    AnyExpr resolve(const Eval& eval) const override;
 
   private:
     TunableParam param_;
+};
+
+namespace detail {
+    std::true_type is_expr_helper(const BaseExpr*);
+    std::false_type is_expr_helper(...);
+}  // namespace detail
+
+template<typename T>
+constexpr bool is_expr = decltype(detail::is_expr_helper(
+    std::declval<typename std::decay<T>::type*>()))::value;
+
+namespace detail {
+    template<typename I, typename T, typename Enabled = void>
+    struct into_expr_helper;
+
+    // TunableParam -> ParamExpr
+    template<typename I, typename T>
+    struct into_expr_helper<
+        I,
+        T,
+        typename std::enable_if<
+            std::is_same<typename std::decay<I>::type, TunableParam>::value>::
+            type> {
+        using type = ParamExpr;
+
+        static type call(TunableParam p) {
+            return ParamExpr(std::move(p));
+        }
+    };
+
+    // Expr -> Expr
+    template<typename E, typename T>
+    struct into_expr_helper<E, T, typename std::enable_if<is_expr<E>>::type> {
+        using type = typename std::decay<E>::type;
+
+        static type call(E&& expr) {
+            return expr;
+        }
+    };
+
+    // R -> ScalarExpr (Where R is convertible to T)
+    template<typename R, typename T>
+    struct into_expr_helper<
+        R,
+        T,
+        typename std::enable_if<std::is_convertible<R, T>::value>::type> {
+        using type = ScalarExpr;
+
+        static ScalarExpr call(R&& value) {
+            return ScalarExpr(T(std::forward<R>(value)));
+        }
+    };
+}  // namespace detail
+
+template<typename T>
+struct Expr: SharedExpr {
+    template<typename R>
+    Expr(R&& value) :
+        SharedExpr(
+            std::make_shared<typename detail::into_expr_helper<R, T>::type>(
+                detail::into_expr_helper<R, T>::call(std::forward<R>(value)))) {
+
+    }
+
+    Expr() = delete;
+    Expr(Expr&) = default;
+    Expr(const Expr&) = default;
+    Expr(Expr&&) noexcept = default;
+    Expr& operator=(const Expr&) = default;
+    Expr& operator=(Expr&&) noexcept = default;
+
+    std::string to_string() const override {
+        return inner().to_string();
+    }
+
+    T get(const Eval& ctx) const {
+        return inner().eval(ctx).template to<T>();
+    }
+
+    TunableValue eval(const Eval& ctx) const override {
+        return get(ctx);
+    }
+
+    AnyExpr resolve(const Eval& eval) const override {
+        AnyExpr result = inner().resolve(eval);
+
+        while (const Expr* v = dynamic_cast<const Expr*>(&result.inner())) {
+            result = *v;
+        }
+
+        return result;
+    }
 };
 
 template<typename T, typename E>
@@ -179,6 +217,14 @@ Expr<T> cast(E&& value) {
 template<typename E>
 AnyExpr into_expr(E&& value) {
     return {std::forward<E>(value)};
+}
+
+inline AnyExpr ScalarExpr::resolve(const Eval& eval) const {
+    return *this;
+}
+
+inline AnyExpr ParamExpr::resolve(const Eval& eval) const {
+    return *this;
 }
 
 struct SelectExpr: BaseExpr {

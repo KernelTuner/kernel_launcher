@@ -81,10 +81,6 @@ struct KernelBuilder: ConfigSpace {
         return *this;
     }
 
-    KernelBuilder& template_arg(TemplateArg arg) {
-        return template_arg(Expr<TemplateArg>(std::move(arg)));
-    }
-
     template<typename T, typename... Ts>
     KernelBuilder& template_args(T&& first, Ts&&... rest) {
         template_arg(std::forward<T>(first));
@@ -107,11 +103,6 @@ struct KernelBuilder: ConfigSpace {
 
     KernelBuilder& compiler_flag(Expr<std::string> opt) {
         compile_flags_.emplace_back(std::move(opt));
-        return *this;
-    }
-
-    KernelBuilder& define(std::string name, TunableValue value) {
-        defines_.emplace(std::move(name), value.to_string());
         return *this;
     }
 

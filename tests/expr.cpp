@@ -88,4 +88,27 @@ TEST_CASE("test Expr") {
         auto e2 = select(xe, "a", "b", "c", "d", "e");
         CHECK(e2.eval(eval) == "d");
     }
+
+    SECTION("test cast") {
+        cast<int, int>(4);
+        cast<int, const int&>(4);
+        cast<int, double>(4);
+
+        cast<TunableValue, int>(4);
+        cast<TunableValue, double>(4);
+        cast<TunableValue, bool>(4);
+        cast<TunableValue, std::string>("abc");
+
+        cast<int>(xe);
+        cast<double>(xe);
+        cast<bool>(xe);
+        cast<std::string>(xe);
+        cast<TunableValue>(xe);
+
+        cast<int>(xe.parameter());
+        cast<double>(xe.parameter());
+        cast<bool>(xe.parameter());
+        cast<std::string>(xe.parameter());
+        cast<TunableValue>(xe.parameter());
+    }
 }
