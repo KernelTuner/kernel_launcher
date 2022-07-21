@@ -49,12 +49,12 @@ CudaModule CompilerBase::compile(CudaContextHandle ctx, KernelDef def) const {
 
     std::string lowered_name;
     std::string ptx;
-    compile_ptx(def, arch, ptx, lowered_name);
+    compile_ptx(std::move(def), arch, ptx, lowered_name);
     return {ptx.c_str(), lowered_name.c_str()};
 }
 
 void Compiler::compile_ptx(
-    const KernelDef& def,
+    KernelDef def,
     int arch_version,
     std::string& ptx_out,
     std::string& symbol_out) const {
@@ -63,7 +63,8 @@ void Compiler::compile_ptx(
             "kernel_launcher::Compiler has not been initialized");
     }
 
-    return inner_->compile_ptx(def, arch_version, ptx_out, symbol_out);
+    return inner_
+        ->compile_ptx(std::move(def), arch_version, ptx_out, symbol_out);
 }
 
 CudaModule Compiler::compile(CudaContextHandle ctx, KernelDef def) const {
@@ -326,7 +327,7 @@ struct TempFile {
 };
 
 void NvrtcCompiler::compile_ptx(
-    const KernelDef& def,
+    KernelDef def,
     int arch_version,
     std::string& ptx,
     std::string& symbol_name) const {

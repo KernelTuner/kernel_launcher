@@ -59,12 +59,12 @@ struct KernelDef {
 struct CompilerBase {
     virtual ~CompilerBase() {}
     virtual void compile_ptx(
-        const KernelDef& def,
+        KernelDef def,
         int arch_version,
         std::string& ptx_out,
         std::string& symbol_out) const = 0;
 
-    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const;
+    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const = 0;
 };
 
 struct Compiler: CompilerBase {
@@ -81,10 +81,11 @@ struct Compiler: CompilerBase {
             std::forward<C>(compiler))) {}
 
     void compile_ptx(
-        const KernelDef& def,
+        KernelDef def,
         int arch_version,
         std::string& ptx_out,
         std::string& symbol_out) const override;
+
     CudaModule compile(CudaContextHandle ctx, KernelDef def) const override;
 
   private:
@@ -92,7 +93,7 @@ struct Compiler: CompilerBase {
 };
 
 struct NvrtcException: std::runtime_error {
-    NvrtcException(std::string msg) : std::runtime_error(std::move(msg)) {}
+    NvrtcException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
 struct NvrtcCompiler: CompilerBase {
@@ -103,7 +104,7 @@ struct NvrtcCompiler: CompilerBase {
     static int version();
 
     void compile_ptx(
-        const KernelDef& def,
+        KernelDef def,
         int arch_version,
         std::string& ptx_out,
         std::string& name_out) const override;
