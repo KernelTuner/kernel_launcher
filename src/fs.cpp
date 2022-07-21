@@ -30,27 +30,40 @@ std::string path_join(const std::string& left, const std::string& right) {
     return result;
 }
 
-bool read_file(const std::string& path, std::vector<char>& result) {
+template<typename C>
+bool read_file_generic(const std::string& path, C& result) {
     std::ifstream stream(path);
 
-    if (stream) {
-        stream.seekg(0, std::ios::end);
-        std::streampos len = stream.tellg();
-        if (len == -1) {
-            return false;
-        }
-        stream.seekg(0, std::ios::beg);
-
-        result.resize(static_cast<size_t>(len));
-        stream.read(&result[0], len);
-
-        // Check if the stream is still valid after reading
-        if (stream) {
-            return true;
-        }
+    if (!stream) {
+        return false;
     }
 
-    return false;
+    stream.seekg(0, std::ios::end);
+    std::streampos len = stream.tellg();
+    if (len == -1) {
+        return false;
+    }
+
+    stream.seekg(0, std::ios::beg);
+
+    result.resize(static_cast<size_t>(len));
+    stream.read(&result[0], len);
+
+    // Check if the stream is still valid after reading
+    if (!stream) {
+        log_warning() << "IO error while reading: " << path << "\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool read_file(const std::string& path, std::vector<char>& result) {
+    return read_file_generic(path, result);
+}
+
+bool read_file(const std::string& path, std::string& result) {
+    return read_file_generic(path, result);
 }
 
 bool write_file(
@@ -80,33 +93,36 @@ static void add_env_directories(std::vector<std::string>& result) {
     static constexpr const char* ENV_KEY = "KERNEL_LAUNCHER_INCLUDE";
     const char* paths = getenv(ENV_KEY);
 
-    if (paths) {
+    // Environment value is not set. Exit now.
+    if (!paths) {
+        return;
+    }
+
+    while (true) {
+        if (paths[0] == '\0') {
+            break;
+        }
+
+        if (paths[0] == ';') {
+            paths++;
+            continue;
+        }
+
+        size_t count = 0;
+
         while (true) {
-            if (paths[0] == '\0') {
+            char c = paths[count];
+            if (c == '\0' || c == ';') {
                 break;
             }
-
-            if (paths[0] == ';') {
-                paths++;
-                continue;
-            }
-
-            size_t count = 0;
-
-            while (true) {
-                char c = paths[count];
-                if (c == '\0' || c == ';') {
-                    break;
-                }
-                count++;
-            }
-
-            if (count > 0) {
-                result.emplace_back(paths, count);
-            }
-
-            paths += count;
+            count++;
         }
+
+        if (count > 0) {
+            result.emplace_back(paths, count);
+        }
+
+        paths += count;
     }
 }
 
@@ -175,7 +191,7 @@ DefaultLoader::DefaultLoader(
     if (include_cwd) {
         char cwd[PATH_MAX + 1];
         if (getcwd(cwd, sizeof cwd)) {
-            search_dirs_.push_back(cwd);
+            search_dirs_.emplace_back(cwd);
         }
     }
 
@@ -185,23 +201,19 @@ DefaultLoader::DefaultLoader(
     }
 }
 
-std::vector<char> DefaultLoader::load(
-    const std::string& file_name,
-    const std::vector<std::string>& more_dirs) const {
+std::string DefaultLoader::load(const std::string& file_name) const {
     if (!file_name.empty()) {
-        std::vector<char> result;
+        std::string result;
 
-        for (const std::vector<std::string>& dirs : {search_dirs_, more_dirs}) {
-            for (const std::string& dir : dirs) {
-                if (dir.empty()) {
-                    continue;
-                }
+        for (const std::string& dir : search_dirs_) {
+            if (dir.empty()) {
+                continue;
+            }
 
-                std::string full_path = path_join(dir, file_name);
+            std::string full_path = path_join(dir, file_name);
 
-                if (read_file(full_path, result)) {
-                    return result;
-                }
+            if (read_file(full_path, result)) {
+                return result;
             }
         }
 
@@ -214,13 +226,33 @@ std::vector<char> DefaultLoader::load(
 
     log_info() << "could not find file " << file_name
                << ", searched following directories:" << std::endl;
-    for (const std::vector<std::string>& dirs : {search_dirs_, more_dirs}) {
-        for (const std::string& dir : dirs) {
-            log_info() << " - " << dir << std::endl;
-        }
+    for (const std::string& dir : search_dirs_) {
+        log_info() << " - " << dir << std::endl;
     }
 
     throw std::runtime_error("could not find file: " + file_name);
+}
+
+ForwardLoader::ForwardLoader(
+    std::vector<std::string> dirs,
+    std::shared_ptr<FileLoader> parent) :
+    search_dirs_(std::move(dirs)),
+    parent_(std::move(parent)) {}
+
+std::string ForwardLoader::load(const std::string& file_name) const {
+    if (!file_name.empty()) {
+        std::string result;
+
+        for (const std::string& dir : search_dirs_) {
+            std::string full_path = path_join(dir, file_name);
+
+            if (read_file(full_path, result)) {
+                return result;
+            }
+        }
+    }
+
+    return parent_->load(file_name);
 }
 
 }  // namespace kernel_launcher

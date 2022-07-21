@@ -33,8 +33,7 @@ struct KernelSource {
         return filename_;
     }
 
-    std::string
-    read(const FileLoader& fs, const std::vector<std::string>& dirs) const;
+    std::string read(const FileLoader& fs) const;
 
   private:
     std::string filename_;

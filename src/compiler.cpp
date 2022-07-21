@@ -10,13 +10,9 @@ namespace kernel_launcher {
 
 extern const std::unordered_map<std::string, std::string>& jitsafe_headers();
 
-std::string KernelSource::read(
-    const FileLoader& fs,
-    const std::vector<std::string>& dirs) const {
+std::string KernelSource::read(const FileLoader& fs) const {
     if (!has_content_) {
-        std::vector<char> content = fs.load(filename_, dirs);
-        content.push_back('\0');
-        return std::string(content.data());
+        return fs.load(filename_);
     } else {
         return content_;
     }
@@ -79,7 +75,7 @@ CudaModule Compiler::compile(CudaContextHandle ctx, KernelDef def) const {
     return inner_->compile(ctx, std::move(def));
 }
 
-inline void nvrtc_check(nvrtcResult result) {
+static void nvrtc_check(nvrtcResult result) {
     if (result != NVRTC_SUCCESS) {
         std::stringstream ss;
         ss << "NVRTC error: " << nvrtcGetErrorString(result);
@@ -173,9 +169,11 @@ static bool nvrtc_compile(
 
         ptx.resize(ptx_size + 1);
         nvrtc_check(nvrtcGetPTX(program, &ptx[0]));
-    }
 
-    return result == NVRTC_SUCCESS;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 static std::string generate_expression(
@@ -352,11 +350,13 @@ void NvrtcCompiler::compile_ptx(
     add_default_device_flag(options);
 
     std::vector<std::string> dirs = extract_include_dirs(options);
-    std::string source = def.source.read(*fs_, dirs);
+    ForwardLoader local_fs = ForwardLoader(std::move(dirs), fs_);
+
+    std::string source = def.source.read(local_fs);
     std::vector<TempFile> preheaders;
 
     for (const auto& preheader : def.preheaders) {
-        preheaders.emplace_back(preheader.read(*fs_, dirs));
+        preheaders.emplace_back(preheader.read(local_fs));
         options.push_back("--pre-include=" + preheaders.back().path);
     }
 
@@ -394,18 +394,15 @@ void NvrtcCompiler::compile_ptx(
         }
 
         // Load missing header file
-        std::vector<char> header_content;
+        std::string header_content;
         try {
-            header_content = fs_->load(header_name, dirs);
+            header_content = local_fs.load(header_name);
         } catch (const std::exception& e) {
-            log_warning() << "retrying compilation after error: " << e.what()
-                          << std::endl;
+            log_debug() << "retrying compilation after error: " << e.what()
+                        << std::endl;
         }
 
-        header_content.push_back('\0');
-        headers.emplace(
-            std::move(header_name),
-            std::string(header_content.data()));
+        headers.emplace(std::move(header_name), std::move(header_content));
     }
 
     throw NvrtcException("NVRTC compilation failed: " + log);

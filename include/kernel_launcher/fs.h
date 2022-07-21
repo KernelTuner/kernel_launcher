@@ -1,6 +1,7 @@
 #ifndef KERNEL_LAUNCHER_FS_H
 #define KERNEL_LAUNCHER_FS_H
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -10,6 +11,8 @@ namespace kernel_launcher {
 std::string path_join(const std::string& left, const std::string& right);
 
 bool read_file(const std::string& path, std::vector<char>& result);
+bool read_file(const std::string& path, std::string& result);
+
 bool write_file(
     const std::string& path,
     const char* content,
@@ -32,9 +35,7 @@ inline bool write_file(
 
 struct FileLoader {
     virtual ~FileLoader() = default;
-    virtual std::vector<char> load(
-        const std::string& file_name,
-        const std::vector<std::string>& dirs = {}) const = 0;
+    virtual std::string load(const std::string& file_name) const = 0;
 };
 
 struct DefaultLoader: FileLoader {
@@ -42,12 +43,21 @@ struct DefaultLoader: FileLoader {
         const std::vector<std::string>& dirs,
         bool include_cwd = true);
     DefaultLoader() : DefaultLoader(std::vector<std::string> {}) {}
-    std::vector<char> load(
-        const std::string& file_name,
-        const std::vector<std::string>& include_dirs) const override;
+    std::string load(const std::string& file_name) const override;
 
   private:
     std::vector<std::string> search_dirs_;
+};
+
+struct ForwardLoader: FileLoader {
+    explicit ForwardLoader(
+        std::vector<std::string> dirs,
+        std::shared_ptr<FileLoader> parent);
+    std::string load(const std::string& file_name) const override;
+
+  private:
+    std::vector<std::string> search_dirs_;
+    std::shared_ptr<FileLoader> parent_;
 };
 
 }  // namespace kernel_launcher
