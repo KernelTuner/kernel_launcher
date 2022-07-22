@@ -116,6 +116,47 @@ bool safe_double_to_int64(double input, int64_t& output) {
     return false;
 }
 
+static constexpr int64_t I64_MIN = std::numeric_limits<int64_t>::min();
+static constexpr int64_t I64_MAX = std::numeric_limits<int64_t>::max();
+
+bool safe_int64_add(int64_t lhs, int64_t rhs, int64_t& output) {
+    // TODO: Check how portable these `__builtin_*_overflow` functions are
+    //    output = lhs + rhs;
+    //    return (rhs >= 0) ? (lhs <= I64_MAX - rhs) : (lhs >= I64_MIN - rhs);
+    return !__builtin_saddl_overflow(lhs, rhs, &output);
+}
+
+bool safe_int64_sub(int64_t lhs, int64_t rhs, int64_t& output) {
+    //    output = lhs - rhs;
+    //    return (rhs >= 0) ? (lhs >= I64_MIN + rhs) : (lhs <= I64_MAX + rhs);
+    return !__builtin_ssubl_overflow(lhs, rhs, &output);
+}
+
+bool safe_int64_mul(int64_t lhs, int64_t rhs, int64_t& output) {
+    //    bool in_bounds;
+    //
+    //    if (rhs == 0) {
+    //        in_bounds = true;
+    //    } else if ((lhs > 0) == (rhs > 0)) {
+    //        in_bounds = lhs <= I64_MAX / rhs;
+    //    } else {
+    //        in_bounds = lhs >= I64_MIN / rhs;
+    //    }
+    //
+    //    output = lhs * rhs;
+    //    return in_bounds;
+    return !__builtin_smull_overflow(lhs, rhs, &output);
+}
+
+bool safe_int64_div(int64_t lhs, int64_t rhs, int64_t& output) {
+    if (rhs != 0 && (rhs != -1 || lhs != I64_MIN)) {
+        output = lhs / rhs;
+        return true;
+    }
+
+    return false;
+}
+
 hash_t hash_string(const char* buffer, size_t num_bytes) {
     hash_t hash = 0xcbf29ce484222325;
     hash_t prime = 0x100000001b3;

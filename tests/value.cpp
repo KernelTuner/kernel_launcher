@@ -222,7 +222,7 @@ TEST_CASE("test T") {
         CHECK(T(2.0) != T(false));
         CHECK(T(2.0) != T(3));
 
-        // Some nasty int vs double corner cases
+        // Some tricky int vs double corner cases
         int64_t x = std::numeric_limits<int64_t>::max();
         CHECK(T(x) != T(double(x)));
 
@@ -261,5 +261,56 @@ TEST_CASE("test T") {
         TunableParam z = x;
         CHECK(x != y);
         CHECK(x == z);
+    }
+
+    // Check if overflow is detected for +, -, *, /
+    SECTION("test overflow") {
+        static int64_t MIN = std::numeric_limits<int64_t>::min();
+        static int64_t MAX = std::numeric_limits<int64_t>::max();
+
+        CHECK_THROWS(T(MAX) + T(1));
+        CHECK(T(MAX) + T(-1) == T(MAX - 1));
+        CHECK(T(MAX) + T(0) == T(MAX));
+        CHECK(T(MAX - 1) + T(1) == T(MAX));
+        CHECK_THROWS(T(MIN) + T(-1));
+        CHECK(T(MIN) + T(1) == T(MIN + 1));
+        CHECK(T(MIN) + T(MAX) == T(-1));
+        CHECK(T(MAX / 2) + T(MAX / 2) == T(MAX - 1));
+        CHECK(T(MAX / 2 + 1) + T(MAX / 2) == T(MAX));
+        CHECK_THROWS(T(MAX / 2 + 1) + T(MAX / 2 + 1));
+
+        CHECK_THROWS(T(MIN) - T(1));
+        CHECK(T(MIN) - T(-1));
+        CHECK(T(MIN) - T(0));
+        CHECK(T(MIN + 1) - T(1));
+        CHECK(T(MIN) - T(-1));
+        CHECK_THROWS(T(MIN) - T(1));
+        CHECK_THROWS(T(MIN) - T(MAX));
+        CHECK(T(MIN / 2) - T(-(MIN / 2)) == T(MIN));
+        CHECK_THROWS(T(MIN / 2 - 1) - T(-(MIN / 2) + 1));
+        CHECK_THROWS(T(MIN / 2 - 1) - T(-(MIN / 2)));
+
+        CHECK(T(MAX) * T(1) == T(MAX));
+        CHECK(T(MAX) * T(0) == T(0));
+        CHECK_THROWS(T(MAX) * T(MAX));
+        CHECK_THROWS(T(MIN) * T(-1));
+        CHECK(T(MAX) * T(-1) == T(-MAX));
+        CHECK(T(1L << 31) * T(1L << 31));
+        int64_t half = 3037000499;  // sqrt of MAX
+        CHECK(T(half) * T(half) == T(half * half));
+        CHECK(T(half) * T(half + 1) == T(half * (half + 1)));
+        CHECK_THROWS(T(half + 1) * T(half + 1));
+
+        CHECK(T(1) / T(1) == T(1));
+        CHECK(T(0) / T(1) == T(0));
+        CHECK(T(-1) / T(1) == T(-1));
+        CHECK_THROWS(T(1) / T(0));
+        CHECK_THROWS(T(0) / T(0));
+        CHECK_THROWS(T(-1) / T(0));
+        CHECK(T(1) / T(-1) == T(-1));
+        CHECK(T(0) / T(-1) == T(0));
+        CHECK(T(-1) / T(-1) == T(1));
+        CHECK(T(MAX) / T(-1) == T(-MAX));
+        CHECK_THROWS(T(MIN) / T(-1));  // corner case
     }
 }

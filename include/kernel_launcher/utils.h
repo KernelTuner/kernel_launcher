@@ -223,6 +223,10 @@ auto div_ceil(L left, R right) {
 }
 
 bool safe_double_to_int64(double input, int64_t& output);
+bool safe_int64_add(int64_t lhs, int64_t rhs, int64_t& output);
+bool safe_int64_sub(int64_t lhs, int64_t rhs, int64_t& output);
+bool safe_int64_mul(int64_t lhs, int64_t rhs, int64_t& output);
+bool safe_int64_div(int64_t lhs, int64_t rhs, int64_t& output);
 
 using hash_t = uint64_t;
 

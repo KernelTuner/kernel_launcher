@@ -265,10 +265,13 @@ TunableValue operator+(const TunableValue& lhs, const TunableValue& rhs) {
         return lhs.to_bool() || rhs.to_bool();
     } else if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() + rhs.to_double();
-    } else if (lhs.is_integer() || rhs.is_integer()) {
-        return lhs.to_integer() + rhs.to_integer();
     } else if (lhs.is_string() && rhs.is_string()) {
         return lhs.to_string() + rhs.to_string();
+    } else if (lhs.is_integer() || rhs.is_integer()) {
+        TunableValue::integer_type out;
+        if (safe_int64_add(lhs.to_integer(), rhs.to_integer(), out)) {
+            return out;
+        }
     }
 
     throw_invalid_operation_exception("+", lhs, rhs);
@@ -286,20 +289,26 @@ TunableValue operator-(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() - rhs.to_double();
     } else if (lhs.is_integer() || rhs.is_integer()) {
-        return lhs.to_integer() - rhs.to_integer();
-    } else {
-        throw_invalid_operation_exception("-", lhs, rhs);
+        TunableValue::integer_type out;
+        if (safe_int64_sub(lhs.to_integer(), rhs.to_integer(), out)) {
+            return out;
+        }
     }
+
+    throw_invalid_operation_exception("-", lhs, rhs);
 }
 
 TunableValue operator-(const TunableValue& v) {
     if (v.is_double()) {
         return -v.to_double();
     } else if (v.is_integer()) {
-        return -v.to_integer();
-    } else {
-        throw_invalid_operation_exception("-", 0, v);
+        TunableValue::integer_type out;
+        if (safe_int64_sub(0, v.to_integer(), out)) {
+            return out;
+        }
     }
+
+    throw_invalid_operation_exception("-", 0, v);
 }
 
 TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
@@ -308,18 +317,23 @@ TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
     } else if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() * rhs.to_double();
     } else if (lhs.is_integer() || rhs.is_integer()) {
-        return lhs.to_integer() * rhs.to_integer();
-    } else {
-        throw_invalid_operation_exception("*", lhs, rhs);
+        TunableValue::integer_type out;
+        if (safe_int64_mul(lhs.to_integer(), rhs.to_integer(), out)) {
+            return out;
+        }
     }
+
+    throw_invalid_operation_exception("*", lhs, rhs);
 }
 
 TunableValue operator/(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() / rhs.to_double();
-    } else if (
-        (lhs.is_integer() || rhs.is_integer()) && rhs.to_integer() != 0) {
-        return lhs.to_integer() / rhs.to_integer();
+    } else if (lhs.is_integer() || rhs.is_integer()) {
+        TunableValue::integer_type out;
+        if (safe_int64_div(lhs.to_integer(), rhs.to_integer(), out)) {
+            return out;
+        }
     }
 
     throw_invalid_operation_exception("/", lhs, rhs);
