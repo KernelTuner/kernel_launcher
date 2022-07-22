@@ -4,6 +4,7 @@
 #include <cuda.h>
 
 #include <iostream>
+#include <utility>
 
 #include "kernel_launcher/compiler.h"
 #include "kernel_launcher/config.h"
@@ -35,9 +36,9 @@ struct KernelInstance {
 
   private:
     CudaModule module_;
-    dim3 block_size_;
-    dim3 grid_divisor_;
-    uint32_t shared_mem_;
+    dim3 block_size_ = {};
+    dim3 grid_divisor_ = {};
+    uint32_t shared_mem_ = {};
 };
 
 struct KernelBuilderSerializerHack;
@@ -45,49 +46,38 @@ struct KernelBuilderSerializerHack;
 struct KernelBuilder: ConfigSpace {
     friend ::kernel_launcher::KernelBuilderSerializerHack;
 
-    KernelBuilder(std::string kernel_name, KernelSource kernel_source, ConfigSpace space = {}) :
+    KernelBuilder(
+        std::string kernel_name,
+        KernelSource kernel_source,
+        ConfigSpace space = {}) :
         ConfigSpace(std::move(space)),
         kernel_name_(std::move(kernel_name)),
         kernel_source_(std::move(kernel_source)) {}
 
-    KernelBuilder(std::string kernel_name, std::string kernel_source) :
-        kernel_name_(std::move(kernel_name)),
-        kernel_source_(std::move(kernel_source)) {}
+    KernelBuilder(std::string kernel_name, std::string kernel_file) :
+        KernelBuilder(
+            std::move(kernel_name),
+            KernelSource(std::move(kernel_file))) {}
 
     const std::string& kernel_name() const {
         return kernel_name_;
     }
 
-    KernelBuilder&
-    block_size(
+    KernelBuilder& block_size(
         TypedExpr<uint32_t> x,
         TypedExpr<uint32_t> y = 1,
-        TypedExpr<uint32_t> z = 1) {
-        block_size_[0] = std::move(x);
-        block_size_[1] = std::move(y);
-        block_size_[2] = std::move(z);
-        return grid_divisors(block_size_[0], block_size_[1], block_size_[2]);
-    }
+        TypedExpr<uint32_t> z = 1);
 
     KernelBuilder& grid_divisors(
         TypedExpr<uint32_t> x,
         TypedExpr<uint32_t> y = 1,
-        TypedExpr<uint32_t> z = 1) {
-        grid_divisors_[0] = std::move(x);
-        grid_divisors_[1] = std::move(y);
-        grid_divisors_[2] = std::move(z);
-        return *this;
-    }
+        TypedExpr<uint32_t> z = 1);
 
-    KernelBuilder& shared_memory(TypedExpr<uint32_t> smem) {
-        shared_mem_ = std::move(smem);
-        return *this;
-    }
-
-    KernelBuilder& template_arg(TypedExpr<TemplateArg> arg) {
-        template_args_.push_back(std::move(arg));
-        return *this;
-    }
+    KernelBuilder& shared_memory(TypedExpr<uint32_t> smem);
+    KernelBuilder& template_arg(TypedExpr<TemplateArg> arg);
+    KernelBuilder& assertion(TypedExpr<bool> e);
+    KernelBuilder& define(std::string name, TypedExpr<std::string> value);
+    KernelBuilder& compiler_flag(TypedExpr<std::string> opt);
 
     template<typename T, typename... Ts>
     KernelBuilder& template_args(T&& first, Ts&&... rest) {
@@ -109,23 +99,8 @@ struct KernelBuilder: ConfigSpace {
         return *this;
     }
 
-    KernelBuilder& compiler_flag(TypedExpr<std::string> opt) {
-        compile_flags_.emplace_back(std::move(opt));
-        return *this;
-    }
-
-    KernelBuilder& define(std::string name, TypedExpr<std::string> value) {
-        defines_.emplace(std::move(name), std::move(value));
-        return *this;
-    }
-
     KernelBuilder& define(ParamExpr p) {
-        const std::string& name = p.parameter().name();
-        return define(name, std::move(p));
-    }
-
-    void assertion(TypedExpr<bool> e) {
-        assertions_.push_back(std::move(e));
+        return define(p.parameter().name(), p);
     }
 
     std::array<TypedExpr<uint32_t>, 3> tune_block_size(
@@ -147,7 +122,8 @@ struct KernelBuilder: ConfigSpace {
     }
 
     template<typename T>
-    TypedExpr<T> tune_define(std::string name, std::initializer_list<T> values) {
+    TypedExpr<T>
+    tune_define(std::string name, std::initializer_list<T> values) {
         return tune_define(name, std::vector<T>(values));
     }
 
@@ -207,7 +183,7 @@ struct Kernel {
     void compile(
         const KernelBuilder& builder,
         const Config& config,
-        const CompilerBase& compiler = NvrtcCompiler{},
+        const CompilerBase& compiler = NvrtcCompiler {},
         CudaContextHandle ctx = CudaContextHandle::current()) {
         instance_ = builder.compile(
             config,

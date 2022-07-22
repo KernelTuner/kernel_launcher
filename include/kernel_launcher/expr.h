@@ -145,7 +145,10 @@ namespace detail {
 
     // TypedExpr -> TypedExpr
     template<typename E, typename T>
-    struct into_expr_helper<E, T, typename std::enable_if<detail::is_expr<E>>::type> {
+    struct into_expr_helper<
+        E,
+        T,
+        typename std::enable_if<detail::is_expr<E>>::type> {
         using type = typename std::decay<E>::type;
 
         static type call(E&& expr) {
@@ -199,7 +202,8 @@ struct TypedExpr: SharedExpr {
     Expr resolve(const Eval& eval) const override {
         Expr result = inner().resolve(eval);
 
-        while (const TypedExpr* v = dynamic_cast<const TypedExpr*>(&result.inner())) {
+        while (const TypedExpr* v =
+                   dynamic_cast<const TypedExpr*>(&result.inner())) {
             result = *v;
         }
 
@@ -468,19 +472,22 @@ struct BinaryExpr: BaseExpr {
     Expr rhs_;
 };
 
-#define KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(op, name)                              \
-    template<typename E, typename = typename std::enable_if<detail::is_expr<E>>::type> \
-    UnaryExpr operator op(E expr) {                                            \
-        return {UnaryExpr::Op::name, into_expr(expr)};                         \
+#define KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(op, name)                     \
+    template<                                                         \
+        typename E,                                                   \
+        typename = typename std::enable_if<detail::is_expr<E>>::type> \
+    UnaryExpr operator op(E expr) {                                   \
+        return {UnaryExpr::Op::name, into_expr(expr)};                \
     }
 
-#define KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(op, name)                          \
-    template<                                                               \
-        typename L,                                                         \
-        typename R,                                                         \
-        typename = typename std::enable_if<detail::is_expr<L> || detail::is_expr<R>>::type> \
-    BinaryExpr operator op(L left, R right) {                               \
-        return {BinaryExpr::Op::name, into_expr(left), into_expr(right)};   \
+#define KERNEL_LAUNCHER_EXPR_BIN_OP_IMPL(op, name)                        \
+    template<                                                             \
+        typename L,                                                       \
+        typename R,                                                       \
+        typename = typename std::enable_if<                               \
+            detail::is_expr<L> || detail::is_expr<R>>::type>              \
+    BinaryExpr operator op(L left, R right) {                             \
+        return {BinaryExpr::Op::name, into_expr(left), into_expr(right)}; \
     }
 
 KERNEL_LAUNCHER_EXPR_UN_OP_IMPL(+, Plus)

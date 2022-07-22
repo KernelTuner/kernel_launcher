@@ -2,6 +2,52 @@
 
 namespace kernel_launcher {
 
+KernelBuilder& KernelBuilder::block_size(
+    TypedExpr<uint32_t> x,
+    TypedExpr<uint32_t> y,
+    TypedExpr<uint32_t> z) {
+    block_size_[0] = std::move(x);
+    block_size_[1] = std::move(y);
+    block_size_[2] = std::move(z);
+    return grid_divisors(block_size_[0], block_size_[1], block_size_[2]);
+}
+
+KernelBuilder& KernelBuilder::grid_divisors(
+    TypedExpr<uint32_t> x,
+    TypedExpr<uint32_t> y,
+    TypedExpr<uint32_t> z) {
+    grid_divisors_[0] = std::move(x);
+    grid_divisors_[1] = std::move(y);
+    grid_divisors_[2] = std::move(z);
+    return *this;
+}
+
+KernelBuilder& KernelBuilder::shared_memory(TypedExpr<uint32_t> smem) {
+    shared_mem_ = std::move(smem);
+    return *this;
+}
+
+KernelBuilder& KernelBuilder::template_arg(TypedExpr<TemplateArg> arg) {
+    template_args_.push_back(std::move(arg));
+    return *this;
+}
+
+KernelBuilder& KernelBuilder::assertion(TypedExpr<bool> e) {
+    assertions_.push_back(std::move(e));
+    return *this;
+}
+
+KernelBuilder&
+KernelBuilder::define(std::string name, TypedExpr<std::string> value) {
+    defines_.emplace(std::move(name), std::move(value));
+    return *this;
+}
+
+KernelBuilder& KernelBuilder::compiler_flag(TypedExpr<std::string> opt) {
+    compile_flags_.emplace_back(std::move(opt));
+    return *this;
+}
+
 KernelDef KernelBuilder::build(
     const Config& config,
     const std::vector<TypeInfo>& param_types) const {
