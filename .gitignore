@@ -1,3 +1,10 @@
+# Generated files
+**/.DS_Store
+*.slo
+*.lo
+*.o
+*.obj
+
 # Prerequisites
 *.d
 
@@ -30,3 +37,16 @@
 *.exe
 *.out
 *.app
+
+# Build directory
+cmake-build-*/
+build/
+
+# CLion work directory
+.idea/
+
+# Virtual environments
+env
+venv
+.env
+.venv
