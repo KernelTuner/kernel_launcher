@@ -45,7 +45,12 @@ struct KernelBuilderSerializerHack;
 struct KernelBuilder: ConfigSpace {
     friend ::kernel_launcher::KernelBuilderSerializerHack;
 
-    KernelBuilder(std::string kernel_name, KernelSource kernel_source) :
+    KernelBuilder(std::string kernel_name, KernelSource kernel_source, ConfigSpace space = {}) :
+        ConfigSpace(std::move(space)),
+        kernel_name_(std::move(kernel_name)),
+        kernel_source_(std::move(kernel_source)) {}
+
+    KernelBuilder(std::string kernel_name, std::string kernel_source) :
         kernel_name_(std::move(kernel_name)),
         kernel_source_(std::move(kernel_source)) {}
 
@@ -199,7 +204,7 @@ struct Kernel {
     void compile(
         const KernelBuilder& builder,
         const Config& config,
-        const CompilerBase& compiler,
+        const CompilerBase& compiler = NvrtcCompiler{},
         CudaContextHandle ctx = CudaContextHandle::current()) {
         instance_ = builder.compile(
             config,
