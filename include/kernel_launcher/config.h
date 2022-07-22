@@ -58,7 +58,7 @@ struct Config {
 struct KernelBuilderSerializerHack;
 
 struct ConfigSpace {
-    friend KernelBuilderSerializerHack;
+    friend ::kernel_launcher::KernelBuilderSerializerHack;
 
     ConfigSpace() = default;
     ConfigSpace(ConfigSpace&&) = default;

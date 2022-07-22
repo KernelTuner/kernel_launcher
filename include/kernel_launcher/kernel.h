@@ -43,7 +43,7 @@ struct KernelInstance {
 struct KernelBuilderSerializerHack;
 
 struct KernelBuilder: ConfigSpace {
-    friend KernelBuilderSerializerHack;
+    friend ::kernel_launcher::KernelBuilderSerializerHack;
 
     KernelBuilder(std::string kernel_name, KernelSource kernel_source) :
         kernel_name_(std::move(kernel_name)),

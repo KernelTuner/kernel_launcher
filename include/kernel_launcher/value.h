@@ -270,7 +270,7 @@ TunableValue operator!(const TunableValue& v);
 struct TunableParam {
   private:
     struct Impl {
-        friend TunableParam;
+        friend ::kernel_launcher::TunableParam;
 
         Impl(
             std::string name,
