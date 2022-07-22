@@ -78,7 +78,7 @@ ParamExpr ConfigSpace::at(const std::string& name) const {
     throw std::runtime_error("could not find key: " + name);
 }
 
-void ConfigSpace::restriction(Expr<bool> e) {
+void ConfigSpace::restriction(TypedExpr<bool> e) {
     restrictions_.push_back(e);
 }
 

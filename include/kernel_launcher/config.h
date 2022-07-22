@@ -120,13 +120,13 @@ struct ConfigSpace {
         std::vector<TunableValue> values,
         TunableValue default_value);
     ParamExpr at(const std::string& name) const;
-    void restriction(Expr<bool> e);
+    void restriction(TypedExpr<bool> e);
     Config default_config() const;
     bool is_valid(const Config& config) const;
 
   private:
     std::vector<TunableParam> params_;
-    std::vector<Expr<bool>> restrictions_;
+    std::vector<TypedExpr<bool>> restrictions_;
 };
 
 }  // namespace kernel_launcher

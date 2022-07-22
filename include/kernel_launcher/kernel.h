@@ -59,7 +59,10 @@ struct KernelBuilder: ConfigSpace {
     }
 
     KernelBuilder&
-    block_size(Expr<uint32_t> x, Expr<uint32_t> y = 1, Expr<uint32_t> z = 1) {
+    block_size(
+        TypedExpr<uint32_t> x,
+        TypedExpr<uint32_t> y = 1,
+        TypedExpr<uint32_t> z = 1) {
         block_size_[0] = std::move(x);
         block_size_[1] = std::move(y);
         block_size_[2] = std::move(z);
@@ -67,21 +70,21 @@ struct KernelBuilder: ConfigSpace {
     }
 
     KernelBuilder& grid_divisors(
-        Expr<uint32_t> x,
-        Expr<uint32_t> y = 1,
-        Expr<uint32_t> z = 1) {
+        TypedExpr<uint32_t> x,
+        TypedExpr<uint32_t> y = 1,
+        TypedExpr<uint32_t> z = 1) {
         grid_divisors_[0] = std::move(x);
         grid_divisors_[1] = std::move(y);
         grid_divisors_[2] = std::move(z);
         return *this;
     }
 
-    KernelBuilder& shared_memory(Expr<uint32_t> smem) {
+    KernelBuilder& shared_memory(TypedExpr<uint32_t> smem) {
         shared_mem_ = std::move(smem);
         return *this;
     }
 
-    KernelBuilder& template_arg(Expr<TemplateArg> arg) {
+    KernelBuilder& template_arg(TypedExpr<TemplateArg> arg) {
         template_args_.push_back(std::move(arg));
         return *this;
     }
@@ -106,12 +109,12 @@ struct KernelBuilder: ConfigSpace {
         return *this;
     }
 
-    KernelBuilder& compiler_flag(Expr<std::string> opt) {
+    KernelBuilder& compiler_flag(TypedExpr<std::string> opt) {
         compile_flags_.emplace_back(std::move(opt));
         return *this;
     }
 
-    KernelBuilder& define(std::string name, Expr<std::string> value) {
+    KernelBuilder& define(std::string name, TypedExpr<std::string> value) {
         defines_.emplace(std::move(name), std::move(value));
         return *this;
     }
@@ -121,11 +124,11 @@ struct KernelBuilder: ConfigSpace {
         return define(name, std::move(p));
     }
 
-    void assertion(Expr<bool> e) {
+    void assertion(TypedExpr<bool> e) {
         assertions_.push_back(std::move(e));
     }
 
-    std::array<Expr<uint32_t>, 3> tune_block_size(
+    std::array<TypedExpr<uint32_t>, 3> tune_block_size(
         std::vector<uint32_t> xs,
         std::vector<uint32_t> ys = {1u},
         std::vector<uint32_t> zs = {1u}) {
@@ -137,14 +140,14 @@ struct KernelBuilder: ConfigSpace {
     }
 
     template<typename T>
-    Expr<T> tune_define(std::string name, std::vector<T> values) {
-        Expr<T> param = this->tune(name, values);
+    TypedExpr<T> tune_define(std::string name, std::vector<T> values) {
+        TypedExpr<T> param = this->tune(name, values);
         define(std::move(name), param);
         return param;
     }
 
     template<typename T>
-    Expr<T> tune_define(std::string name, std::initializer_list<T> values) {
+    TypedExpr<T> tune_define(std::string name, std::initializer_list<T> values) {
         return tune_define(name, std::vector<T>(values));
     }
 
@@ -160,13 +163,13 @@ struct KernelBuilder: ConfigSpace {
   private:
     std::string kernel_name_;
     KernelSource kernel_source_;
-    std::array<Expr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
-    std::array<Expr<uint32_t>, 3> grid_divisors_ = {1u, 1u, 1u};
-    Expr<uint32_t> shared_mem_ = {0u};
-    std::vector<Expr<TemplateArg>> template_args_ {};
-    std::vector<Expr<std::string>> compile_flags_ {};
-    std::vector<Expr<bool>> assertions_ {};
-    std::unordered_map<std::string, Expr<std::string>> defines_ {};
+    std::array<TypedExpr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
+    std::array<TypedExpr<uint32_t>, 3> grid_divisors_ = {1u, 1u, 1u};
+    TypedExpr<uint32_t> shared_mem_ = {0u};
+    std::vector<TypedExpr<TemplateArg>> template_args_ {};
+    std::vector<TypedExpr<std::string>> compile_flags_ {};
+    std::vector<TypedExpr<bool>> assertions_ {};
+    std::unordered_map<std::string, TypedExpr<std::string>> defines_ {};
 };
 
 template<typename... Args>
