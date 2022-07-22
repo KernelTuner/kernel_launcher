@@ -24,8 +24,6 @@ TEST_CASE("test NvrtcCompiler") {
         KernelDef def {"example_kernel", kernel_source};
         CHECK_NOTHROW(c.compile_ptx(def, 80, ptx, symbol));
 
-        log_warning() << ptx << "\n";
-
         CHECK(
             ptx.find(".visible .entry example_kernel(") != std::string::npos);
         CHECK(symbol == "example_kernel");
