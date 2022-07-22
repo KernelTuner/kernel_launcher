@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <unistd.h>
 
+#include <cstring>
 #include <fstream>
 #include <sstream>
 
@@ -63,7 +64,17 @@ bool read_file(const std::string& path, std::vector<char>& result) {
 }
 
 bool read_file(const std::string& path, std::string& result) {
-    return read_file_generic(path, result);
+    if (!read_file_generic(path, result)) {
+        return false;
+    }
+
+    // Check if string contains interior nul bytes (bad!)
+    if (result.find(char(0)) != std::string::npos) {
+        log_warning() << "IO error, file contains NUL byte:" << path << "\n";
+        return false;
+    }
+
+    return true;
 }
 
 bool write_file(
