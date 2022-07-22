@@ -32,6 +32,8 @@ namespace detail {
         const TypeInfoInternalImpl* remove_const;
         const TypeInfoInternalImpl* add_const;
         bool is_const;
+        bool is_empty;
+        bool is_trivial_copy;
     };
 
     template<typename T>
@@ -44,6 +46,8 @@ namespace detail {
         &type_impl_for<typename std::remove_const<T>::type>,
         &type_impl_for<typename std::add_const<T>::type>,
         std::is_const<T>::value,
+        std::is_empty<T>::value,
+        std::is_trivially_copyable<T>::value,
     };
 }  // namespace detail
 
@@ -91,6 +95,14 @@ struct TypeInfo {
 
     bool is_const() const {
         return impl_->is_const;
+    }
+
+    bool is_empty() const {
+        return impl_->is_empty;
+    }
+
+    bool is_trivial_copyable() const {
+        return impl_->is_trivial_copy;
     }
 
     bool operator==(const TypeInfo& that) const {
