@@ -64,7 +64,7 @@ struct CompilerBase {
         std::string& ptx_out,
         std::string& symbol_out) const = 0;
 
-    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const = 0;
+    virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const;
 };
 
 struct Compiler: CompilerBase {
