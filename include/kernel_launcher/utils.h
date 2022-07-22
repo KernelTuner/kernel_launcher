@@ -29,6 +29,8 @@ namespace detail {
         const std::type_info& type_info;
         const std::string& (*name_fun)();
         const TypeInfoInternalImpl* remove_pointer_type;
+        const TypeInfoInternalImpl* remove_const;
+        const TypeInfoInternalImpl* add_const;
         bool is_const;
     };
 
@@ -39,6 +41,8 @@ namespace detail {
         typeid(T),
         demangle_type_info_for<T>,
         &type_impl_for<typename std::remove_pointer<T>::type>,
+        &type_impl_for<typename std::remove_const<T>::type>,
+        &type_impl_for<typename std::add_const<T>::type>,
         std::is_const<T>::value,
     };
 }  // namespace detail
@@ -77,12 +81,22 @@ struct TypeInfo {
         return impl_->remove_pointer_type;
     }
 
+    TypeInfo remove_const() const {
+        return impl_->remove_const;
+    }
+
+    TypeInfo add_const() const {
+        return impl_->add_const;
+    }
+
     bool is_const() const {
         return impl_->is_const;
     }
 
     bool operator==(const TypeInfo& that) const {
         return this->impl_->type_info == that.impl_->type_info
+
+            // Type info does not store if type is const. Check this separately.
             && this->impl_->is_const == that.impl_->is_const;
     }
 
