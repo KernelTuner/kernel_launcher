@@ -270,6 +270,15 @@ inline hash_t hash_combine(hash_t a, hash_t b) {
     return a + 0x9e3779b9 + (b << 6) + (b >> 2);
 }
 
+template <typename T, typename... Rest>
+inline hash_t hash_fields(const T& first, const Rest&... rest) {
+    return hash_combine(std::hash<T>{}(first), hash_fields(rest...));
+}
+
+inline hash_t hash_fields() {
+    return 0;
+}
+
 }  // namespace kernel_launcher
 
 namespace std {
