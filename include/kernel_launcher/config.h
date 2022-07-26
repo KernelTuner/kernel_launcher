@@ -115,6 +115,10 @@ struct ConfigSpace {
         return at(name);
     }
 
+    const std::vector<TunableParam>& parameters() const {
+        return params_;
+    }
+
     TunableParam
     add(std::string name,
         std::vector<TunableValue> values,
