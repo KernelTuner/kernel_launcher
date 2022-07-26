@@ -58,13 +58,13 @@ struct TypeInfo {
   private:
     using Impl = detail::TypeInfoInternalImpl;
 
-    TypeInfo(const Impl* impl) : impl_(impl) {}
+    constexpr TypeInfo(const Impl* impl) : impl_(impl) {}
 
   public:
     TypeInfo() : TypeInfo(nullptr) {}
 
     template<typename T>
-    static TypeInfo of() {
+    static constexpr TypeInfo of() {
         return &detail::type_impl_for<T>;
     }
 
@@ -72,39 +72,39 @@ struct TypeInfo {
         return (impl_->name_fun)();
     }
 
-    size_t size() const {
+    constexpr size_t size() const {
         return impl_->size;
     }
 
-    size_t alignment() const {
+    constexpr size_t alignment() const {
         return impl_->alignment;
     }
 
-    bool is_pointer() const {
+    constexpr bool is_pointer() const {
         return impl_->remove_pointer_type != impl_;
     }
 
-    TypeInfo remove_pointer() const {
+    constexpr TypeInfo remove_pointer() const {
         return impl_->remove_pointer_type;
     }
 
-    TypeInfo remove_const() const {
+    constexpr TypeInfo remove_const() const {
         return impl_->remove_const;
     }
 
-    TypeInfo add_const() const {
+    constexpr TypeInfo add_const() const {
         return impl_->add_const;
     }
 
-    bool is_const() const {
+    constexpr bool is_const() const {
         return impl_->is_const;
     }
 
-    bool is_empty() const {
+    constexpr bool is_empty() const {
         return impl_->is_empty;
     }
 
-    bool is_trivial_copyable() const {
+    constexpr bool is_trivial_copyable() const {
         return impl_->is_trivial_copy;
     }
 
@@ -118,6 +118,7 @@ struct TypeInfo {
     bool operator!=(const TypeInfo& that) const {
         return !(*this == that);
     }
+
     uint64_t hash() const {
         return std::type_index(impl_->type_info).hash_code();
     }
@@ -127,12 +128,12 @@ struct TypeInfo {
 };
 
 template<typename T>
-inline TypeInfo type_of() {
+inline constexpr TypeInfo type_of() {
     return TypeInfo::template of<T>();
 }
 
 template<typename T>
-inline TypeInfo type_of(const T&) {
+inline constexpr TypeInfo type_of(const T&) {
     return TypeInfo::template of<T>();
 }
 
@@ -202,41 +203,54 @@ struct TemplateArg {
 };
 
 struct ProblemSize {
-    ProblemSize(uint32_t x = 1, uint32_t y = 1, uint32_t z = 1) :
+    constexpr ProblemSize(uint32_t x = 1, uint32_t y = 1, uint32_t z = 1) :
         x(x),
         y(y),
         z(z) {}
 
-    ProblemSize(dim3 v) : ProblemSize(v.x, v.y, v.z) {}
+    constexpr ProblemSize(dim3 v) : ProblemSize(v.x, v.y, v.z) {}
 
-    operator dim3() const {
+    constexpr operator dim3() const {
         return {x, y, z};
     }
 
-    uint32_t& operator[](size_t i) {
-        /// Mmmmmmm...
-        return ((uint32_t*)(this))[i];
+    constexpr uint32_t& operator[](size_t i) {
+        switch (i) {
+            case 0:
+                return x;
+            case 1:
+                return y;
+            default:
+                return z;
+        }
     }
 
-    const uint32_t& operator[](size_t i) const {
-        return ((uint32_t*)(this))[i];
+    constexpr const uint32_t& operator[](size_t i) const {
+        switch (i) {
+            case 0:
+                return x;
+            case 1:
+                return y;
+            default:
+                return z;
+        }
     }
 
-    bool operator==(const ProblemSize& that) const {
+    constexpr bool operator==(const ProblemSize& that) const {
         return x == that.x && y == that.y && z == that.z;
     }
 
-    bool operator!=(const ProblemSize& that) const {
+    constexpr bool operator!=(const ProblemSize& that) const {
         return !(*this == that);
     }
 
     friend std::ostream& operator<<(std::ostream& s, const ProblemSize& p) {
         if (p.z != 1) {
-            return s << "[" << p.x << ", " << p.y << ", " << p.z << "]";
+            return s << "(" << p.x << ", " << p.y << ", " << p.z << ")";
         } else if (p.y != 1) {
-            return s << "[" << p.x << ", " << p.y << "]";
+            return s << "(" << p.x << ", " << p.y << ")";
         } else {
-            return s << "[" << p.x << "]";
+            return s << p.x;
         }
     }
 
