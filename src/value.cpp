@@ -362,4 +362,41 @@ TunableValue operator!(const TunableValue& v) {
     return !v.to_bool();
 }
 
+TunableParam::TunableParam(
+    std::string name,
+    std::vector<TunableValue> values,
+    std::vector<double> priors,
+    TunableValue default_value) {
+    if (name.empty()) {
+        throw std::runtime_error("name cannot be empty");
+    }
+
+    bool found = false;
+    for (const auto& p : values) {
+        found |= p == default_value;
+    }
+
+    if (!found) {
+        throw std::runtime_error(
+            "default value for parameter " + name
+            + " must be a valid value for this parameter");
+    }
+
+    if (priors.size() != values.size()) {
+        throw std::runtime_error("invalid number of priors");
+    }
+
+    for (double v : priors) {
+        if (!std::isfinite(v) || v < 0) {
+            throw std::runtime_error(
+                "priors must be non-negative finite numbers");
+        }
+    }
+
+    inner_ = std::make_shared<Impl>(
+        std::move(name),
+        std::move(values),
+        std::move(priors),
+        std::move(default_value));
+}
 }  // namespace kernel_launcher

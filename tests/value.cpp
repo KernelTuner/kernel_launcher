@@ -250,14 +250,14 @@ TEST_CASE("test T") {
     // TODO: repeat for remaining operators
 
     SECTION("test TunableParam") {
-        TunableParam x {"foo", {1, 2, 3}, 4};
+        TunableParam x {"foo", {1, 2, 3}, 3};
         CHECK(x.name() == "foo");
-        CHECK(x.default_value() == 4);
+        CHECK(x.default_value() == 3);
         CHECK(x[2] == 3);
         CHECK_THROWS(x[3]);
         CHECK(x.size() == 3);
 
-        TunableParam y {"foo", {1, 2, 3}, 4};
+        TunableParam y {"foo", {1, 2, 3}, 3};
         TunableParam z = x;
         CHECK(x != y);
         CHECK(x == z);

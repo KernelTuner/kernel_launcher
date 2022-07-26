@@ -46,16 +46,16 @@ TEST_CASE("ConfigSpace") {
 
     SECTION("add") {
         // empty name
-        CHECK_THROWS(c.add("", {1, 2, 3}, 2));
+        CHECK_THROWS(c.tune("", {1, 2, 3}, 2));
 
         // empty parameters
-        CHECK_THROWS(c.add("a", {}, 2));
+        CHECK_THROWS(c.tune("a", {}, 2));
 
         // invalid default value
-        CHECK_THROWS(c.add("a", {1, 2, 3}, 4));
+        CHECK_THROWS(c.tune("a", {1, 2, 3}, 4));
 
         // valid
-        auto a = c.add("a", {1, 2, 3}, 1);
+        auto a = c.tune("a", {1, 2, 3}, 1).parameter();
 
         CHECK(a.name() == "a");
         CHECK(a.default_value() == 1);
@@ -63,12 +63,12 @@ TEST_CASE("ConfigSpace") {
         CHECK(c.at("a").parameter() == a);
 
         // cannot add same parameter twice
-        CHECK_THROWS(c.add("a", {5, 6, 7}, 8));
+        CHECK_THROWS(c.tune("a", {5, 6, 7}, 8));
     }
 
     SECTION("different tune methods") {
         // initializer list
-        CHECK_THROWS(c.tune("a", std::initializer_list<int> {}));
+        CHECK_THROWS(c.tune("a", {}));
         CHECK_NOTHROW(c.tune("a", {1, 2, 3}));
         CHECK_NOTHROW(c.tune("b", {1, 2, 3}, 2));
 
@@ -79,8 +79,8 @@ TEST_CASE("ConfigSpace") {
 
         // long version
         std::vector<int> values {1, 2, 3};
-        CHECK_NOTHROW(c.tune("e", values.begin(), values.end(), 2));
-        CHECK_NOTHROW(c.add("f", {1, 2, 3}, 2));
+        CHECK_NOTHROW(c.tune("e", values, 2));
+        CHECK_NOTHROW(c.add("f", {1, 2, 3}, {1, 1, 1}, 2));
     }
 
     auto x = c.tune("x", {1, 2, 3}, 1);

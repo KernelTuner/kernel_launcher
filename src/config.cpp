@@ -37,22 +37,8 @@ const TunableValue& Config::at(const TunableParam& param) const {
 TunableParam ConfigSpace::add(
     std::string name,
     std::vector<TunableValue> values,
+    std::vector<double> priors,
     TunableValue default_value) {
-    if (name.empty()) {
-        throw std::runtime_error("name cannot be empty");
-    }
-
-    bool found = false;
-    for (const auto& p : values) {
-        found |= p == default_value;
-    }
-
-    if (!found) {
-        throw std::runtime_error(
-            "default value for parameter " + name
-            + " must be a valid value for this parameter");
-    }
-
     for (const auto& p : params_) {
         if (p.name() == name) {
             throw std::runtime_error(
@@ -63,6 +49,7 @@ TunableParam ConfigSpace::add(
     TunableParam p {
         std::move(name),
         std::move(values),
+        std::move(priors),
         std::move(default_value)};
     params_.push_back(p);
     return p;

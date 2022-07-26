@@ -275,14 +275,17 @@ struct TunableParam {
         Impl(
             std::string name,
             std::vector<TunableValue> values,
+            std::vector<double> priors,
             TunableValue default_value) :
             name_(std::move(name)),
             values_(std::move(values)),
+            priors_(std::move(priors)),
             default_value_(std::move(default_value)) {}
 
       private:
         std::string name_;
         std::vector<TunableValue> values_;
+        std::vector<double> priors_;
         TunableValue default_value_;
     };
 
@@ -290,12 +293,18 @@ struct TunableParam {
     TunableParam(
         std::string name,
         std::vector<TunableValue> values,
-        TunableValue default_value) {
-        inner_ = std::make_shared<Impl>(
+        std::vector<double> priors,
+        TunableValue default_value);
+
+    TunableParam(
+        std::string name,
+        std::vector<TunableValue> values,
+        TunableValue default_value) :
+        TunableParam(
             std::move(name),
             std::move(values),
-            std::move(default_value));
-    }
+            std::vector<double>(values.size(), 1.0),
+            std::move(default_value)) {}
 
     const std::string& name() const {
         return inner_->name_;
@@ -307,6 +316,10 @@ struct TunableParam {
 
     const std::vector<TunableValue>& values() const {
         return inner_->values_;
+    }
+
+    const std::vector<double>& priors() const {
+        return inner_->priors_;
     }
 
     const TunableValue& at(size_t i) const {
