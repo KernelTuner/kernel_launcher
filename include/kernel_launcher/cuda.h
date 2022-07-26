@@ -64,6 +64,28 @@ struct CudaModule {
     CUmodule module_ = nullptr;
 };
 
+struct CudaArch {
+    CudaArch(int major, int minor) : major(major), minor(minor) {}
+    CudaArch(int version) : major(version / 10), minor(version % 10) {}
+    CudaArch() : CudaArch(0, 0) {}
+
+    int get() const {
+        return major * 10 + minor;
+    }
+
+    bool operator==(const CudaArch& that) const {
+        return major == that.major && minor == that.minor;
+    }
+
+    bool operator!=(const CudaArch& that) const {
+        return !(*this == that);
+    }
+
+  private:
+    int major;
+    int minor;
+};
+
 struct CudaDevice {
     CudaDevice() = default;
     explicit CudaDevice(CUdevice d);
@@ -74,6 +96,7 @@ struct CudaDevice {
     int attribute(CUdevice_attribute key) const;
     int ordinal() const;
     std::string uuid() const;
+    CudaArch arch();
 
     CUdevice get() const {
         return device_;

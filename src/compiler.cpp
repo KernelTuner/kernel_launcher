@@ -42,20 +42,15 @@ void KernelDef::add_compiler_option(std::string option) {
 }
 
 CudaModule CompilerBase::compile(CudaContextHandle ctx, KernelDef def) const {
-    CudaDevice device = ctx.device();
-    int minor = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
-    int major = device.attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
-    int arch = major * 10 + minor;  // Is this always the case?
-
     std::string lowered_name;
     std::string ptx;
-    compile_ptx(std::move(def), arch, ptx, lowered_name);
+    compile_ptx(std::move(def), ctx.device().arch(), ptx, lowered_name);
     return {ptx.c_str(), lowered_name.c_str()};
 }
 
 void Compiler::compile_ptx(
     KernelDef def,
-    int arch_version,
+    CudaArch arch,
     std::string& ptx_out,
     std::string& symbol_out) const {
     if (!inner_) {
@@ -63,8 +58,7 @@ void Compiler::compile_ptx(
             "kernel_launcher::Compiler has not been initialized");
     }
 
-    return inner_
-        ->compile_ptx(std::move(def), arch_version, ptx_out, symbol_out);
+    return inner_->compile_ptx(std::move(def), arch, ptx_out, symbol_out);
 }
 
 CudaModule Compiler::compile(CudaContextHandle ctx, KernelDef def) const {
@@ -228,9 +222,9 @@ static void add_std_flag(std::vector<std::string>& options) {
     options.emplace_back("--std=c++11");
 }
 
-static void add_arch_flag(std::vector<std::string>& options, int arch_version) {
+static void add_arch_flag(std::vector<std::string>& options, CudaArch arch) {
     std::stringstream oss;
-    oss << "--gpu-architecture=compute_" << arch_version;
+    oss << "--gpu-architecture=compute_" << arch.get();
     options.push_back(oss.str());
 }
 
@@ -328,7 +322,7 @@ struct TempFile {
 
 void NvrtcCompiler::compile_ptx(
     KernelDef def,
-    int arch_version,
+    CudaArch arch,
     std::string& ptx,
     std::string& symbol_name) const {
     constexpr size_t max_attempts = 25;
@@ -347,7 +341,7 @@ void NvrtcCompiler::compile_ptx(
     }
 
     add_std_flag(options);
-    add_arch_flag(options, arch_version);
+    add_arch_flag(options, arch);
     add_default_device_flag(options);
 
     std::vector<std::string> dirs = extract_include_dirs(options);

@@ -60,7 +60,7 @@ struct CompilerBase {
     virtual ~CompilerBase() {}
     virtual void compile_ptx(
         KernelDef def,
-        int arch_version,
+        CudaArch arch_version,
         std::string& ptx_out,
         std::string& symbol_out) const = 0;
 
@@ -82,7 +82,7 @@ struct Compiler: CompilerBase {
 
     void compile_ptx(
         KernelDef def,
-        int arch_version,
+        CudaArch arch,
         std::string& ptx_out,
         std::string& symbol_out) const override;
 
@@ -105,7 +105,7 @@ struct NvrtcCompiler: CompilerBase {
 
     void compile_ptx(
         KernelDef def,
-        int arch_version,
+        CudaArch arch,
         std::string& ptx_out,
         std::string& name_out) const override;
 

@@ -113,6 +113,12 @@ std::string CudaDevice::uuid() const {
     return result.str();
 }
 
+CudaArch CudaDevice::arch() {
+    int minor = attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
+    int major = attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
+    return CudaArch(major, minor);
+}
+
 CudaContextHandle CudaContextHandle::current() {
     CUcontext c;
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetCurrent(&c));
