@@ -412,4 +412,18 @@ int NvrtcCompiler::version() {
     }
 }
 
+Compiler global_compiler;
+
+void set_global_default_compiler(Compiler c) {
+    global_compiler = std::move(c);
+}
+
+Compiler default_compiler() {
+    if (!global_compiler.is_initialized()) {
+        global_compiler = NvrtcCompiler {};
+    }
+
+    return global_compiler;
+}
+
 }  // namespace kernel_launcher

@@ -75,6 +75,10 @@ struct Compiler: CompilerBase {
     Compiler& operator=(const Compiler&) = default;
     Compiler& operator=(Compiler&&) = default;
 
+    bool is_initialized() {
+        return bool(inner_);
+    }
+
     template<typename C>
     Compiler(C&& compiler) :
         inner_(std::make_shared<typename std::decay<C>::type>(
@@ -113,6 +117,9 @@ struct NvrtcCompiler: CompilerBase {
     std::shared_ptr<FileLoader> fs_;
     std::vector<std::string> default_options_;
 };
+
+void set_global_default_compiler(Compiler c);
+Compiler default_compiler();
 
 }  // namespace kernel_launcher
 
