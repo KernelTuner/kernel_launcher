@@ -1,7 +1,10 @@
 #ifndef KERNEL_LAUNCHER_UTILS_H
 #define KERNEL_LAUNCHER_UTILS_H
 
+#include <cuda_runtime_api.h>
+
 #include <iosfwd>
+#include <iostream>
 #include <limits>
 #include <string>
 #include <type_traits>
@@ -18,7 +21,7 @@ std::string demangle_type_info(const std::type_info& type);
 
 namespace detail {
     template<typename T>
-    const std::string& demangle_type_info_for() {
+    inline const std::string& demangle_type_info_for() {
         static std::string result = demangle_type_info(typeid(T));
         return result;
     }
@@ -198,6 +201,51 @@ struct TemplateArg {
     std::string inner_;
 };
 
+struct ProblemSize {
+    ProblemSize(uint32_t x = 1, uint32_t y = 1, uint32_t z = 1) :
+        x(x),
+        y(y),
+        z(z) {}
+
+    ProblemSize(dim3 v) : ProblemSize(v.x, v.y, v.z) {}
+
+    operator dim3() const {
+        return {x, y, z};
+    }
+
+    uint32_t& operator[](size_t i) {
+        /// Mmmmmmm...
+        return ((uint32_t*)(this))[i];
+    }
+
+    const uint32_t& operator[](size_t i) const {
+        return ((uint32_t*)(this))[i];
+    }
+
+    bool operator==(const ProblemSize& that) const {
+        return x == that.x && y == that.y && z == that.z;
+    }
+
+    bool operator!=(const ProblemSize& that) const {
+        return !(*this == that);
+    }
+
+    friend std::ostream& operator<<(std::ostream& s, const ProblemSize& p) {
+        if (p.z != 1) {
+            return s << "[" << p.x << ", " << p.y << ", " << p.z << "]";
+        } else if (p.y != 1) {
+            return s << "[" << p.x << ", " << p.y << "]";
+        } else {
+            return s << "[" << p.x << "]";
+        }
+    }
+
+    // These should be public
+    uint32_t x;
+    uint32_t y;
+    uint32_t z;
+};
+
 template<
     typename L,
     typename R,
@@ -270,13 +318,13 @@ inline hash_t hash_combine(hash_t a, hash_t b) {
     return a + 0x9e3779b9 + (b << 6) + (b >> 2);
 }
 
-template <typename T, typename... Rest>
-inline hash_t hash_fields(const T& first, const Rest&... rest) {
-    return hash_combine(std::hash<T>{}(first), hash_fields(rest...));
-}
-
 inline hash_t hash_fields() {
     return 0;
+}
+
+template<typename T, typename... Rest>
+inline hash_t hash_fields(const T& first, const Rest&... rest) {
+    return hash_combine(std::hash<T> {}(first), hash_fields(rest...));
 }
 
 }  // namespace kernel_launcher
@@ -286,6 +334,13 @@ template<>
 struct hash<kernel_launcher::TypeInfo> {
     size_t operator()(const kernel_launcher::TypeInfo& info) const {
         return info.hash();
+    }
+};
+
+template<>
+struct hash<kernel_launcher::ProblemSize> {
+    size_t operator()(const kernel_launcher::ProblemSize& p) const {
+        return kernel_launcher::hash_fields(p.x, p.y, p.z);
     }
 };
 }  // namespace std
