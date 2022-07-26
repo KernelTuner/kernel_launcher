@@ -1,124 +1,244 @@
-#ifndef KERNEL_LAUNCHER_WISDOME_H
-#define KERNEL_LAUNCHER_WISDOME_H
+#ifndef KERNEL_LAUNCHER_WISDOM_H
+#define KERNEL_LAUNCHER_WISDOM_H
 
-#include <string.h>
+#include <cuda_runtime_api.h>
 
-#include "kernel_launcher/cuda.h"
+#include <fstream>
+#include <memory>
+#include <string>
+
+#include "kernel_launcher/export.h"
 #include "kernel_launcher/kernel.h"
-#include "kernel_launcher/utils.h"
 
 namespace kernel_launcher {
 
-struct KernelArg {
-    virtual ~KernelArg() {}
-    virtual bool is_scalar() const = 0;
-    virtual TypeInfo type_info() const = 0;
-    virtual std::vector<char> to_bytes() const = 0;
-    virtual const void* as_ptr() const = 0;
-};
-
-template<typename T>
-struct is_valid_kernel_arg {
-    static constexpr bool value = std::is_trivially_copyable<T>::value
-        && !std::is_pointer<T>::value && !std::is_reference<T>::value
-        && !std::is_void<T>::value;
-};
-
-template<typename T>
-struct KernelArgScalar: KernelArg {
-    static_assert(is_valid_kernel_arg<T>::value, "type must be trivial");
-    KernelArgScalar(T v) : data_(std::move(v)) {}
-
-    bool is_scalar() const override {
-        return true;
-    }
-
-    TypeInfo type_info() const override {
-        return TypeInfo::of<T>();
-    }
-
-    std::vector<char> to_bytes() const override {
-        std::vector<char> result(sizeof(T));
-        ::memcpy(result.data(), &data_, sizeof(T));
-        return result;
-    }
-
-    const void* as_ptr() const {
-        return static_cast<const void*>(&data_);
-    }
-
-  private:
-    T data_;
-};
-
-template<typename T>
-struct KernelArgArray: KernelArg {
-    static_assert(is_valid_kernel_arg<T>::value, "type must be trivial");
-
-    KernelArgArray(T* ptr, size_t num_elements) :
-        ptr_(ptr),
-        num_elements_(num_elements) {}
-
-    bool is_scalar() const override {
-        return false;
-    }
-
-    TypeInfo type_info() const override {
-        return TypeInfo::of<T*>();
-    }
-
-    std::vector<char> to_bytes() const override {
-        std::vector<char> result(sizeof(T) * num_elements_);
-        cuda_raw_copy(ptr_, result.data(), result.size());
-        return result;
-    }
-
-    const void* as_ptr() const {
-        return static_cast<const void*>(&ptr_);
-    }
-
-  private:
-    T* ptr_;
-    size_t num_elements_;
-};
-
+/// Returned by `load_best_config` to indicate the result:
+/// - NotFound: Wisdom file was not found. Default config is returned.
+/// - DeviceMismatch: File was found, but did not contain results for the
+///                   the current device. Results for another device was chosen.
+/// - ProblemSizeMismatch: File was found, but did not contain results for
+///                        the current problem size. Results for another size
+///                        was selected instead.
+/// - Ok: Device and problem size was found exactly.
 enum struct WisdomResult {
-    Success,  // Wisdom file was found with valid configuration
-    Invalid,  // Wisdom file was found, but without a valid configuration
-    NotFound,  // Wisdom file was not found, it should be written
-    IoError,  // An error occurred while reading or parsing files
+    NotFound = 0,
+    DeviceMismatch = 1,
+    ProblemSizeMismatch = 2,
+    Ok = 3
 };
 
-WisdomResult read_wisdom_file(
+Config load_best_config(
+    const std::string& wisdom_dir,
     const std::string& tuning_key,
-    const KernelBuilder& builder,
-    const std::string& path,
+    const ConfigSpace& space,
     CudaDevice device,
-    Config& config_out);
+    ProblemSize problem_size,
+    WisdomResult* result = nullptr);
 
-inline WisdomResult read_wisdom_file(
-    const std::string& tuning_key,
-    const KernelBuilder& builder,
-    const std::string& path,
-    Config& config_out) {
-    return read_wisdom_file(
-        tuning_key,
-        builder,
-        path,
-        CudaDevice::current(),
-        config_out);
+struct WisdomKernelSettings {
+    WisdomKernelSettings(
+        std::string wisdom_dir,
+        std::string tuning_dir,
+        std::vector<std::string> tuning_patterns = {}) :
+        wisdom_dir_(std::move(wisdom_dir)),
+        tuning_dir_(std::move(tuning_dir)),
+        tuning_patterns_(std::move(tuning_patterns)) {}
+
+    bool does_kernel_require_tuning(
+        const std::string& tuning_key,
+        ProblemSize problem_size) const;
+
+    const std::string& wisdom_directory() const {
+        return wisdom_dir_;
+    }
+
+    const std::string& tuning_directory() const {
+        return tuning_dir_;
+    }
+
+    const std::vector<std::string>& tuning_patterns() const {
+        return tuning_patterns_;
+    }
+
+    std::string wisdom_dir_;
+    std::string tuning_dir_;
+    std::vector<std::string> tuning_patterns_;
+};
+
+void set_global_wisdom_directory(std::string);
+void set_global_tuning_directory(std::string);
+void add_global_tuning_pattern(std::string);
+std::shared_ptr<WisdomKernelSettings> default_wisdom_settings();
+
+struct KernelArg {
+  private:
+    KernelArg(TypeInfo type, void* data);
+    KernelArg(TypeInfo type, void* ptr, size_t nelements);
+
+  public:
+    KernelArg();
+    KernelArg(KernelArg&&);
+    KernelArg(const KernelArg&);
+    ~KernelArg();
+
+    template<typename T>
+    static KernelArg for_scalar(T value) {
+        return KernelArg(type_of<T>(), (void*)&value);
+    }
+
+    template<typename T>
+    static KernelArg for_array(T* value, size_t nelements) {
+        return KernelArg(type_of<T*>(), (void*)value, nelements);
+    }
+
+    bool is_scalar() const;
+    bool is_array() const;
+    TypeInfo type() const;
+    std::vector<char> to_bytes() const;
+    void* as_void_ptr() const;
+
+  private:
+    TypeInfo type_;
+    bool scalar_;
+    union {
+        struct {
+            void* ptr;
+            size_t nelements;
+        } array;
+        std::array<char, 2 * sizeof(size_t)> small_scalar;
+        char* large_scalar;
+    } data_;
+};
+
+template<typename T, typename Enabled = void>
+struct IntoKernelArg;
+
+template<>
+struct IntoKernelArg<KernelArg> {
+    KernelArg into(KernelArg arg) {
+        return arg;
+    }
+};
+
+template<typename T>
+struct IntoKernelArg<
+    T,
+    typename std::enable_if<std::is_trivially_copyable<T>::value>::type> {
+    KernelArg convert(T value) {
+        return KernelArg::for_scalar<T>(value);
+    }
+};
+
+template<typename T>
+KernelArg into_kernel_arg(T&& value) {
+    return IntoKernelArg<typename std::decay<T>::type>::convert(value);
 }
 
-void write_wisdom_file(
-    const std::string& tuning_key,
-    const KernelBuilder& builder,
-    const std::string& path,
-    const std::string& data_dir,
-    dim3 problem_size,
-    const std::vector<const KernelArg*>& inputs,
-    const std::vector<const KernelArg*>& outputs = {},
-    CudaDevice device = CudaDevice::current());
+struct WisdomKernel;
+
+struct WisdomKernelLaunch {
+    WisdomKernelLaunch(
+        cudaStream_t stream,
+        ProblemSize problem_size,
+        WisdomKernel& kernel) :
+        stream_(stream),
+        problem_size_(problem_size),
+        kernel_ref_(kernel) {
+        //
+    }
+
+    template<typename... Args>
+    void launch(Args&&... args) const;
+
+    template<typename... Args>
+    void operator()(Args&&... args) const {
+        return launch(std::forward<Args>(args)...);
+    }
+
+  private:
+    cudaStream_t stream_;
+    ProblemSize problem_size_;
+    WisdomKernel& kernel_ref_;
+};
+
+struct WisdomKernelImpl;
+
+struct WisdomKernel {
+    using launch_type = WisdomKernelLaunch;
+    WisdomKernel();
+    ~WisdomKernel();
+
+    WisdomKernel(
+        std::string tuning_key,
+        KernelBuilder builder,
+        Compiler compiler = {},
+        std::shared_ptr<WisdomKernelSettings> settings =
+            default_wisdom_settings()) :
+        WisdomKernel() {
+        initialize(
+            std::move(tuning_key),
+            std::move(builder),
+            std::move(compiler),
+            std::move(settings));
+    }
+
+    void initialize(
+        std::string tuning_key,
+        KernelBuilder builder,
+        Compiler compiler = {},
+        std::shared_ptr<WisdomKernelSettings> settings =
+            default_wisdom_settings());
+
+    WisdomResult compile(
+        ProblemSize problem_size,
+        CudaDevice device,
+        std::vector<TypeInfo> param_types);
+
+    void launch(
+        cudaStream_t stream,
+        ProblemSize problem_size,
+        const std::vector<KernelArg>& args);
+    void clear();
+
+    launch_type instantiate(cudaStream_t stream, ProblemSize problem_size) {
+        return launch_type(stream, problem_size, *this);
+    }
+
+    launch_type operator()(cudaStream_t stream, ProblemSize problem_size) {
+        return instantiate(stream, problem_size);
+    }
+
+    launch_type operator()(ProblemSize problem_size) {
+        return instantiate(nullptr, problem_size);
+    }
+
+    launch_type operator()(
+        cudaStream_t stream,
+        uint32_t problem_x,
+        uint32_t problem_y,
+        uint32_t problem_z = 1) {
+        return instantiate(
+            stream,
+            ProblemSize(problem_x, problem_y, problem_z));
+    }
+
+    launch_type
+    operator()(uint32_t problem_x, uint32_t problem_y, uint32_t problem_z = 1) {
+        return instantiate(
+            nullptr,
+            ProblemSize(problem_x, problem_y, problem_z));
+    }
+
+  private:
+    std::unique_ptr<WisdomKernelImpl> impl_;
+};
+
+template<typename... Args>
+void WisdomKernelLaunch::launch(Args&&... args) const {
+    std::vector<KernelArg> kargs {into_kernel_arg(std::forward<Args>(args))...};
+    kernel_ref_.launch(stream_, problem_size_, kargs);
+}
 
 }  // namespace kernel_launcher
 
-#endif  //KERNEL_LAUNCHER_WISDOME_H
+#endif  //KERNEL_LAUNCHER_WISDOM_H
