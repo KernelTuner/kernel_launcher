@@ -31,9 +31,28 @@ Config load_best_config(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
     const ConfigSpace& space,
-    CudaDevice device,
+    const std::string& device_name,
+    CudaArch device_arch,
     ProblemSize problem_size,
-    WisdomResult* result = nullptr);
+    WisdomResult* result_out);
+
+inline Config load_best_config(
+    const std::string& wisdom_dir,
+    const std::string& tuning_key,
+    const ConfigSpace& space,
+    ProblemSize problem_size,
+    WisdomResult* result = nullptr) {
+    CudaDevice device = CudaDevice::current();
+
+    return load_best_config(
+        wisdom_dir,
+        tuning_key,
+        space,
+        device.name(),
+        device.arch(),
+        problem_size,
+        result);
+}
 
 struct WisdomKernelSettings {
     WisdomKernelSettings(

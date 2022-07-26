@@ -121,11 +121,13 @@ static std::string sanitize_tuning_key(const std::string& key) {
 }
 
 static void parse_header(
-    nlohmann::json& header,
+    const std::string& line,
     const ConfigSpace& space,
     std::vector<TunableParam>& params,
     std::string& objective) {
-    if (header["version_number"] != "1.0") {
+    nlohmann::json header = nlohmann::json::parse(line);
+
+    if (header["version"] != "1.0") {
         throw std::runtime_error("invalid version");
     }
 
@@ -186,16 +188,54 @@ static TunableValue json_to_tunable_value(const nlohmann::json& value) {
 }
 
 template<typename F>
+static void parse_line(
+    const std::string& line,
+    const std::vector<TunableParam>& params,
+    const std::string& objective_key,
+    F callback) {
+    Config config;
+    std::string empty_string;
+
+    nlohmann::json record = nlohmann::json::parse(line);
+    nlohmann::json& config_json = record["config"];
+    nlohmann::json& problem_json = record["problem_size"];
+    nlohmann::json& env_json = record["environment"];
+
+    if (config_json.size() != params.size()) {
+        throw std::runtime_error("invalid configuration");
+    }
+
+    for (size_t i = 0; i < params.size(); i++) {
+        config.insert(params[i], json_to_tunable_value(config_json[i]));
+    }
+
+    ProblemSize problem_size;
+    if (problem_json.size() > 0)
+        problem_size.x = problem_json[0];
+    if (problem_json.size() > 1)
+        problem_size.y = problem_json[1];
+    if (problem_json.size() > 2)
+        problem_size.z = problem_json[2];
+
+    const auto device_name =
+        env_json["device_name"].get_ptr<const std::string*>();
+    double objective = record[objective_key];
+
+    callback(
+        config,
+        problem_size,
+        device_name != nullptr ? *device_name : empty_string,
+        objective);
+}
+
+template<typename F>
 static void process_wisdom_file(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
     const ConfigSpace& space,
     F callback) {
-    std::string path = path_join(wisdom_dir, sanitize_tuning_key(tuning_key));
-
-    if (tuning_key.find(".json") == std::string::npos) {
-        path += ".json";
-    }
+    std::string path =
+        path_join(wisdom_dir, sanitize_tuning_key(tuning_key)) + ".wisdom";
 
     std::ifstream stream(path);
     if (!stream) {
@@ -215,58 +255,26 @@ static void process_wisdom_file(
 
     // Parse header
     try {
-        nlohmann::json header = nlohmann::json(line);
-        parse_header(header, space, params, objective_key);
+        parse_header(line, space, params, objective_key);
     } catch (const std::exception& e) {
-        log_warning() << path
-                      << ":1: file is ignored, error while parsing: " << err
-                      << "\n";
+        log_warning() << path << ":1: file is ignored, error while parsing: "
+                      << e.what() << "\n";
         return;
     }
 
     // Parse each line
-    nlohmann::json record;
-    Config config;
-
     for (size_t lineno = 2; std::getline(stream, line); lineno++) {
         if (line.empty()) {
             continue;
         }
 
         try {
-            record = nlohmann::json(line);
+            parse_line(line, params, objective_key, callback);
         } catch (const std::exception& e) {
             log_warning() << path << ":" << lineno
-                          << ": line is ignored, error while parsing json: "
+                          << ": line is ignored, error while parsing: "
                           << e.what() << "\n";
-            continue;
         }
-
-        nlohmann::json& config_json = record["config"];
-        nlohmann::json& problem_json = record["problem_size"];
-        nlohmann::json& env_json = record["environment"];
-
-        if (config_json.size() != params.size()) {
-            continue;
-        }
-
-        for (size_t i = 0; i < params.size(); i++) {
-            config.insert(params[i], json_to_tunable_value(config_json[i]));
-        }
-
-        ProblemSize problem_size;
-        if (problem_json.size() > 0)
-            problem_size.x = problem_json[0];
-        if (problem_json.size() > 1)
-            problem_size.y = problem_json[1];
-        if (problem_json.size() > 2)
-            problem_size.z = problem_json[2];
-
-        const auto& device_name =
-            env_json["device_name"].get_ref<const std::string&>();
-        double objective = record[objective_key];
-
-        callback(config, problem_size, device_name, objective);
     }
 }
 
@@ -274,16 +282,16 @@ Config load_best_config(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
     const ConfigSpace& space,
-    CudaDevice device,
+    const std::string& device_name,
+    CudaArch device_arch,
     ProblemSize problem_size,
     WisdomResult* result_out) {
-    std::string device_name = device.name();
-
     WisdomResult best_type = WisdomResult::NotFound;
     std::string best_device;
     double best_score = 0.0;
     Config best_config = space.default_config();
     ProblemSize best_problem_size;
+    uint64_t best_distance = std::numeric_limits<uint64_t>::max();
 
     process_wisdom_file(
         wisdom_dir,
@@ -302,26 +310,40 @@ Config load_best_config(
                 type = WisdomResult::Ok;
             }
 
-            if (type > best_type || (type == best_type && score < best_score)) {
+            uint64_t l = problem_size.x * problem_size.y * problem_size.z;
+            uint64_t r = row_problem.x * row_problem.y * row_problem.z;
+            uint64_t distance = l > r ? l - r : r - l;
+
+            if (type > best_type
+                || (type == best_type
+                    && (distance < best_distance
+                        || (distance == best_distance
+                            && score < best_score)))) {
+                if (!space.is_valid(config)) {
+                    throw std::runtime_error("invalid configuration");
+                }
+
                 best_type = type;
                 best_score = score;
                 best_config = Config(config);
                 best_problem_size = problem_size;
                 best_device = row_device;
+                best_distance = distance;
             }
         });
 
     if (best_type == WisdomResult::NotFound) {
-        log_warning() << "no wisdom found for key " << tuning_key
-                      << " , using default kernel configuration.\n";
+        log_warning() << "no wisdom found for kernel \"" << tuning_key
+                      << "\", using default kernel configuration.\n";
     } else if (best_type == WisdomResult::DeviceMismatch) {
-        log_warning() << "no wisdom found for key " << tuning_key
-                      << " and device " << device_name
-                      << ", using configuration for different device: "
-                      << best_device << ".\n";
+        log_warning() << "no wisdom found for kernel \"" << tuning_key
+                      << "\" and device \"" << device_name
+                      << "\", using configuration for different device: \""
+                      << best_device << "\".\n";
     } else if (best_type == WisdomResult::ProblemSizeMismatch) {
-        log_info() << "no wisdom found for key " << tuning_key << ", device "
-                   << device_name << ", and problem size " << problem_size
+        log_info() << "no wisdom found for kernel \"" << tuning_key
+                   << "\", device \"" << device_name << "\", and problem size "
+                   << problem_size
                    << ", using configuration for different problem size: "
                    << best_problem_size << ".\n";
     }
@@ -380,7 +402,8 @@ WisdomResult WisdomKernel::compile(
         impl_->settings_->wisdom_directory(),
         impl_->tuning_key_,
         impl_->builder_,
-        device,
+        device.name(),
+        device.arch(),
         problem_size,
         &result);
 
