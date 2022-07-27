@@ -374,6 +374,7 @@ Config load_best_config(
 
     if (best_type == WisdomResult::NotFound) {
         log_warning() << "no wisdom found for kernel \"" << tuning_key
+                      << "\" in directory \"" << wisdom_dir
                       << "\", using default kernel configuration.\n";
     } else if (best_type == WisdomResult::DeviceMismatch) {
         log_warning() << "no wisdom found for kernel \"" << tuning_key

@@ -34,6 +34,21 @@ const TunableValue& Config::at(const TunableParam& param) const {
     return it->second;
 }
 
+std::ostream& operator<<(std::ostream& s, const Config& c) {
+    s << "{";
+    bool is_first = true;
+    for (const auto& p : c.inner_) {
+        if (is_first) {
+            is_first = false;
+        } else {
+            s << ", ";
+        }
+
+        s << "\"" << p.first.name() << "\": " << p.second;
+    }
+    return s << "}";
+}
+
 TunableParam ConfigSpace::add(
     std::string name,
     std::vector<TunableValue> values,

@@ -20,7 +20,7 @@ void vector_add(int n, int *c, const int* a, const int* b) {
 }
 )";
 
-TEST_CASE("kernel builder", "[CUDA]") {
+TEST_CASE("KernelBuilder", "[CUDA]") {
     CUcontext ctx;
     KERNEL_LAUNCHER_CUDA_CHECK(cuInit(0));
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
@@ -32,7 +32,7 @@ TEST_CASE("kernel builder", "[CUDA]") {
     KernelBuilder builder(
         "vector_add",
         KernelSource("vector_add.cu", kernel_source));
-    auto tb = builder.tune("threads_per_block", {32, 128, 256});
+    auto tb = builder.tune("threads_per_block", {1, 32, 128, 256});
     auto et = builder.tune("elements_per_thread", {1, 2, 4});
     auto eb = et * tb;
 
@@ -77,8 +77,12 @@ TEST_CASE("kernel builder", "[CUDA]") {
         cuda_copy(a.data(), (int*)dev_c, n);
 
         Kernel<int, int*, const int*, const int*> kernel;
-        CHECK_NOTHROW(kernel.compile(builder, config));
-        CHECK_NOTHROW(kernel(n)(int(n), (int*)dev_c, (int*)dev_a, (int*)dev_b));
+        REQUIRE_NOTHROW(kernel.compile(builder, config));
+        REQUIRE_NOTHROW(
+            kernel(n)(int(n), (int*)dev_c, (int*)dev_a, (int*)dev_b));
+
+        REQUIRE_NOTHROW(
+            kernel(n)(int(n), (int*)dev_c, (int*)dev_a, (int*)dev_b));
 
         // Copy C out
         cuda_copy((int*)dev_c, c.data(), n);

@@ -51,6 +51,8 @@ struct Config {
         return inner_;
     }
 
+    friend std::ostream& operator<<(std::ostream&, const Config& c);
+
   private:
     std::unordered_map<TunableParam, TunableValue> inner_;
 };
