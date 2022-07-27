@@ -54,40 +54,32 @@ inline Config load_best_config(
         result);
 }
 
-struct WisdomKernelSettings {
-    WisdomKernelSettings(
+struct WisdomSettingsImpl;
+
+struct WisdomSettings {
+    WisdomSettings(
         std::string wisdom_dir,
         std::string tuning_dir,
-        std::vector<std::string> tuning_patterns = {}) :
-        wisdom_dir_(std::move(wisdom_dir)),
-        tuning_dir_(std::move(tuning_dir)),
-        tuning_patterns_(std::move(tuning_patterns)) {}
+        std::vector<std::string> tuning_patterns = {});
+    ~WisdomSettings();
+    WisdomSettings(WisdomSettings&&) noexcept;
+    WisdomSettings(const WisdomSettings&);
 
     bool does_kernel_require_tuning(
         const std::string& tuning_key,
         ProblemSize problem_size) const;
+    const std::string& wisdom_directory() const;
+    const std::string& tuning_directory() const;
+    const std::vector<std::string>& tuning_patterns() const;
 
-    const std::string& wisdom_directory() const {
-        return wisdom_dir_;
-    }
-
-    const std::string& tuning_directory() const {
-        return tuning_dir_;
-    }
-
-    const std::vector<std::string>& tuning_patterns() const {
-        return tuning_patterns_;
-    }
-
-    std::string wisdom_dir_;
-    std::string tuning_dir_;
-    std::vector<std::string> tuning_patterns_;
+  private:
+    std::shared_ptr<WisdomSettingsImpl> impl_;
 };
 
 void set_global_wisdom_directory(std::string);
 void set_global_tuning_directory(std::string);
 void add_global_tuning_pattern(std::string);
-std::shared_ptr<WisdomKernelSettings> default_wisdom_settings();
+WisdomSettings default_wisdom_settings();
 
 struct KernelArg {
   private:
@@ -217,8 +209,7 @@ struct WisdomKernel {
         std::string tuning_key,
         KernelBuilder builder,
         Compiler compiler = default_compiler(),
-        std::shared_ptr<WisdomKernelSettings> settings =
-            default_wisdom_settings()) :
+        WisdomSettings settings = default_wisdom_settings()) :
         WisdomKernel() {
         initialize(
             std::move(tuning_key),
@@ -231,8 +222,7 @@ struct WisdomKernel {
         std::string tuning_key,
         KernelBuilder builder,
         Compiler compiler = default_compiler(),
-        std::shared_ptr<WisdomKernelSettings> settings =
-            default_wisdom_settings());
+        WisdomSettings settings = default_wisdom_settings());
 
     WisdomResult compile(
         ProblemSize problem_size,

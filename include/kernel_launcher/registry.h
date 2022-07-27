@@ -53,8 +53,7 @@ struct KernelRegistry {
   public:
     explicit KernelRegistry(
         Compiler compiler = default_compiler(),
-        std::shared_ptr<WisdomKernelSettings> settings =
-            default_wisdom_settings()) :
+        WisdomSettings settings = default_wisdom_settings()) :
         compiler_(std::move(compiler)),
         settings_(std::move(settings)) {}
 
@@ -67,7 +66,8 @@ struct KernelRegistry {
     WisdomKernelLaunch
     instantiate(D&& descriptor, cudaStream_t stream, ProblemSize problem_size)
         const {
-        return lookup(std::forward<D>(descriptor)).instantiate(stream, problem_size);
+        return lookup(std::forward<D>(descriptor))
+            .instantiate(stream, problem_size);
     }
 
     template<typename D>
@@ -87,7 +87,7 @@ struct KernelRegistry {
     WisdomKernel& lookup_internal(CacheKey key) const;
 
     Compiler compiler_;
-    std::shared_ptr<WisdomKernelSettings> settings_;
+    WisdomSettings settings_;
     mutable std::mutex mutex_;
     mutable std::unordered_map<
         CacheKey,

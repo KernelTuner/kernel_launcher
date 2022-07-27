@@ -5,12 +5,31 @@
 
 namespace kernel_launcher {
 
-bool WisdomKernelSettings::does_kernel_require_tuning(
+struct WisdomSettingsImpl {
+    std::string wisdom_dir_;
+    std::string tuning_dir_;
+    std::vector<std::string> tuning_patterns_;
+};
+
+WisdomSettings::WisdomSettings(
+    std::string wisdom_dir,
+    std::string tuning_dir,
+    std::vector<std::string> tuning_patterns) :
+    impl_(std::make_shared<WisdomSettingsImpl>(WisdomSettingsImpl {
+        std::move(wisdom_dir),
+        std::move(tuning_dir),
+        std::move(tuning_patterns)})) {}
+
+WisdomSettings::~WisdomSettings() = default;
+WisdomSettings::WisdomSettings(WisdomSettings&&) noexcept = default;
+WisdomSettings::WisdomSettings(const WisdomSettings&) = default;
+
+bool WisdomSettings::does_kernel_require_tuning(
     const std::string& tuning_key,
     ProblemSize problem_size) const {
     bool matches = false;
 
-    for (const std::string& pattern : tuning_patterns_) {
+    for (const std::string& pattern : impl_->tuning_patterns_) {
         if (tuning_key.find(pattern) != std::string::npos) {
             matches = true;
             break;
@@ -21,46 +40,58 @@ bool WisdomKernelSettings::does_kernel_require_tuning(
         return false;
     }
 
-    if (tuning_file_exists(tuning_dir_, tuning_key, problem_size)) {
+    if (tuning_file_exists(impl_->tuning_dir_, tuning_key, problem_size)) {
         return false;
     }
 
     return true;
 }
 
-std::shared_ptr<WisdomKernelSettings> global_wisdom_settings;
+const std::string& WisdomSettings::wisdom_directory() const {
+    return impl_->wisdom_dir_;
+}
+
+const std::string& WisdomSettings::tuning_directory() const {
+    return impl_->tuning_dir_;
+}
+
+const std::vector<std::string>& WisdomSettings::tuning_patterns() const {
+    return impl_->tuning_patterns_;
+}
+
+WisdomSettings* global_wisdom_settings = nullptr;
 
 void set_global_wisdom_directory(std::string dir) {
-    WisdomKernelSettings s = *default_wisdom_settings();
-    global_wisdom_settings = std::make_shared<WisdomKernelSettings>(
+    WisdomSettings s = default_wisdom_settings();
+    global_wisdom_settings = new WisdomSettings(
         std::move(dir),
         s.tuning_directory(),
         s.tuning_patterns());
 }
 
 void set_global_tuning_directory(std::string dir) {
-    WisdomKernelSettings s = *default_wisdom_settings();
-    global_wisdom_settings = std::make_shared<WisdomKernelSettings>(
+    WisdomSettings s = default_wisdom_settings();
+    global_wisdom_settings = new WisdomSettings(
         s.wisdom_directory(),
         std::move(dir),
         s.tuning_patterns());
 }
 
 void add_global_tuning_pattern(std::string pattern) {
-    WisdomKernelSettings s = *default_wisdom_settings();
+    WisdomSettings s = default_wisdom_settings();
 
     std::vector<std::string> patterns = s.tuning_patterns();
     patterns.emplace_back(std::move(pattern));
 
-    global_wisdom_settings = std::make_shared<WisdomKernelSettings>(
+    global_wisdom_settings = new WisdomSettings(
         s.wisdom_directory(),
         s.tuning_directory(),
         patterns);
 }
 
-std::shared_ptr<WisdomKernelSettings> default_wisdom_settings() {
+WisdomSettings default_wisdom_settings() {
     if (global_wisdom_settings) {
-        return global_wisdom_settings;
+        return *global_wisdom_settings;
     }
 
     std::string wisdom_dir = ".";
@@ -97,8 +128,9 @@ std::shared_ptr<WisdomKernelSettings> default_wisdom_settings() {
         }
     }
 
-    return global_wisdom_settings = std::make_shared<WisdomKernelSettings>(
-               WisdomKernelSettings {wisdom_dir, tuning_dir, tuning_patterns});
+    global_wisdom_settings = new WisdomSettings(
+        WisdomSettings {wisdom_dir, tuning_dir, tuning_patterns});
+    return *global_wisdom_settings;
 }
 
 static std::string sanitize_tuning_key(const std::string& key) {
@@ -370,7 +402,7 @@ struct WisdomKernelImpl {
     KernelInstance instance_;
     Compiler compiler_;
     std::vector<TypeInfo> param_types_;
-    std::shared_ptr<WisdomKernelSettings> settings_;
+    WisdomSettings settings_;
 };
 
 WisdomKernel::WisdomKernel() = default;
@@ -381,7 +413,7 @@ void WisdomKernel::initialize(
     std::string tuning_key,
     KernelBuilder builder,
     Compiler compiler,
-    std::shared_ptr<WisdomKernelSettings> settings) {
+    WisdomSettings settings) {
     impl_ = std::make_unique<WisdomKernelImpl>(WisdomKernelImpl {
         false,
         std::move(tuning_key),
@@ -408,7 +440,7 @@ WisdomResult WisdomKernel::compile(
 
     WisdomResult result;
     Config config = load_best_config(
-        impl_->settings_->wisdom_directory(),
+        impl_->settings_.wisdom_directory(),
         impl_->tuning_key_,
         impl_->builder_,
         device.name(),
@@ -484,7 +516,7 @@ void WisdomKernel::launch(
         WisdomResult result =
             compile(problem_size, CudaDevice::current(), param_types);
         bool write_tuning = result != WisdomResult::Ok
-            && impl_->settings_->does_kernel_require_tuning(
+            && impl_->settings_.does_kernel_require_tuning(
                 impl_->tuning_key_,
                 problem_size);
 
@@ -510,7 +542,7 @@ void WisdomKernel::launch(
 
             try {
                 export_tuning_file(
-                    impl_->settings_->tuning_directory(),
+                    impl_->settings_.tuning_directory(),
                     impl_->tuning_key_,
                     impl_->builder_,
                     problem_size,
