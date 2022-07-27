@@ -143,7 +143,7 @@ TEST_CASE("test KernelArg") {
         CHECK_THROWS(v.to<double>());
     }
 
-    SECTION("scalar int*") {
+    SECTION("array int*") {
         std::vector<int> input = {1, 2, 3};
 
         KernelArg v = KernelArg::for_array(input.data(), input.size());
@@ -158,6 +158,22 @@ TEST_CASE("test KernelArg") {
         CHECK(*(int**)(v.as_void_ptr()) == input.data());
 
         CHECK(v.to<int*>() == input.data());
+        CHECK(v.to<const int*>() == input.data());
+        CHECK_THROWS(v.to<double>());
+    }
+
+    SECTION("array const int*") {
+        std::vector<int> input = {1, 2, 3};
+
+        KernelArg v =
+            KernelArg::for_array<const int>(input.data(), input.size());
+        CHECK(v.type() == type_of<const int*>());
+        CHECK(v.is_array() == true);
+        CHECK(v.is_scalar() == false);
+        CHECK(*(const int**)(v.as_void_ptr()) == input.data());
+
+        CHECK_THROWS(v.to<int*>() == input.data());
+        CHECK(v.to<const int*>() == input.data());
         CHECK_THROWS(v.to<double>());
     }
 }

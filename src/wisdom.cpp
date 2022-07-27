@@ -573,7 +573,19 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
 }
 
 void KernelArg::assert_type_matches(TypeInfo t) const {
-    if (t.remove_const() != type_.remove_const()) {
+    bool valid;
+
+    if (t.is_pointer()) {
+        // Matches if both are pointers and pointee type matches (possible
+        // when adding a const modifier).
+        valid = type_.is_pointer()
+            && (t.remove_pointer() == type_.remove_pointer()
+                || t.remove_pointer() == type_.remove_pointer().add_const());
+    } else {
+        valid = t.remove_const() == type_.remove_const();
+    }
+
+    if (!valid) {
         throw std::runtime_error(
             "cannot cast kernel argument of type `" + type_.name()
             + "` to type `" + t.name() + "`");
