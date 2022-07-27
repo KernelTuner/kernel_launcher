@@ -120,9 +120,16 @@ CudaArch CudaDevice::arch() {
 }
 
 CudaContextHandle CudaContextHandle::current() {
-    CUcontext c;
-    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetCurrent(&c));
-    return CudaContextHandle(c);
+    CUcontext ctx = nullptr;
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetCurrent(&ctx));
+
+    // cuCtxGetCurrent will just return null if there is no current context, we consider it an error.
+    if (ctx == nullptr) {
+        throw std::runtime_error(
+            "CUDA context not initialized for current thread");
+    }
+
+    return {ctx};
 }
 
 CudaDevice CudaContextHandle::device() const {

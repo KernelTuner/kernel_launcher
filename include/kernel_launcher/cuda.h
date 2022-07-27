@@ -116,6 +116,9 @@ struct CudaContextHandle {
     static CudaContextHandle current();
     CudaDevice device() const;
     void with(std::function<void()> f) const;
+    CUcontext get() const {
+        return context_;
+    }
 
   private:
     CUcontext context_ = nullptr;
