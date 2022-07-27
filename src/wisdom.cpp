@@ -410,6 +410,7 @@ WisdomResult WisdomKernel::compile(
     impl_->param_types_ = std::move(param_types);
     impl_->instance_ =
         impl_->builder_.compile(config, impl_->param_types_, impl_->compiler_);
+    impl_->compiled_ = true;
     return result;
 }
 
