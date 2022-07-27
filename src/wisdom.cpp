@@ -113,7 +113,7 @@ WisdomSettings default_wisdom_settings() {
             std::string pattern = all_patterns.substr(begin, end);
             begin = end + 1;
 
-            if (!pattern.empty()) {
+            if (!pattern.empty() && pattern != "false" && pattern != "0") {
                 if (pattern == "1" || pattern == "*" || pattern == "all"
                     || pattern == "true") {
                     pattern = "";
