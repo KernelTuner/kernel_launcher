@@ -589,8 +589,6 @@ std::vector<uint8_t> KernelArg::to_bytes() const {
 
     if (is_array()) {
         result.resize(type_.size() * data_.array.nelements);
-        log_warning() << "copy " << result.size() << " " << result.data()
-                      << "\n";
         KERNEL_LAUNCHER_CUDA_CHECK(cuMemcpy(
             reinterpret_cast<CUdeviceptr>(result.data()),
             reinterpret_cast<CUdeviceptr>(data_.array.ptr),
