@@ -528,7 +528,7 @@ static bool is_inline_scalar(TypeInfo type) {
 }
 
 KernelArg::KernelArg(TypeInfo type, void* data) {
-    type_ = type;
+    type_ = type.remove_const();
     scalar_ = true;
 
     if (is_inline_scalar(type_)) {
@@ -540,7 +540,7 @@ KernelArg::KernelArg(TypeInfo type, void* data) {
 }
 
 KernelArg::KernelArg(TypeInfo type, void* ptr, size_t nelements) {
-    type_ = type;
+    type_ = type.remove_const();
     scalar_ = false;
     data_.array.ptr = ptr;
     data_.array.nelements = nelements;
@@ -570,6 +570,14 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
     std::swap(this->data_, that.data_);
     std::swap(this->type_, that.type_);
     std::swap(this->scalar_, that.scalar_);
+}
+
+void KernelArg::assert_type_matches(TypeInfo t) const {
+    if (t.remove_const() != type_.remove_const()) {
+        throw std::runtime_error(
+            "cannot cast kernel argument of type `" + type_.name()
+            + "` to type `" + t.name() + "`");
+    }
 }
 
 bool KernelArg::is_array() const {

@@ -113,6 +113,19 @@ struct KernelArg {
         return KernelArg(type_of<T*>(), (void*)value, nelements);
     }
 
+    template<typename T>
+    T to() const {
+        static_assert(
+            std::is_trivially_copyable<T>::value,
+            "type must be trivial");
+        assert_type_matches(type_of<T>());
+
+        T result = {};
+        ::memcpy(&result, as_void_ptr(), sizeof(T));
+        return result;
+    }
+
+    void assert_type_matches(TypeInfo t) const;
     bool is_scalar() const;
     bool is_array() const;
     TypeInfo type() const;
@@ -204,8 +217,7 @@ struct WisdomKernel {
         KernelBuilder builder,
         Compiler compiler = default_compiler(),
         std::shared_ptr<WisdomKernelSettings> settings =
-            default_wisdom_settings(),
-        std::function<cudaStream_t, ProblemSize, > = {}) :
+            default_wisdom_settings()) :
         WisdomKernel() {
         initialize(
             std::move(tuning_key),

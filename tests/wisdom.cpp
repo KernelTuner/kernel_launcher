@@ -107,6 +107,9 @@ TEST_CASE("test KernelArg") {
         int result;
         ::memcpy(&result, v.as_void_ptr(), sizeof(int));
         CHECK(result == 5);
+
+        CHECK(v.to<int>() == 5);
+        CHECK_THROWS(v.to<double>());
     }
 
     SECTION("scalar point3") {
@@ -114,6 +117,10 @@ TEST_CASE("test KernelArg") {
             unsigned long long x;
             unsigned long long y;
             unsigned long long z;
+
+            bool operator==(point3 v) const {
+                return x == v.x && y == v.y && z == v.z;
+            }
         };
 
         point3 input = {1, 2, 3};
@@ -130,7 +137,10 @@ TEST_CASE("test KernelArg") {
 
         point3 result;
         ::memcpy(&result, v.as_void_ptr(), sizeof(point3));
-        CHECK((result.x == 1 && result.y == 2 && result.z == 3));
+        CHECK(result == input);
+
+        CHECK(v.to<point3>() == input);
+        CHECK_THROWS(v.to<double>());
     }
 
     SECTION("scalar int*") {
@@ -146,5 +156,8 @@ TEST_CASE("test KernelArg") {
         CHECK(v.is_array() == true);
         CHECK(v.is_scalar() == false);
         CHECK(*(int**)(v.as_void_ptr()) == input.data());
+
+        CHECK(v.to<int*>() == input.data());
+        CHECK_THROWS(v.to<double>());
     }
 }
