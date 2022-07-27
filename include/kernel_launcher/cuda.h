@@ -132,6 +132,55 @@ void cuda_copy(const T* src, T* dst, size_t num_elements) {
         num_elements * sizeof(T));
 }
 
+template<typename T>
+struct CudaSpan {
+    CudaSpan(T* ptr, size_t size) : ptr_(ptr), size_(size) {}
+    CudaSpan() : ptr_(nullptr), size_(0) {}
+
+    T* data() const {
+        return ptr_;
+    }
+
+    size_t size() const {
+        return size_;
+    }
+
+    operator T*() const {
+        return ptr_;
+    }
+
+    operator const T*() const {
+        return ptr_;
+    }
+
+  private:
+    T* ptr_;
+    size_t size_;
+};
+
+template<typename T>
+struct CudaSpan<const T> {
+    CudaSpan(const T* ptr, size_t size) : ptr_(ptr), size_(size) {}
+    CudaSpan(CudaSpan<T> that) : ptr_(that.data()), size_(that.size()) {}
+    CudaSpan() : ptr_(nullptr), size_(0) {}
+
+    const T* data() const {
+        return ptr_;
+    }
+
+    size_t size() const {
+        return size_;
+    }
+
+    operator const T*() const {
+        return ptr_;
+    }
+
+  private:
+    const T* ptr_;
+    size_t size_;
+};
+
 }  // namespace kernel_launcher
 
 #endif  //KERNEL_LAUNCHER_CUDA_H

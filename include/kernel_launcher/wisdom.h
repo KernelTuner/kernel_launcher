@@ -152,6 +152,15 @@ struct IntoKernelArg<
 };
 
 template<typename T>
+struct IntoKernelArg<
+    CudaSpan<T>,
+    typename std::enable_if<std::is_trivially_copyable<T>::value>::type> {
+    static KernelArg convert(CudaSpan<T> s) {
+        return KernelArg::for_array<T>(s.data(), s.size());
+    }
+};
+
+template<typename T>
 KernelArg into_kernel_arg(T&& value) {
     return IntoKernelArg<typename std::decay<T>::type>::convert(value);
 }
@@ -193,9 +202,10 @@ struct WisdomKernel {
     WisdomKernel(
         std::string tuning_key,
         KernelBuilder builder,
-        Compiler compiler = {},
+        Compiler compiler = default_compiler(),
         std::shared_ptr<WisdomKernelSettings> settings =
-            default_wisdom_settings()) :
+            default_wisdom_settings(),
+        std::function<cudaStream_t, ProblemSize, > = {}) :
         WisdomKernel() {
         initialize(
             std::move(tuning_key),
@@ -207,7 +217,7 @@ struct WisdomKernel {
     void initialize(
         std::string tuning_key,
         KernelBuilder builder,
-        Compiler compiler = {},
+        Compiler compiler = default_compiler(),
         std::shared_ptr<WisdomKernelSettings> settings =
             default_wisdom_settings());
 
