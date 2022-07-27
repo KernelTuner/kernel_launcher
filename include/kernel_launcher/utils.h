@@ -320,8 +320,12 @@ using hash_t = uint64_t;
 
 hash_t hash_string(const char* buffer, size_t num_bytes);
 
-inline hash_t hash_string(const std::vector<char>& v) {
-    return hash_string(v.data(), v.size());
+inline hash_t hash_string(const std::vector<int8_t>& v) {
+    return hash_string((char*)v.data(), v.size());
+}
+
+inline hash_t hash_string(const std::vector<uint8_t>& v) {
+    return hash_string((char*)v.data(), v.size());
 }
 
 inline hash_t hash_string(const std::string& v) {

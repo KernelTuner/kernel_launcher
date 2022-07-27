@@ -21,8 +21,8 @@ void export_tuning_file(
     const KernelBuilder& builder,
     ProblemSize problem_size,
     const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<char>>& inputs,
-    const std::vector<std::vector<char>>& outputs = {});
+    const std::vector<std::vector<uint8_t>>& inputs,
+    const std::vector<std::vector<uint8_t>>& outputs = {});
 
 }  // namespace kernel_launcher
 

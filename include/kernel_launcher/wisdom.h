@@ -116,7 +116,7 @@ struct KernelArg {
     bool is_scalar() const;
     bool is_array() const;
     TypeInfo type() const;
-    std::vector<char> to_bytes() const;
+    std::vector<uint8_t> to_bytes() const;
     void* as_void_ptr() const;
 
   private:
@@ -127,8 +127,8 @@ struct KernelArg {
             void* ptr;
             size_t nelements;
         } array;
-        std::array<char, 2 * sizeof(size_t)> small_scalar;
-        char* large_scalar;
+        std::array<uint8_t, 2 * sizeof(size_t)> small_scalar;
+        void* large_scalar;
     } data_;
 };
 
@@ -137,7 +137,7 @@ struct IntoKernelArg;
 
 template<>
 struct IntoKernelArg<KernelArg> {
-    KernelArg into(KernelArg arg) {
+    static KernelArg into(KernelArg arg) {
         return arg;
     }
 };
@@ -146,7 +146,7 @@ template<typename T>
 struct IntoKernelArg<
     T,
     typename std::enable_if<std::is_trivially_copyable<T>::value>::type> {
-    KernelArg convert(T value) {
+    static KernelArg convert(T value) {
         return KernelArg::for_scalar<T>(value);
     }
 };

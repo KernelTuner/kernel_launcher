@@ -94,3 +94,57 @@ TEST_CASE("test load_best_config") {
         CHECK(config["block_size_y"] == 1);
     }
 }
+
+TEST_CASE("test KernelArg") {
+    SECTION("scalar int") {
+        KernelArg v = into_kernel_arg(5);
+        CHECK(v.type() == type_of<int>());
+        CHECK(
+            v.to_bytes() == std::vector<uint8_t> {5, 0, 0, 0});  // Assuming LE?
+        CHECK(v.is_array() == false);
+        CHECK(v.is_scalar() == true);
+
+        int result;
+        ::memcpy(&result, v.as_void_ptr(), sizeof(int));
+        CHECK(result == 5);
+    }
+
+    SECTION("scalar point3") {
+        struct point3 {
+            unsigned long long x;
+            unsigned long long y;
+            unsigned long long z;
+        };
+
+        point3 input = {1, 2, 3};
+
+        KernelArg v = into_kernel_arg(input);
+        CHECK(v.type() == type_of<point3>());
+        CHECK(
+            v.to_bytes()
+            == std::vector<uint8_t> {
+                1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,
+                0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0});  // Assuming LE?
+        CHECK(v.is_array() == false);
+        CHECK(v.is_scalar() == true);
+
+        point3 result;
+        ::memcpy(&result, v.as_void_ptr(), sizeof(point3));
+        CHECK((result.x == 1 && result.y == 2 && result.z == 3));
+    }
+
+    SECTION("scalar int*") {
+        std::vector<int> input = {1, 2, 3};
+
+        KernelArg v = KernelArg::for_array(input.data(), input.size());
+        CHECK(v.type() == type_of<int*>());
+        //        // This only works if cuda is enabled :-(
+        //        CHECK(
+        //            v.to_bytes()
+        //            == std::vector<
+        //                uint8_t> {1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0});  // Assuming LE?
+        CHECK(v.is_array() == true);
+        CHECK(v.is_scalar() == false);
+        CHECK(*(int**)(v.as_void_ptr()) == input.data());
+    }
+}

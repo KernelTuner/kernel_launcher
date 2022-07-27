@@ -480,8 +480,8 @@ void WisdomKernel::launch(
                 problem_size);
 
         if (write_tuning) {
-            std::vector<std::vector<char>> inputs;
-            std::vector<std::vector<char>> outputs;
+            std::vector<std::vector<uint8_t>> inputs;
+            std::vector<std::vector<uint8_t>> outputs;
 
             KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
             KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
@@ -529,7 +529,7 @@ static bool is_inline_scalar(TypeInfo type) {
 
 KernelArg::KernelArg(TypeInfo type, void* data) {
     type_ = type;
-    scalar_ = false;
+    scalar_ = true;
 
     if (is_inline_scalar(type_)) {
         ::memcpy(data_.small_scalar.data(), data, type.size());
@@ -562,7 +562,7 @@ KernelArg::KernelArg(const KernelArg& that) : KernelArg() {
 
 KernelArg::~KernelArg() {
     if (is_scalar() && !is_inline_scalar(type_)) {
-        delete[] data_.large_scalar;
+        delete[](char*) data_.large_scalar;
     }
 }
 
@@ -573,22 +573,24 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
 }
 
 bool KernelArg::is_array() const {
-    return scalar_;
+    return !scalar_;
 }
 
 bool KernelArg::is_scalar() const {
-    return !scalar_;
+    return scalar_;
 }
 
 TypeInfo KernelArg::type() const {
     return type_;
 }
 
-std::vector<char> KernelArg::to_bytes() const {
-    std::vector<char> result;
+std::vector<uint8_t> KernelArg::to_bytes() const {
+    std::vector<uint8_t> result;
 
     if (is_array()) {
         result.resize(type_.size() * data_.array.nelements);
+        log_warning() << "copy " << result.size() << " " << result.data()
+                      << "\n";
         KERNEL_LAUNCHER_CUDA_CHECK(cuMemcpy(
             reinterpret_cast<CUdeviceptr>(result.data()),
             reinterpret_cast<CUdeviceptr>(data_.array.ptr),
