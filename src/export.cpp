@@ -121,16 +121,28 @@ static nlohmann::json environment_json() {
 }
 
 static nlohmann::json tunable_param_to_json(const TunableParam& param) {
-    std::vector<nlohmann::json> result;
-    result.push_back(value_to_json(param.default_value()));
+    std::vector<nlohmann::json> values;
+    std::vector<nlohmann::json> priors;
+    size_t n = param.values().size();
 
-    for (const auto& v : param.values()) {
+    for (size_t i = 0; i < n; i++) {
+        const TunableValue& v = param.values()[i];
+        double prior = param.priors()[i];
+
         if (v != param.default_value()) {
-            result.push_back(value_to_json(v));
+            values.insert(values.begin(), value_to_json(v));
+            values.insert(values.begin(), prior);
+        } else {
+            values.push_back(value_to_json(v));
+            values.push_back(prior);
         }
     }
 
-    return result;
+    return nlohmann::json::object_t {
+        {"name", param.name()},
+        {"values", std::move(values)},
+        {"priors", std::move(priors)},
+    };
 }
 
 struct KernelBuilderSerializerHack {
@@ -143,9 +155,9 @@ struct KernelBuilderSerializerHack {
             restrictions.push_back(e);
         }
 
-        std::unordered_map<std::string, nlohmann::json> parameters;
+        std::vector<nlohmann::json> parameters;
         for (const auto& p : builder.params_) {
-            parameters[p.name()] = tunable_param_to_json(p);
+            parameters.push_back(tunable_param_to_json(p));
         }
 
         std::unordered_map<std::string, nlohmann::json> defines;
@@ -178,7 +190,7 @@ struct DataFile {
 static const DataFile& write_kernel_arg(
     const std::string& tuning_key,
     const std::string& data_dir,
-    const std::vector<char>& data,
+    const std::vector<uint8_t>& data,
     std::vector<DataFile>& previous_files) {
     static constexpr size_t random_suffix_length = 8;
     static constexpr char random_chars[] =
@@ -213,7 +225,7 @@ static const DataFile& write_kernel_arg(
         file_name += ".bin";
 
         path = path_join(data_dir, file_name);
-        if (!write_file(path, data)) {
+        if (!write_file(path, (char*)data.data(), data.size())) {
             continue;
         }
 
@@ -231,8 +243,8 @@ static nlohmann::json kernel_args_to_json(
     const std::string& tuning_key,
     const std::string& data_dir,
     const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<char>>& inputs,
-    const std::vector<std::vector<char>>& outputs) {
+    const std::vector<std::vector<uint8_t>>& inputs,
+    const std::vector<std::vector<uint8_t>>& outputs) {
     std::vector<DataFile> previous_files;
     std::vector<nlohmann::json> result;
 
@@ -302,15 +314,14 @@ static nlohmann::json wisdom_to_json(
     const std::string& data_dir,
     ProblemSize problem_size,
     const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<char>>& inputs,
-    const std::vector<std::vector<char>>& outputs) {
+    const std::vector<std::vector<uint8_t>>& inputs,
+    const std::vector<std::vector<uint8_t>>& outputs) {
     nlohmann::json result;
     result["key"] = sanitize_tuning_key(tuning_key);
     result["environment"] = environment_json();
     result["kernel"] = KernelBuilderSerializerHack::builder_to_json(builder);
     result["arguments"] =
         kernel_args_to_json(tuning_key, data_dir, param_types, inputs, outputs);
-    result["config"] = nullptr;
     result["problem_size"] = std::vector<unsigned int> {
         problem_size.x,
         problem_size.y,
@@ -357,8 +368,8 @@ void export_tuning_file(
     const KernelBuilder& builder,
     ProblemSize problem_size,
     const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<char>>& inputs,
-    const std::vector<std::vector<char>>& outputs) {
+    const std::vector<std::vector<uint8_t>>& inputs,
+    const std::vector<std::vector<uint8_t>>& outputs) {
     std::string file_name =
         tuning_key_to_file_name(directory, tuning_key, problem_size);
 
