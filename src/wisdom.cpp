@@ -286,6 +286,14 @@ Config load_best_config(
     CudaArch device_arch,
     ProblemSize problem_size,
     WisdomResult* result_out) {
+    if (space.parameters().empty()) {
+        if (result_out != nullptr) {
+            *result_out = WisdomResult::Ok;
+        }
+
+        return Config {};
+    }
+
     WisdomResult best_type = WisdomResult::NotFound;
     std::string best_device;
     double best_score = 0.0;
@@ -366,6 +374,7 @@ struct WisdomKernelImpl {
 };
 
 WisdomKernel::WisdomKernel() = default;
+WisdomKernel::WisdomKernel(WisdomKernel&&) noexcept = default;
 WisdomKernel::~WisdomKernel() = default;
 
 void WisdomKernel::initialize(
@@ -435,18 +444,18 @@ static void assert_types_equal(
     std::string msg =
         "invalid argument types: kernel compiled for parameter types (";
 
-    for (size_t i = 0; i < args.size(); i++) {
-        if (i != 0)
-            msg += ", ";
-        msg += args[i].type().name();
-    }
-
-    msg += "), but was called with argument types (";
-
     for (size_t i = 0; i < params.size(); i++) {
         if (i != 0)
             msg += ", ";
         msg += params[i].name();
+    }
+
+    msg += "), but was called with argument types (";
+
+    for (size_t i = 0; i < args.size(); i++) {
+        if (i != 0)
+            msg += ", ";
+        msg += args[i].type().name();
     }
 
     msg += ")";

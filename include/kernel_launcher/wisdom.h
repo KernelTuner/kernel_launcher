@@ -210,6 +210,7 @@ struct WisdomKernelImpl;
 struct WisdomKernel {
     using launch_type = WisdomKernelLaunch;
     WisdomKernel();
+    WisdomKernel(WisdomKernel&&) noexcept;
     ~WisdomKernel();
 
     WisdomKernel(
