@@ -1,6 +1,7 @@
 #include "kernel_launcher/wisdom.h"
 
 #include "catch.hpp"
+#include "test_utils.h"
 
 using namespace kernel_launcher;
 
@@ -178,40 +179,13 @@ TEST_CASE("test KernelArg") {
     }
 }
 
-static constexpr const char* kernel_source = R"(
-template <typename T>
-__global__
-void vector_add(int n, int *c, const int* a, const int* b) {
-    for (int k = 0; k < ELEMENTS_PER_THREAD; k++) {
-        int index = (blockIdx.x * ELEMENTS_PER_THREAD + k) * blockDim.x + threadIdx.x;
-
-        if (index < n) {
-            c[index] = a[index] + b[index];
-        }
-    }
-}
-)";
-
 TEST_CASE("WisdomKernel", "[CUDA]") {
     CUcontext ctx;
     KERNEL_LAUNCHER_CUDA_CHECK(cuInit(0));
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
 
-    std::string assets_dir = __FILE__;
-    assets_dir = assets_dir.substr(0, assets_dir.rfind('/'));
-    assets_dir += "/assets";
-
-    KernelBuilder builder(
-        "vector_add",
-        KernelSource("vector_add.cu", kernel_source));
-    auto tb = builder.tune("threads_per_block", {32, 128, 256});
-    auto et = builder.tune("elements_per_thread", {1, 2, 4});
-    auto eb = et * tb;
-
-    builder.define("ELEMENTS_PER_THREAD", et)
-        .template_args(type_of<int>())
-        .block_size(tb)
-        .grid_divisors(eb);
+    std::string assets_dir = assets_directory();
+    KernelBuilder builder = build_vector_add_kernel();
 
     WisdomSettings wisdom_settings(assets_dir, assets_dir);
     WisdomKernel kernel(
@@ -221,10 +195,7 @@ TEST_CASE("WisdomKernel", "[CUDA]") {
         wisdom_settings);
 
     uint n = 10;
-    std::vector<int> a(n);
-    std::vector<int> b(n);
-    std::vector<int> c(n);
-    std::vector<int> c_ref(n);
+    std::vector<int> a(n), b(n), c(n), c_ref(n);
 
     for (uint i = 0; i < n; i++) {
         a[i] = int(i);
@@ -233,11 +204,7 @@ TEST_CASE("WisdomKernel", "[CUDA]") {
         c[i] = 0;
     }
 
-    CUdeviceptr dev_a, dev_b, dev_c;
-    KERNEL_LAUNCHER_CUDA_CHECK(cuMemAlloc(&dev_a, n * sizeof(int)));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuMemAlloc(&dev_b, n * sizeof(int)));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuMemAlloc(&dev_c, n * sizeof(int)));
-
+    CudaVector<int> dev_a(n), dev_b(n), dev_c(n);
     cuda_copy(a.data(), (int*)dev_a, n);
     cuda_copy(b.data(), (int*)dev_b, n);
     cuda_copy(c.data(), (int*)dev_c, n);
@@ -250,8 +217,5 @@ TEST_CASE("WisdomKernel", "[CUDA]") {
 
     REQUIRE(c == c_ref);
 
-    KERNEL_LAUNCHER_CUDA_CHECK(cuMemFree(dev_a));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuMemFree(dev_b));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuMemFree(dev_c));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxDestroy(ctx));
+    //    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxDestroy(ctx));
 }

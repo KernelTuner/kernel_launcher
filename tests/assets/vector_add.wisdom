@@ -1,14 +1,14 @@
 {"tunable_parameters": ["threads_per_block", "elements_per_thread"], "version": "1.0", "objective": "time"}
 {"config": [1, 1], "problem_size": [1000000000], "time": 721.036914, "environment": {"device_name": "GTX fictional"}}
-{"config": [2, 1], "problem_size": [1000000000], "time": 383.018460, "environment": {"device_name": "GTX fictional"}}
-{"config": [4, 1], "problem_size": [1000000000], "time": 215.939489, "environment": {"device_name": "GTX fictional"}}
+{"config": [1, 2], "problem_size": [1000000000], "time": 383.018460, "environment": {"device_name": "GTX fictional"}}
+{"config": [1, 4], "problem_size": [1000000000], "time": 215.939489, "environment": {"device_name": "GTX fictional"}}
 {"config": [32, 1], "problem_size": [1000000000], "time": 31.493886, "environment": {"device_name": "GTX fictional"}}
-{"config": [32, 1], "problem_size": [1000000000], "time": 30.969814, "environment": {"device_name": "GTX fictional"}}
-{"config": [32, 1], "problem_size": [1000000000], "time": 30.846984, "environment": {"device_name": "GTX fictional"}}
+{"config": [32, 2], "problem_size": [1000000000], "time": 30.969814, "environment": {"device_name": "GTX fictional"}}
+{"config": [32, 4], "problem_size": [1000000000], "time": 30.846984, "environment": {"device_name": "GTX fictional"}}
 {"config": [128, 1], "problem_size": [1000000000], "time": 30.359973, "environment": {"device_name": "GTX fictional"}}
-{"config": [128, 1], "problem_size": [1000000000], "time": 30.377325, "environment": {"device_name": "GTX fictional"}}
-{"config": [128, 1], "problem_size": [1000000000], "time": 30.638103, "environment": {"device_name": "GTX fictional"}}
+{"config": [128, 2], "problem_size": [1000000000], "time": 30.377325, "environment": {"device_name": "GTX fictional"}}
+{"config": [128, 4], "problem_size": [1000000000], "time": 30.638103, "environment": {"device_name": "GTX fictional"}}
 {"config": [256, 1], "problem_size": [1000000000], "time": 30.420565, "environment": {"device_name": "GTX fictional"}}
-{"config": [256, 1], "problem_size": [1000000000], "time": 30.440874, "environment": {"device_name": "GTX fictional"}}
-{"config": [256, 1], "problem_size": [1000000000], "time": 30.552021, "environment": {"device_name": "GTX fictional"}}
+{"config": [256, 2], "problem_size": [1000000000], "time": 30.440874, "environment": {"device_name": "GTX fictional"}}
+{"config": [256, 4], "problem_size": [1000000000], "time": 30.552021, "environment": {"device_name": "GTX fictional"}}
 
