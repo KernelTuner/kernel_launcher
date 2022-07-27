@@ -559,7 +559,13 @@ KernelArg::KernelArg(const KernelArg& that) : KernelArg() {
     }
 }
 
-KernelArg::KernelArg(KernelArg&& that) : KernelArg() {
+KernelArg::~KernelArg() {
+    if (is_scalar() && !is_inline_scalar(type_)) {
+        delete[] data_.large_scalar;
+    }
+}
+
+KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
     std::swap(this->data_, that.data_);
     std::swap(this->type_, that.type_);
     std::swap(this->scalar_, that.scalar_);
@@ -609,12 +615,6 @@ void* KernelArg::as_void_ptr() const {
             static_cast<const void*>(data_.small_scalar.data()));
     } else {
         return data_.large_scalar;
-    }
-}
-
-KernelArg::~KernelArg() {
-    if (is_scalar() && is_inline_scalar(type_)) {
-        delete[] data_.large_scalar;
     }
 }
 

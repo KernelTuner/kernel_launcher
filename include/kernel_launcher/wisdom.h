@@ -96,17 +96,20 @@ struct KernelArg {
 
   public:
     KernelArg();
-    KernelArg(KernelArg&&);
+    KernelArg(KernelArg&&) noexcept;
     KernelArg(const KernelArg&);
     ~KernelArg();
 
     template<typename T>
     static KernelArg for_scalar(T value) {
+        static_assert(sizeof(T) == type_of<T>().size(), "internal error");
         return KernelArg(type_of<T>(), (void*)&value);
     }
 
     template<typename T>
     static KernelArg for_array(T* value, size_t nelements) {
+        static_assert(sizeof(T) == type_of<T>().size(), "internal error");
+        static_assert(sizeof(T*) == type_of<T*>().size(), "internal error");
         return KernelArg(type_of<T*>(), (void*)value, nelements);
     }
 
