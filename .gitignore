@@ -50,3 +50,7 @@ env
 venv
 .env
 .venv
+
+# docs
+_build
+_doxygen

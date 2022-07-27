@@ -9,16 +9,17 @@ Kernel Launcher
    Kernel Launcher <self>
    install
    example
-   api/index
+   wisdom
+   api
    license
 
 
 *Kernel Launcher* is a C++ library that makes it easy to dynamically compile *CUDA* kernels at run time (using `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_) and call them in easy type-safe way using C++ magic.
 There are two reasons for using run-time compilation:
 
-* Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration can only be determined at runtime since they depend factors such as the type of GPU and the problem size.
+* Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration can only be determined at runtime since it depends dynamic factors such as the type of GPU and the problem size.
 
-* Increase performance by injecting runtime values as compile-time constant values into the kernel code (dimensions, array strides, weights, etc.).
+* Improve performance by injecting runtime values as compile-time constant values into kernel code (dimensions, array strides, weights, etc.).
 
 
 
@@ -46,7 +47,7 @@ This kernel has a template parameter ``T`` and a tunable parameter ``ELEMENTS_PE
     }
 
 
-The following snippet shows how to use *Kernel Launcher* in host code::
+The following C++ snippet shows how to use *Kernel Launcher* in host code::
 
     #include "kernel_launcher.h"
 
