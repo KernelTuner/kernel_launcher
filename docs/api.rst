@@ -1,26 +1,41 @@
 API Reference
 =============
 
+Config
+------
+.. doxygenstruct:: kernel_launcher::ConfigSpace
+.. doxygenstruct:: kernel_launcher::Config
+
 Kernel
---------
-.. doxygenfile:: kernel_launcher/kernel.h
+------
+.. doxygenstruct:: kernel_launcher::KernelBuilder
+.. doxygenstruct:: kernel_launcher::KernelSource
+.. doxygenstruct:: kernel_launcher::Kernel
 
 Compiler
 --------
-.. doxygenfile:: kernel_launcher/compiler.h
+.. doxygenstruct:: kernel_launcher::Compiler
+.. doxygenstruct:: kernel_launcher::NvrtcCompiler
+
+Registry
+--------
+.. doxygenstruct:: kernel_launcher::KernelRegistry
 
 Wisdom
---------
-.. doxygenfile:: kernel_launcher/wisdom.h
+------
+.. doxygenstruct:: kernel_launcher::WisdomSettings
+.. doxygenstruct:: kernel_launcher::WisdomKernel
 
-Config/ConfigSpace
---------
-.. doxygenfile:: kernel_launcher/config.h
-
-TunableValue/TunableParam
---------
-.. doxygenfile:: kernel_launcher/value.h
+Utilities
+---------
+.. doxygenstruct:: kernel_launcher::TunableValue
+.. doxygenstruct:: kernel_launcher::TunableParam
 
 CUDA
---------
-.. doxygenfile:: kernel_launcher/cuda.h
+----
+.. doxygenstruct:: kernel_launcher::CudaModule
+.. doxygenstruct:: kernel_launcher::CudaException
+.. doxygenstruct:: kernel_launcher::CudaArch
+.. doxygenstruct:: kernel_launcher::CudaDevice
+.. doxygenstruct:: kernel_launcher::CudaContextHandle
+
