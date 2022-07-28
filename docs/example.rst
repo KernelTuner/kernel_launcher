@@ -1,6 +1,12 @@
 .. _example:
 
-Advanced Example
+Examples
 ===============
 
-TODO: write more advance example for GEMM
+.. toctree::
+   :maxdepth: 1
+
+   examples/basic
+   examples/wisdom
+   examples/registry
+
