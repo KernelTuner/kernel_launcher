@@ -131,10 +131,10 @@ static nlohmann::json tunable_param_to_json(const TunableParam& param) {
 
         if (v != param.default_value()) {
             values.insert(values.begin(), value_to_json(v));
-            values.insert(values.begin(), prior);
+            priors.insert(values.begin(), prior);
         } else {
             values.push_back(value_to_json(v));
-            values.push_back(prior);
+            priors.push_back(prior);
         }
     }
 
