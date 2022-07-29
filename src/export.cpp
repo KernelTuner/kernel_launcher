@@ -174,8 +174,14 @@ struct KernelBuilderSerializerHack {
         }
 
         nlohmann::json result;
-        result["kernel_name"] = builder.kernel_name_;
-        result["kernel_file"] = builder.kernel_source_.file_name();
+        const std::string* content = builder.kernel_source_.content();
+        if (content != nullptr) {
+            result["source"] = *content;
+        } else {
+            result["file"] = builder.kernel_source_.file_name();
+        }
+
+        result["name"] = builder.kernel_name_;
         result["compile_flags"] = expr_list_to_json(builder.compile_flags_);
         result["block_size"] = expr_list_to_json(builder.block_size_);
         result["grid_divisors"] = expr_list_to_json(builder.grid_divisors_);

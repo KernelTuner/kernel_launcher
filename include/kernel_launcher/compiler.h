@@ -33,6 +33,10 @@ struct KernelSource {
         return filename_;
     }
 
+    const std::string* content() const {
+        return has_content_ ? &content_ : nullptr;
+    }
+
     std::string read(const FileLoader& fs) const;
 
   private:
