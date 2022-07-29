@@ -131,10 +131,10 @@ static nlohmann::json tunable_param_to_json(const TunableParam& param) {
 
         if (v != param.default_value()) {
             values.insert(values.begin(), value_to_json(v));
-            priors.insert(values.begin(), prior);
+            priors.insert(priors.begin(), prior);
         } else {
-            values.push_back(value_to_json(v));
-            priors.push_back(prior);
+            values.emplace_back(value_to_json(v));
+            priors.emplace_back(prior);
         }
     }
 
@@ -146,13 +146,13 @@ static nlohmann::json tunable_param_to_json(const TunableParam& param) {
 }
 
 struct KernelBuilderSerializerHack {
-    static nlohmann::json builder_to_json(const KernelBuilder& builder) {
+    static nlohmann::json config_space_to_json(const KernelBuilder& builder) {
         std::vector<nlohmann::json> restrictions;
         for (auto e : expr_list_to_json(builder.restrictions_)) {
-            restrictions.push_back(e);
+            restrictions.emplace_back(std::move(e));
         }
         for (auto e : expr_list_to_json(builder.assertions_)) {
-            restrictions.push_back(e);
+            restrictions.emplace_back(std::move(e));
         }
 
         std::vector<nlohmann::json> parameters;
@@ -160,6 +160,14 @@ struct KernelBuilderSerializerHack {
             parameters.push_back(tunable_param_to_json(p));
         }
 
+        nlohmann::json result;
+        result["parameters"] = parameters;
+        result["restrictions"] = std::move(restrictions);
+
+        return result;
+    }
+
+    static nlohmann::json builder_to_json(const KernelBuilder& builder) {
         std::unordered_map<std::string, nlohmann::json> defines;
         for (const auto& p : builder.defines_) {
             defines[p.first] = expr_to_json(p.second);
@@ -168,14 +176,12 @@ struct KernelBuilderSerializerHack {
         nlohmann::json result;
         result["kernel_name"] = builder.kernel_name_;
         result["kernel_file"] = builder.kernel_source_.file_name();
-        result["parameters"] = parameters;
         result["compile_flags"] = expr_list_to_json(builder.compile_flags_);
         result["block_size"] = expr_list_to_json(builder.block_size_);
         result["grid_divisors"] = expr_list_to_json(builder.grid_divisors_);
         result["shared_memory"] = expr_to_json(builder.shared_mem_);
         result["template_args"] = expr_list_to_json(builder.template_args_);
         result["defines"] = std::move(defines);
-        result["restrictions"] = std::move(restrictions);
 
         return result;
     }
@@ -319,6 +325,8 @@ static nlohmann::json wisdom_to_json(
     nlohmann::json result;
     result["key"] = sanitize_tuning_key(tuning_key);
     result["environment"] = environment_json();
+    result["config_space"] =
+        KernelBuilderSerializerHack::config_space_to_json(builder);
     result["kernel"] = KernelBuilderSerializerHack::builder_to_json(builder);
     result["arguments"] =
         kernel_args_to_json(tuning_key, data_dir, param_types, inputs, outputs);
