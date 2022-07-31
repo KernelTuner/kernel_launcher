@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "nlohmann/json.hpp"
+#include "teeny-sha1/teeny-sha1.h"
 
 namespace kernel_launcher {
 
@@ -194,7 +195,7 @@ struct KernelBuilderSerializerHack {
 };
 
 struct DataFile {
-    hash_t hash;
+    std::string hash;
     size_t size;
     std::string file_name;
 };
@@ -209,7 +210,9 @@ static const DataFile& write_kernel_arg(
         "0123456789"
         "abcdefghijklmnopqrstuvwxyz";
 
-    hash_t hash = hash_string(data);
+    char hash_data[41] = {0};  // 20 bytes digest = 40 char in hex + 1 nul byte
+    sha1digest(nullptr, hash_data, data.data(), data.size());
+    std::string hash = hash_data;
 
     // Find if a previous file has the same hash and size
     for (const auto& p : previous_files) {
