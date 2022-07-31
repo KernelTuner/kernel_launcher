@@ -58,7 +58,7 @@ struct SharedExpr: BaseExpr {
 
     const BaseExpr& inner() const {
         if (!inner_) {
-            throw std::runtime_error("null pointer in SharedExpr");
+            throw std::runtime_error("SharedExpr is not initialized");
         }
 
         return *inner_;
@@ -209,6 +209,10 @@ struct TypedExpr: SharedExpr {
 
         return result;
     }
+
+    bool is_constant() const {
+        return dynamic_cast<const ScalarExpr*>(&inner()) != nullptr;
+    }
 };
 
 template<typename T, typename E>
@@ -226,7 +230,7 @@ inline Expr ScalarExpr::resolve(const Eval& eval) const {
 }
 
 inline Expr ParamExpr::resolve(const Eval& eval) const {
-    return *this;
+    return ScalarExpr(eval.lookup(param_));
 }
 
 struct SelectExpr: BaseExpr {
@@ -235,12 +239,12 @@ struct SelectExpr: BaseExpr {
         options_(std::move(options)) {}
 
     TunableValue eval(const Eval& ctx) const override {
-        size_t index = cond_.eval(ctx).to<size_t>();
-        if (index >= options_.size()) {
+        auto index = cond_.eval(ctx).to<int64_t>();
+        if (index < 0 || size_t(index) >= options_.size()) {
             throw std::invalid_argument("index out of bounds");
         }
 
-        return options_[index].eval(ctx);
+        return options_[size_t(index)].eval(ctx);
     }
 
     std::string to_string() const override {
@@ -255,6 +259,8 @@ struct SelectExpr: BaseExpr {
     }
 
     Expr resolve(const Eval& eval) const override {
+        Expr cond = cond_.resolve(eval);
+
         std::vector<Expr> options;
         for (const auto& v : options_) {
             options.push_back(v.resolve(eval));
@@ -333,12 +339,18 @@ struct UnaryExpr: BaseExpr {
         return operator_;
     }
 
-    Expr resolve(const Eval& eval) const override {
-        return UnaryExpr(operator_, operand_.resolve(eval));
-    }
-
     const BaseExpr& operand() const {
         return operand_.inner();
+    }
+
+    Expr resolve(const Eval& eval) const override {
+        UnaryExpr result(operator_, operand_.resolve(eval));
+
+        if (result.operand_.is_constant()) {
+            return ScalarExpr(result.eval({}));
+        } else {
+            return result;
+        }
     }
 
   private:
@@ -451,7 +463,13 @@ struct BinaryExpr: BaseExpr {
     }
 
     Expr resolve(const Eval& eval) const override {
-        return BinaryExpr(operator_, lhs_.resolve(eval), rhs_.resolve(eval));
+        BinaryExpr result(operator_, lhs_.resolve(eval), rhs_.resolve(eval));
+
+        if (result.lhs_.is_constant() && result.lhs_.is_constant()) {
+            return ScalarExpr(result.eval({}));
+        } else {
+            return result;
+        }
     }
 
     Op op() const {
