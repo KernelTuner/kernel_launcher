@@ -22,9 +22,15 @@ TEST_CASE("KernelBuilder", "[CUDA]") {
             Config config;
             config.insert(tb, x);
             config.insert(et, y);
-            configs.push_back(config);
+
+            if (builder.is_valid(config)) {
+                configs.push_back(config);
+            }
         }
     }
+
+    // There should be 9 configurations
+    CHECK(configs.size() == 9);
 
     uint n = 1000;
     std::vector<int> a(n);
