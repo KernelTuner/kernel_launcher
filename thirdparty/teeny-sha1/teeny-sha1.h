@@ -73,8 +73,8 @@ sha1digest(uint8_t *digest, char *hexdigest, const uint8_t *data, size_t databyt
    int32_t wcount;
    uint32_t temp;
    uint64_t databits = ((uint64_t)databytes) * 8;
-   uint32_t loopcount = (databytes + 8) / 64 + 1;
-   uint32_t tailbytes = 64 * loopcount - databytes;
+   uint64_t loopcount = (databytes + 8) / 64 + 1;
+   uint64_t tailbytes = 64 * loopcount - databytes;
    uint8_t datatail[128] = {0};
 
    if (!digest && !hexdigest)
