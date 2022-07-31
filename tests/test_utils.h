@@ -36,6 +36,8 @@ inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     auto et = builder.tune("elements_per_thread", {1, 2, 4});
     auto eb = et * tb;
 
+    builder.restriction(eb >= 32 && eb <= 1024);
+
     builder.define("ELEMENTS_PER_THREAD", et)
         .template_args(type_of<int>())
         .block_size(tb)
@@ -43,10 +45,37 @@ inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     return builder;
 }
 
+
+inline kernel_launcher::KernelBuilder build_matmul_kernel() {
+    using namespace kernel_launcher;
+
+    std::string path = kernel_launcher::path_join(assets_directory(), "matmul_kernel.cu");
+    KernelBuilder builder("matmul_kernel", path);
+    auto bx = builder.tune("block_size_x", {16, 32, 64});
+    auto by = builder.tune("block_size_y", {1, 2, 4, 8, 16, 32}, 16);
+    auto tx = builder.tune("tile_size_x", {1, 2, 4, 8});
+    auto ty = builder.tune("tile_size_y", {1, 2, 4, 8});
+
+    auto smem_floats = by * ty * bx * (1 + tx);
+    builder.restriction(smem_floats * sizeof(float) <=  48 * 1024);
+    builder.restriction(bx == by * ty);
+
+    builder
+        .template_args(bx, by, tx, ty)
+        .block_size(bx, by)
+        .grid_divisors(bx * tx, by * ty);
+
+    return builder;
+}
+
 template <typename T>
 struct CudaVector {
     CudaVector(size_t n = 0) {
         KERNEL_LAUNCHER_CUDA_CHECK(cuMemAlloc(&ptr_, n * sizeof(T)));
+    }
+
+    CudaVector(const std::vector<T> &values): CudaVector(values.size()) {
+        kernel_launcher::cuda_copy(values.data(), get(), values.size());
     }
 
     ~CudaVector() {
