@@ -12,14 +12,24 @@ KernelBuilder& KernelBuilder::block_size(
     return grid_divisors(block_size_[0], block_size_[1], block_size_[2]);
 }
 
+KernelBuilder& KernelBuilder::grid_size(
+    TypedExpr<uint32_t> x,
+    TypedExpr<uint32_t> y,
+    TypedExpr<uint32_t> z) {
+    grid_size_[0] = std::move(x);
+    grid_size_[1] = std::move(y);
+    grid_size_[2] = std::move(z);
+    return *this;
+}
+
 KernelBuilder& KernelBuilder::grid_divisors(
     TypedExpr<uint32_t> x,
     TypedExpr<uint32_t> y,
     TypedExpr<uint32_t> z) {
-    grid_divisors_[0] = std::move(x);
-    grid_divisors_[1] = std::move(y);
-    grid_divisors_[2] = std::move(z);
-    return *this;
+    return grid_size(
+        div_ceil(problem_size(0), x),
+        div_ceil(problem_size(1), y),
+        div_ceil(problem_size(2), z));
 }
 
 KernelBuilder& KernelBuilder::shared_memory(TypedExpr<uint32_t> smem) {
@@ -52,7 +62,9 @@ KernelDef KernelBuilder::build(
     const Config& config,
     const std::vector<TypeInfo>& param_types) const {
     if (!is_valid(config)) {
-        throw std::runtime_error("invalid config");
+        std::stringstream ss;
+        ss << "invalid configuration: " << config;
+        throw std::runtime_error(ss.str());
     }
 
     Eval eval = {config.get()};
@@ -90,22 +102,22 @@ KernelInstance KernelBuilder::compile(
     CudaModule module = compiler.compile(ctx, build(config, param_types));
 
     Eval eval = {config.get()};
-    dim3 block_size = {
-        eval(block_size_[0]),
-        eval(block_size_[1]),
-        eval(block_size_[2])};
+    std::array<TypedExpr<uint32_t>, 3> block_size = {
+        block_size_[0].resolve(eval),
+        block_size_[1].resolve(eval),
+        block_size_[2].resolve(eval)};
 
-    dim3 grid_divisor = {
-        eval(grid_divisors_[0]),
-        eval(grid_divisors_[1]),
-        eval(grid_divisors_[2])};
+    std::array<TypedExpr<uint32_t>, 3> grid_size = {
+        grid_size_[0].resolve(eval),
+        grid_size_[1].resolve(eval),
+        grid_size_[2].resolve(eval)};
 
     uint32_t shared_mem = eval(shared_mem_);
 
     return KernelInstance(
         std::move(module),
-        block_size,
-        grid_divisor,
+        std::move(block_size),
+        std::move(grid_size),
         shared_mem);
 }
 

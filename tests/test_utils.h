@@ -32,7 +32,7 @@ inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     KernelBuilder builder(
         "vector_add",
         KernelSource("vector_add.cu", kernel_source));
-    auto tb = builder.tune("threads_per_block", {1, 32, 128, 256});
+    auto tb = builder.tune("threads_per_block", {1, 32, 128, 256}, 256);
     auto et = builder.tune("elements_per_thread", {1, 2, 4});
     auto eb = et * tb;
 

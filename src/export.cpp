@@ -60,21 +60,25 @@ static nlohmann::json expr_to_json(const BaseExpr& expr) {
 
     if (const ParamExpr* pe = dynamic_cast<const ParamExpr*>(&expr)) {
         op = "parameter";
-        operands.push_back(pe->parameter().name());
+        operands.emplace_back(pe->parameter().name());
     } else if (const UnaryExpr* ue = dynamic_cast<const UnaryExpr*>(&expr)) {
         op = ue->op_name();
-        operands.push_back(expr_to_json(ue->operand()));
+        operands.emplace_back(expr_to_json(ue->operand()));
     } else if (const BinaryExpr* be = dynamic_cast<const BinaryExpr*>(&expr)) {
         op = be->op_name();
-        operands.push_back(expr_to_json(be->left_operand()));
-        operands.push_back(expr_to_json(be->right_operand()));
+        operands.emplace_back(expr_to_json(be->left_operand()));
+        operands.emplace_back(expr_to_json(be->right_operand()));
     } else if (const SelectExpr* se = dynamic_cast<const SelectExpr*>(&expr)) {
         op = "select";
-        operands.push_back(expr_to_json(se->condition()));
+        operands.emplace_back(expr_to_json(se->condition()));
 
         for (const auto& p : se->operands()) {
             operands.push_back(expr_to_json(p));
         }
+    } else if (
+        const ProblemExpr* pse = dynamic_cast<const ProblemExpr*>(&expr)) {
+        op = "problem_size";
+        operands.emplace_back(pse->axis());
     } else {
         throw std::runtime_error(
             "could not serialize expression: " + expr.to_string());
@@ -185,7 +189,7 @@ struct KernelBuilderSerializerHack {
         result["name"] = builder.kernel_name_;
         result["compile_flags"] = expr_list_to_json(builder.compile_flags_);
         result["block_size"] = expr_list_to_json(builder.block_size_);
-        result["grid_divisors"] = expr_list_to_json(builder.grid_divisors_);
+        result["grid_size"] = expr_list_to_json(builder.grid_size_);
         result["shared_memory"] = expr_to_json(builder.shared_mem_);
         result["template_args"] = expr_list_to_json(builder.template_args_);
         result["defines"] = std::move(defines);

@@ -6,7 +6,7 @@
 
 using namespace kernel_launcher;
 
-TEST_CASE("test export_tuning_file") {
+TEST_CASE("test export_tuning_file", "[CUDA]") {
     CUcontext ctx;
     KERNEL_LAUNCHER_CUDA_CHECK(cuInit(0));
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
@@ -66,7 +66,7 @@ TEST_CASE("test export_tuning_file") {
 
         for (size_t i = 0; i < n; i++) {
             for (size_t j = 0; j < n; j++) {
-                int result = 0.0f;
+                int result = 0;
 
                 for (size_t k = 0; k < n; k++) {
                     result += a_fun(i * n + k) * b_fun(k * n + j);

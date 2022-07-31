@@ -33,6 +33,21 @@ struct Eval {
         //
     }
 
+    Eval(const TunableMap& mapping, ProblemSize problem_size) :
+        inner_(mapping),
+        problem_size_(problem_size),
+        has_problem_size_(true) {
+        //
+    }
+
+    uint32_t problem_size(size_t axis) const {
+        if (!has_problem_size_) {
+            throw std::runtime_error("expression cannot be problem-dependent");
+        }
+
+        return problem_size_[axis];
+    }
+
     TunableValue lookup(const TunableParam& param) const {
         return inner_.at(param);
     }
@@ -48,6 +63,8 @@ struct Eval {
 
   private:
     const TunableMap& inner_;
+    ProblemSize problem_size_ = {};
+    bool has_problem_size_ = false;
 };
 
 struct SharedExpr: BaseExpr {
@@ -231,6 +248,51 @@ inline Expr ScalarExpr::resolve(const Eval& eval) const {
 
 inline Expr ParamExpr::resolve(const Eval& eval) const {
     return ScalarExpr(eval.lookup(param_));
+}
+
+struct ProblemExpr: BaseExpr {
+    ProblemExpr(size_t axis) : axis_(axis) {
+        if (axis_ >= 3) {
+            throw std::runtime_error("axis out of bounds");
+        }
+    }
+
+    std::string to_string() const override {
+        std::stringstream ss;
+        ss << "$problem_size_" << axis_;
+        return ss.str();
+    }
+
+    TunableValue eval(const Eval& eval) const override {
+        return eval.problem_size(axis_);
+    }
+
+    Expr resolve(const Eval& eval) const override {
+        return *this;
+    }
+
+    size_t axis() const {
+        return axis_;
+    }
+
+  private:
+    size_t axis_;
+};
+
+inline ProblemExpr problem_size(size_t axis = 0) {
+    return axis;
+}
+
+inline ProblemExpr problem_size_x() {
+    return problem_size(0);
+}
+
+inline ProblemExpr problem_size_y() {
+    return problem_size(1);
+}
+
+inline ProblemExpr problem_size_z() {
+    return problem_size(2);
 }
 
 struct SelectExpr: BaseExpr {

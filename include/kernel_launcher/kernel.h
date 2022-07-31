@@ -16,28 +16,34 @@ struct KernelInstance {
 
     KernelInstance(
         CudaModule module,
-        dim3 block_size,
-        dim3 grid_divisor,
+        std::array<TypedExpr<uint32_t>, 3> block_size,
+        std::array<TypedExpr<uint32_t>, 3> grid_size,
         uint32_t shared_mem) :
         module_(std::move(module)),
-        block_size_(block_size),
-        grid_divisor_(grid_divisor),
+        block_size_(std::move(block_size)),
+        grid_size_(std::move(grid_size)),
         shared_mem_(shared_mem) {}
 
-    void launch(cudaStream_t stream, dim3 problem_size, void** args) const {
+    void
+    launch(cudaStream_t stream, ProblemSize problem_size, void** args) const {
+        Eval ctx {{}, problem_size};
         dim3 grid_size = {
-            div_ceil(problem_size.x, grid_divisor_.x),
-            div_ceil(problem_size.y, grid_divisor_.y),
-            div_ceil(problem_size.z, grid_divisor_.z)};
+            ctx(grid_size_[0]),
+            ctx(grid_size_[1]),
+            ctx(grid_size_[2])};
 
-        return module_
-            .launch(stream, grid_size, block_size_, shared_mem_, args);
+        dim3 block_size = {
+            ctx(block_size_[0]),
+            ctx(block_size_[1]),
+            ctx(block_size_[2])};
+
+        return module_.launch(stream, grid_size, block_size, shared_mem_, args);
     }
 
   private:
     CudaModule module_;
-    dim3 block_size_ = {};
-    dim3 grid_divisor_ = {};
+    std::array<TypedExpr<uint32_t>, 3> block_size_ = {1, 1, 1};
+    std::array<TypedExpr<uint32_t>, 3> grid_size_ = {0, 0, 0};
     uint32_t shared_mem_ = {};
 };
 
@@ -52,7 +58,9 @@ struct KernelBuilder: ConfigSpace {
         ConfigSpace space = {}) :
         ConfigSpace(std::move(space)),
         kernel_name_(std::move(kernel_name)),
-        kernel_source_(std::move(kernel_source)) {}
+        kernel_source_(std::move(kernel_source)) {
+        block_size(1, 1, 1);
+    }
 
     KernelBuilder(std::string kernel_name, std::string kernel_file) :
         KernelBuilder(
@@ -64,6 +72,11 @@ struct KernelBuilder: ConfigSpace {
     }
 
     KernelBuilder& block_size(
+        TypedExpr<uint32_t> x,
+        TypedExpr<uint32_t> y = 1,
+        TypedExpr<uint32_t> z = 1);
+
+    KernelBuilder& grid_size(
         TypedExpr<uint32_t> x,
         TypedExpr<uint32_t> y = 1,
         TypedExpr<uint32_t> z = 1);
@@ -140,7 +153,7 @@ struct KernelBuilder: ConfigSpace {
     std::string kernel_name_;
     KernelSource kernel_source_;
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
-    std::array<TypedExpr<uint32_t>, 3> grid_divisors_ = {1u, 1u, 1u};
+    std::array<TypedExpr<uint32_t>, 3> grid_size_ = {1u, 1u, 1u};
     TypedExpr<uint32_t> shared_mem_ = {0u};
     std::vector<TypedExpr<TemplateArg>> template_args_ {};
     std::vector<TypedExpr<std::string>> compile_flags_ {};
