@@ -13,6 +13,8 @@
 
 namespace kernel_launcher {
 
+using json = nlohmann::ordered_json;
+
 std::string sanitize_tuning_key(std::string key) {
     std::stringstream output;
 
@@ -29,7 +31,7 @@ std::string sanitize_tuning_key(std::string key) {
     return output.str();
 }
 
-static nlohmann::json value_to_json(const TunableValue& expr) {
+static json value_to_json(const TunableValue& expr) {
     switch (expr.data_type()) {
         case TunableValue::type_int:
             return expr.to_integer();
@@ -46,7 +48,7 @@ static nlohmann::json value_to_json(const TunableValue& expr) {
 
 //struct SelectExpr: BaseExpr {
 
-static nlohmann::json expr_to_json(const BaseExpr& expr) {
+static json expr_to_json(const BaseExpr& expr) {
     if (const ScalarExpr* v = dynamic_cast<const ScalarExpr*>(&expr)) {
         return value_to_json(v->value());
     }
@@ -56,7 +58,7 @@ static nlohmann::json expr_to_json(const BaseExpr& expr) {
     }
 
     std::string op;
-    std::vector<nlohmann::json> operands;
+    std::vector<json> operands;
 
     if (const ParamExpr* pe = dynamic_cast<const ParamExpr*>(&expr)) {
         op = "parameter";
@@ -88,8 +90,8 @@ static nlohmann::json expr_to_json(const BaseExpr& expr) {
 }
 
 template<typename C>
-static std::vector<nlohmann::json> expr_list_to_json(C collection) {
-    std::vector<nlohmann::json> result;
+static std::vector<json> expr_list_to_json(C collection) {
+    std::vector<json> result;
 
     for (const auto& entry : collection) {
         result.push_back(expr_to_json(entry));
@@ -98,7 +100,7 @@ static std::vector<nlohmann::json> expr_list_to_json(C collection) {
     return result;
 }
 
-static nlohmann::json environment_json() {
+static json environment_json() {
     int driver_version = -1, runtime_version = -1;
     cuDriverGetVersion(&driver_version);  // ignore errors
     cudaRuntimeGetVersion(&runtime_version);
@@ -113,7 +115,7 @@ static nlohmann::json environment_json() {
     std::stringstream date;
     date << std::put_time(std::localtime(&t), "%FT%T%z");
 
-    nlohmann::json env;
+    json env;
     env["host_name"] = hostname;
     env["date"] = date.str();
     env["runtime_version"] = runtime_version;
@@ -125,9 +127,9 @@ static nlohmann::json environment_json() {
     return env;
 }
 
-static nlohmann::json tunable_param_to_json(const TunableParam& param) {
-    std::vector<nlohmann::json> values;
-    std::vector<nlohmann::json> priors;
+static json tunable_param_to_json(const TunableParam& param) {
+    std::vector<json> values;
+    std::vector<json> priors;
     size_t n = param.values().size();
 
     for (size_t i = 0; i < n; i++) {
@@ -143,7 +145,7 @@ static nlohmann::json tunable_param_to_json(const TunableParam& param) {
         }
     }
 
-    return nlohmann::json::object_t {
+    return {
         {"name", param.name()},
         {"values", std::move(values)},
         {"priors", std::move(priors)},
@@ -151,8 +153,8 @@ static nlohmann::json tunable_param_to_json(const TunableParam& param) {
 }
 
 struct KernelBuilderSerializerHack {
-    static nlohmann::json config_space_to_json(const KernelBuilder& builder) {
-        std::vector<nlohmann::json> restrictions;
+    static json config_space_to_json(const KernelBuilder& builder) {
+        std::vector<json> restrictions;
         for (auto e : expr_list_to_json(builder.restrictions_)) {
             restrictions.emplace_back(std::move(e));
         }
@@ -160,25 +162,23 @@ struct KernelBuilderSerializerHack {
             restrictions.emplace_back(std::move(e));
         }
 
-        std::vector<nlohmann::json> parameters;
+        std::vector<json> parameters;
         for (const auto& p : builder.params_) {
             parameters.push_back(tunable_param_to_json(p));
         }
 
-        nlohmann::json result;
-        result["parameters"] = parameters;
-        result["restrictions"] = std::move(restrictions);
-
-        return result;
+        return {
+            {"parameters", std::move(parameters)},
+            {"restrictions", std::move(restrictions)}};
     }
 
-    static nlohmann::json builder_to_json(const KernelBuilder& builder) {
-        std::unordered_map<std::string, nlohmann::json> defines;
+    static json builder_to_json(const KernelBuilder& builder) {
+        std::unordered_map<std::string, json> defines;
         for (const auto& p : builder.defines_) {
             defines[p.first] = expr_to_json(p.second);
         }
 
-        nlohmann::json result;
+        json result;
         const std::string* content = builder.kernel_source_.content();
         if (content != nullptr) {
             result["source"] = *content;
@@ -258,14 +258,14 @@ static const DataFile& write_kernel_arg(
     throw std::runtime_error("failed to write data to: " + path);
 }
 
-static nlohmann::json kernel_args_to_json(
+static json kernel_args_to_json(
     const std::string& tuning_key,
     const std::string& data_dir,
     const std::vector<TypeInfo>& param_types,
     const std::vector<std::vector<uint8_t>>& inputs,
     const std::vector<std::vector<uint8_t>>& outputs) {
     std::vector<DataFile> previous_files;
-    std::vector<nlohmann::json> result;
+    std::vector<json> result;
 
     size_t nargs = param_types.size();
     if (inputs.size() != nargs
@@ -276,7 +276,7 @@ static nlohmann::json kernel_args_to_json(
     for (size_t i = 0; i < nargs; i++) {
         TypeInfo dtype = param_types[i];
 
-        nlohmann::json entry;
+        json entry;
         entry["type"] = dtype.name();
 
         if (dtype.is_pointer()) {
@@ -327,7 +327,7 @@ static nlohmann::json kernel_args_to_json(
     return result;
 }
 
-static nlohmann::json wisdom_to_json(
+static json wisdom_to_json(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& data_dir,
@@ -335,7 +335,7 @@ static nlohmann::json wisdom_to_json(
     const std::vector<TypeInfo>& param_types,
     const std::vector<std::vector<uint8_t>>& inputs,
     const std::vector<std::vector<uint8_t>>& outputs) {
-    nlohmann::json result;
+    json result;
     result["key"] = sanitize_tuning_key(tuning_key);
     result["environment"] = environment_json();
     result["config_space"] =
@@ -395,7 +395,7 @@ void export_tuning_file(
         tuning_key_to_file_name(directory, tuning_key, problem_size);
 
     try {
-        nlohmann::json content_json = wisdom_to_json(
+        json content_json = wisdom_to_json(
             tuning_key,
             builder,
             directory,
