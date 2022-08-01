@@ -29,12 +29,20 @@ using TunableMap = std::unordered_map<TunableParam, TunableValue>;
 static const TunableMap EMPTY_CONFIG = {};
 
 struct Eval {
-    Eval(const TunableMap& mapping = EMPTY_CONFIG) : inner_(mapping) {
+    Eval() {}
+
+    Eval(const TunableMap& mapping) : inner_(mapping) {
         //
     }
 
     Eval(const TunableMap& mapping, ProblemSize problem_size) :
         inner_(mapping),
+        problem_size_(problem_size),
+        has_problem_size_(true) {
+        //
+    }
+
+    Eval(ProblemSize problem_size) :
         problem_size_(problem_size),
         has_problem_size_(true) {
         //
@@ -48,6 +56,10 @@ struct Eval {
         return problem_size_[axis];
     }
 
+    TunableValue has(const TunableParam& param) const {
+        return inner_.find(param) != inner_.end();
+    }
+
     TunableValue lookup(const TunableParam& param) const {
         return inner_.at(param);
     }
@@ -58,11 +70,17 @@ struct Eval {
 
     template<typename T>
     T operator()(const TypedExpr<T>& expr) const {
-        return expr.get(*this);
+        try {
+            return expr.eval(*this).template to<T>();
+        } catch (const std::exception& e) {
+            log_warning() << "error while evaluating expression \""
+                          << expr.to_string() << "\": " << e.what() << "\n";
+            throw;
+        }
     }
 
   private:
-    const TunableMap& inner_;
+    const TunableMap& inner_ = EMPTY_CONFIG;
     ProblemSize problem_size_ = {};
     bool has_problem_size_ = false;
 };
@@ -79,6 +97,14 @@ struct SharedExpr: BaseExpr {
         }
 
         return *inner_;
+    }
+
+    std::string to_string() const override {
+        return inner().to_string();
+    }
+
+    TunableValue eval(const Eval& ctx) const override {
+        return inner().eval(ctx);
     }
 
   private:
@@ -204,18 +230,6 @@ struct TypedExpr: SharedExpr {
     TypedExpr& operator=(const TypedExpr&) = default;
     TypedExpr& operator=(TypedExpr&&) noexcept = default;
 
-    std::string to_string() const override {
-        return inner().to_string();
-    }
-
-    T get(const Eval& ctx) const {
-        return inner().eval(ctx).template to<T>();
-    }
-
-    TunableValue eval(const Eval& ctx) const override {
-        return get(ctx);
-    }
-
     Expr resolve(const Eval& eval) const override {
         Expr result = inner().resolve(eval);
 
@@ -247,7 +261,11 @@ inline Expr ScalarExpr::resolve(const Eval& eval) const {
 }
 
 inline Expr ParamExpr::resolve(const Eval& eval) const {
-    return ScalarExpr(eval.lookup(param_));
+    if (eval.has(param_)) {
+        return ScalarExpr(eval.lookup(param_));
+    } else {
+        return ParamExpr(param_);
+    }
 }
 
 struct ProblemExpr: BaseExpr {
