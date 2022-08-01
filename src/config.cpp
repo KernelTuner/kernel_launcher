@@ -126,7 +126,7 @@ bool ConfigSpace::is_valid(const Config& config) const {
     Eval eval = {config.get()};
 
     for (const auto& r : restrictions_) {
-        if (!r.get(eval)) {
+        if (!eval(r)) {
             return false;
         }
     }
