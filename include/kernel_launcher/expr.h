@@ -48,6 +48,10 @@ struct Eval {
         //
     }
 
+    bool has_problem_size() const {
+        return has_problem_size_;
+    }
+
     uint32_t problem_size(size_t axis) const {
         if (!has_problem_size_) {
             throw std::runtime_error("expression cannot be problem-dependent");
@@ -56,7 +60,7 @@ struct Eval {
         return problem_size_[axis];
     }
 
-    TunableValue has(const TunableParam& param) const {
+    bool has(const TunableParam& param) const {
         return inner_.find(param) != inner_.end();
     }
 
@@ -286,7 +290,11 @@ struct ProblemExpr: BaseExpr {
     }
 
     Expr resolve(const Eval& eval) const override {
-        return *this;
+        if (eval.has_problem_size()) {
+            return ScalarExpr(eval.problem_size(axis_));
+        } else {
+            return ProblemExpr(axis_);
+        }
     }
 
     size_t axis() const {
