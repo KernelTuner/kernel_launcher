@@ -11,19 +11,7 @@ const KernelRegistry& default_registry() {
     return *global_default_registry;
 }
 
-size_t KernelRegistry::CacheKey::hasher::operator()(const CacheKey& key) const {
-    return key.hash_;
-}
-
-bool KernelRegistry::CacheKey::equals::operator()(
-    const CacheKey& lhs,
-    const CacheKey& rhs) const {
-    return lhs.hash_ == rhs.hash_
-        && lhs.descriptor_type_ == rhs.descriptor_type_
-        && lhs.descriptor_->equals(*rhs.descriptor_);
-}
-
-WisdomKernel& KernelRegistry::lookup_internal(CacheKey key) const {
+WisdomKernel& KernelRegistry::lookup_internal(AnyKernelDescriptor key) const {
     std::lock_guard<std::mutex> guard(mutex_);
 
     auto it = cache_.find(key);
