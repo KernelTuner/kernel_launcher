@@ -12,10 +12,10 @@
             {
                 "name": "threads_per_block",
                 "values": [
-                    128,
-                    32,
+                    256,
                     1,
-                    256
+                    32,
+                    128
                 ],
                 "priors": [
                     1.0,
@@ -27,9 +27,9 @@
             {
                 "name": "elements_per_thread",
                 "values": [
-                    4,
+                    1,
                     2,
-                    1
+                    4
                 ],
                 "priors": [
                     1.0,
