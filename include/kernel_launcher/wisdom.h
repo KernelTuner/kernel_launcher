@@ -150,7 +150,7 @@ struct IntoKernelArg<KernelArg> {
 template<typename T>
 struct IntoKernelArg<
     T,
-    typename std::enable_if<std::is_trivially_copyable<T>::value>::type> {
+    typename std::enable_if<std::is_scalar<T>::value>::type> {
     static KernelArg convert(T value) {
         return KernelArg::for_scalar<T>(value);
     }
