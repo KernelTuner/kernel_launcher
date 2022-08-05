@@ -5,6 +5,25 @@
 
 using namespace kernel_launcher;
 
+struct point3 {
+    unsigned long long x;
+    unsigned long long y;
+    unsigned long long z;
+
+    bool operator==(point3 v) const {
+        return x == v.x && y == v.y && z == v.z;
+    }
+};
+
+namespace kernel_launcher {
+template<>
+struct IntoKernelArg<point3> {
+    static KernelArg convert(point3 value) {
+        return KernelArg::for_scalar<point3>(value);
+    }
+};
+}  // namespace kernel_launcher
+
 TEST_CASE("test load_best_config") {
     std::string wisdom_dir = __FILE__;
     wisdom_dir = wisdom_dir.substr(0, wisdom_dir.rfind('/'));
@@ -114,16 +133,6 @@ TEST_CASE("test KernelArg") {
     }
 
     SECTION("scalar point3") {
-        struct point3 {
-            unsigned long long x;
-            unsigned long long y;
-            unsigned long long z;
-
-            bool operator==(point3 v) const {
-                return x == v.x && y == v.y && z == v.z;
-            }
-        };
-
         point3 input = {1, 2, 3};
 
         KernelArg v = into_kernel_arg(input);
