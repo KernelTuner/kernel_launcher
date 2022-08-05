@@ -91,6 +91,7 @@ struct KernelBuilder: ConfigSpace {
     KernelBuilder& assertion(TypedExpr<bool> e);
     KernelBuilder& define(std::string name, TypedExpr<std::string> value);
     KernelBuilder& compiler_flag(TypedExpr<std::string> opt);
+    KernelBuilder& include_header(KernelSource source);
 
     template<typename T, typename... Ts>
     KernelBuilder& template_args(T&& first, Ts&&... rest) {
@@ -152,6 +153,7 @@ struct KernelBuilder: ConfigSpace {
   private:
     std::string kernel_name_;
     KernelSource kernel_source_;
+    std::vector<KernelSource> preheaders_;
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
     std::array<TypedExpr<uint32_t>, 3> grid_size_ = {1u, 1u, 1u};
     TypedExpr<uint32_t> shared_mem_ = {0u};

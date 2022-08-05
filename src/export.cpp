@@ -175,7 +175,20 @@ struct KernelBuilderSerializerHack {
     }
 
     static json builder_to_json(const KernelBuilder& builder) {
-        std::unordered_map<std::string, json> defines;
+        std::vector<json> headers;
+        for (const auto& source : builder.preheaders_) {
+            json content = nullptr;
+            if (source.content() != nullptr) {
+                content = *source.content();
+            }
+
+            headers.push_back({
+                {"file", source.file_name()},
+                {"content", std::move(content)},
+            });
+        }
+
+        json defines;
         for (const auto& p : builder.defines_) {
             defines[p.first] = expr_to_json(p.second);
         }
@@ -195,6 +208,7 @@ struct KernelBuilderSerializerHack {
         result["shared_memory"] = expr_to_json(builder.shared_mem_);
         result["template_args"] = expr_list_to_json(builder.template_args_);
         result["defines"] = std::move(defines);
+        result["headers"] = std::move(headers);
 
         return result;
     }

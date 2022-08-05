@@ -21,13 +21,14 @@ struct KernelDescriptor {
 
 struct AnyKernelDescriptor {
     AnyKernelDescriptor(AnyKernelDescriptor&&) noexcept = default;
+    AnyKernelDescriptor(AnyKernelDescriptor&) noexcept = default;
     AnyKernelDescriptor(const AnyKernelDescriptor&) = default;
 
     template<typename D>
     AnyKernelDescriptor(D&& descriptor) {
         using T = typename std::decay<D>::type;
         descriptor_type_ = type_of<T>();
-        descriptor_ = std::make_unique<T>(std::forward<D>(descriptor));
+        descriptor_ = std::make_shared<T>(std::forward<D>(descriptor));
         hash_ = hash_fields(descriptor_type_, descriptor_->hash());
     }
 
@@ -53,16 +54,16 @@ struct AnyKernelDescriptor {
     TypeInfo descriptor_type_;
     std::shared_ptr<KernelDescriptor> descriptor_;
 };
-}
+}  // namespace kernel_launcher
 
 namespace std {
-template <>
+template<>
 struct hash<kernel_launcher::AnyKernelDescriptor> {
     size_t operator()(const kernel_launcher::AnyKernelDescriptor& d) const {
         return d.hash();
     }
 };
-}
+}  // namespace std
 
 namespace kernel_launcher {
 struct KernelRegistry {
@@ -108,19 +109,16 @@ struct KernelRegistry {
 
 const KernelRegistry& default_registry();
 
-template<typename D>
-WisdomKernelLaunch
-launch(D&& descriptor, cudaStream_t stream, ProblemSize size) {
-    return default_registry().instantiate(
-        std::forward<D>(descriptor, stream, size));
+inline WisdomKernelLaunch
+launch(AnyKernelDescriptor descriptor, cudaStream_t stream, ProblemSize size) {
+    return default_registry().instantiate(descriptor, stream, size);
 }
 
-template<typename D>
-WisdomKernelLaunch launch(D&& descriptor, ProblemSize size) {
-    return launch(std::forward<D>(descriptor), (cudaStream_t) nullptr, size);
+inline WisdomKernelLaunch
+launch(AnyKernelDescriptor descriptor, ProblemSize size) {
+    return launch(descriptor, (cudaStream_t) nullptr, size);
 }
 
 }  // namespace kernel_launcher
-
 
 #endif  //KERNEL_LAUNCHER_CACHE_H

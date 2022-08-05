@@ -58,6 +58,11 @@ KernelBuilder& KernelBuilder::compiler_flag(TypedExpr<std::string> opt) {
     return *this;
 }
 
+KernelBuilder& KernelBuilder::include_header(KernelSource source) {
+    preheaders_.push_back(std::move(source));
+    return *this;
+}
+
 KernelDef KernelBuilder::build(
     const Config& config,
     const std::vector<TypeInfo>& param_types) const {
@@ -84,6 +89,10 @@ KernelDef KernelBuilder::build(
         if (!option.empty()) {
             def.add_compiler_option(std::move(option));
         }
+    }
+
+    for (const auto& source : preheaders_) {
+        def.add_preincluded_header(source);
     }
 
     for (const auto& p : defines_) {
