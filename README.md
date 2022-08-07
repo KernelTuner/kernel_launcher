@@ -1,67 +1,61 @@
 # Kernel Launcher
 
-_Kernel Launcher_ is a header-only C++11 library that can load the results for a CUDA kernel tuned by [Kernel Tuner](https://github.com/benvanwerkhoven/kernel_tuner), dynamically compile the optimal kernel configuration for the current CUDA device (using [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)), and call the kernel in type-safe way using C++ magic.
+![Kernel Launcher logo](https://kerneltuner.github.io/kernel_launcher/_images/logo.png)
+
+_Kernel Launcher_ is a C++ library that makes it easy to dynamically compile _CUDA_ kernels at run time (using [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)) and call them in an easy type-safe way using C++ magic.
+Additionally, _Kernel Launcher_ supports exporting kernel specifications, such that they can be tuned by [Kernel Tuner](https://github.com/benvanwerkhoven/kernel_tuner), and importing the tuning results, known as _wisdom_ files.
+
 
 
 ## Installation
-Move the `include` and `thirdparty` directories into you project and include these directories. Link the final binary with `nvrtc`, `cuda`, and `cudart`.
 
-```
-gcc source.cpp -Iinclude/ -Ithirdparty/nlohmann/json/single_include -lnvrtc -lcuda -lcudart -std=c++11
-```
+Recommended installation is using CMake. See the [installation guide](https://kerneltuner.github.io/kernel_launcher/install.html).
 
 ## Example
 
-See `examples` for example on how to use this library.
+See the documentation for [examples](https://kerneltuner.github.io/kernel_launcher/example.html) or check out the [examples](https://github.com/KernelTuner/kernel_launcher/tree/master/examples) directory.
 
+```cpp
+#include "kernel_launcher.h"
 
-First, load a kernel configuration:
+int main() {
+    // Namespace alias.
+    namespace kl = kernel_launcher;
+
+    // Create a kernel builder
+    kl::KernelBuilder builder("vector_add", "vector_add_kernel.cu");
+
+    // Define the variables that can be tuned for this kernel.
+    kl::ParamExpr threads_per_block = builder.tune("block_size", {32, 64, 128, 256, 512, 1024});
+    kl::ParamExpr elements_per_thread = builder.tune("elements_per_thread", {1, 2, 4, 8});
+
+    // Set kernel properties such as block size, grid divisor, template arguments, etc.
+    builder
+        .block_size(threads_per_block)
+        .grid_divisors(threads_per_block * elements_per_thread)
+        .template_args(kl::type_of<float>())
+        .define("ELEMENTS_PER_THREAD", elements_per_thread);
+
+    // Define the kernel
+    kl::WisdomKernel vector_add_kernel("vector_add", builder);
+
+    // Initialize CUDA memory. This is outside the scope of kernel_launcher.
+    unsigned int n = 1000000;
+    float *dev_A, *dev_B, *dev_C;
+    /* cudaMalloc, cudaMemcpy, ... */
+
+    // Launch the kernel! Note that kernel is compiled on the first call.
+    // The grid size and block size do not need to be specified, they are
+    // derived from the kernel specifications and problem size.
+    unsigned int problem_size = n;
+    vector_add_kernel(problem_size)(n, dev_C, dev_A, dev_B);
+}
 
 ```
-using namespace kernel_launcher;
 
-// Load optimal configuration for given device and problem size:
-auto config = Config::load_best("tuning_results.json", "1000x1000", "Titan_X");
+## License
 
-// Load optimal configuration for current device (set using cudaSetDevice).
-auto config = Config::load_best_for_current_device("tuning_results.json", "1000x1000");
-```
-
-
-Next, define the kernel in C++ and compile it a run-time.
-
-```
-// Define the argument types for the given kernel. It is convenient to do this using a typedef.
-using VectorAddKernel = CudaKernel<int, float*, float*, float*>;
-
-// Compile the kernel for the given configuration.
-auto kernel = VectorAddKernel::compile(config, "vector_add.cu");
-
-// Or load + compile in one single line.
-auto kernel = VectorAddKernel::compile_best_for_current_device("tuning_results.json", "1000x1000", "vector_add.cu");
-```
-
-Finaly, call the kernel:
-
-```
-// Get tuned thread block size
-dim3 block_dim = kernel.get_config().get_block_dim(); // Or: kernel.get_block_dim()
-dim3 grid_dim = n / block_dim.x;
-
-
-// Launch kernel synchronously.
-kernel.configure(grid_dim).launch(n, a, b, c);
-
-// Or use syntactic suger:
-kernel(grid_dim)(n, a, b, c);
-
-
-// Launch kernel asynchronously.
-kernel.configure_async(grid_dim, smem_size, stream).launch(n, a, b, c);
-
-// Or use syntactic suger:
-kernel(grid_dim, smem_size, stream)(n, a, b, c);
-```
+Licensed under Apache 2.0. See [LICENSE](https://github.com/KernelTuner/kernel_launcher/blob/master/LICENSE).
 
 
 ## Related Work
