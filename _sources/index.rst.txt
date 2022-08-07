@@ -12,24 +12,13 @@
    api
    license
 
-.. raw:: html
-
-   <!--
-
 Kernel Launcher
 ===============
-
-.. raw:: html
-
-   --><h1>
 
 .. image:: /logo.png
    :width: 670
    :alt: kernel launcher
 
-.. raw:: html
-
-   </h1>
 
 *Kernel Launcher* is a C++ library that makes it easy to dynamically compile *CUDA* kernels at run time (using `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_) and call them in easy type-safe way using C++ magic.
 There are two reasons for using run-time compilation:
