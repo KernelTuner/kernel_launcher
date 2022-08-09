@@ -10,7 +10,9 @@
    install
    example
    api
+   env_vars
    license
+   Github repository <https://github.com/KernelTuner/kernel_launcher>
 
 Kernel Launcher
 ===============

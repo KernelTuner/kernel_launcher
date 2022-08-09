@@ -50,7 +50,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="example.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="env_vars.html">Environment Variables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
 </ul>
 
         </div>
@@ -89,7 +91,7 @@
 <h2>CMake dependency (Recommended)<a class="headerlink" href="#cmake-dependency-recommended" title="Permalink to this heading"></a></h2>
 <p>If your project already uses CMake, integrating <em>Kernel Launcher</em> should be straightforward.</p>
 <p>First, check out the repostitory.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/stijnh/kernel_launcher/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/KernelTuner/kernel_launcher/
 </pre></div>
 </div>
 <p>Second, add the following lines to your <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>:</p>
@@ -101,7 +103,7 @@
 <section id="static-library">
 <h2>Static library<a class="headerlink" href="#static-library" title="Permalink to this heading"></a></h2>
 <p>An alternative is to build a static library that can be linked to your project.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/stijnh/kernel_launcher/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/KernelTuner/kernel_launcher/
 <span class="nb">cd</span> kernel_launcher
 cmake -DCMAKE_BUILD_TYPE<span class="o">=</span>Release -S . -B build
 cmake --build build

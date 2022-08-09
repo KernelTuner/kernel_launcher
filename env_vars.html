@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Examples &mdash; kernel-launcher 0.1 documentation</title>
+  <title>Environment Variables &mdash; kernel-launcher 0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Basic Example" href="examples/basic.html" />
-    <link rel="prev" title="Installation Guide" href="install.html" /> 
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="API Reference" href="api.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,14 +43,9 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Kernel Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples/basic.html">Basic Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/wisdom.html">Wisdom Files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/registry.html">Kernel Registry</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Environment Variables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
 </ul>
@@ -69,9 +64,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Examples</li>
+      <li>Environment Variables</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/example.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/env_vars.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -79,23 +74,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="examples">
-<span id="example"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this heading"></a></h1>
-<div class="toctree-wrapper compound">
+  <section id="environment-variables">
+<h1>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this heading"></a></h1>
+<p><cite>Kernel Launcher</cite> recognizes the following environment variables:</p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="examples/basic.html">Basic Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/wisdom.html">Wisdom Files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/registry.html">Kernel Registry</a></li>
+<li><p><strong>KERNEL_LAUNCHER_TUNE</strong> (default: <code class="docutils literal notranslate"><span class="pre">0</span></code>):
+Kernels for which a tuning specification will be exported on the first call to the kernel.
+The value should a comma-seperated list of kernel names.
+Additionally, an <code class="docutils literal notranslate"><span class="pre">*</span></code> can be used as a wild card.</p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">foo,bar</span></code>: matches kernels <code class="docutils literal notranslate"><span class="pre">foo</span></code> and <code class="docutils literal notranslate"><span class="pre">bar</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vector_*</span></code>: matches kernels that start with <code class="docutils literal notranslate"><span class="pre">vector</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*_matrix_*</span></code>: matches kernels that contains <code class="docutils literal notranslate"><span class="pre">matrix</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code>: matches all kernels.</p></li>
 </ul>
-</div>
+</li>
+<li><p><strong>KERNEL_LAUNCHER_WISDOM</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
+The default directory where wisdom files are located. Defaults to the current working directory.</p></li>
+<li><p><strong>KERNEL_LAUNCHER_LOG</strong> (default: <code class="docutils literal notranslate"><span class="pre">info</span></code>):
+Controls how much logging information is printed to stderr. There are three possible options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">debug</span></code>: Everything is logged.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>: Only warnings and high-level information is logged.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">warn</span></code>: Only warnings are logged.</p></li>
+</ul>
+</li>
+<li><p><strong>KERNEL_LAUNCHER_INCLUDE</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
+List of comma-seperate directories that are considered while compiling kernels when searching for header files.</p></li>
+</ul>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="install.html" class="btn btn-neutral float-left" title="Installation Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="examples/basic.html" class="btn btn-neutral float-right" title="Basic Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
