@@ -17,7 +17,7 @@ First, check out the repostitory.
 
 .. code-block:: bash
 
-    git clone https://github.com/stijnh/kernel_launcher/
+    git clone https://github.com/KernelTuner/kernel_launcher/
 
 
 Second, add the following lines to your ``CMakeLists.txt``::
@@ -34,7 +34,7 @@ An alternative is to build a static library that can be linked to your project.
 
 .. code-block:: bash
 
-   git clone https://github.com/stijnh/kernel_launcher/
+   git clone https://github.com/KernelTuner/kernel_launcher/
    cd kernel_launcher
    cmake -DCMAKE_BUILD_TYPE=Release -S . -B build
    cmake --build build
