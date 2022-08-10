@@ -52,19 +52,21 @@ static std::ostream& log_level(LogLevel level) {
     static LogLevel min_level = LogLevel::Unknown;
 
     if (min_level == LogLevel::Unknown) {
-        const char* env = getenv(ENV_KEY);
+        const char* env_raw = getenv(ENV_KEY);
+        std::string env = env_raw != nullptr ? env_raw : "";
 
-        if (env == nullptr || strcmp(env, "INFO") == 0) {
+        if (env.empty() || env == "INFO" || env == "info") {
             min_level = LogLevel::Info;
-        } else if (strcmp(env, "WARN") == 0) {
+        } else if (
+            env == "WARN" || env == "warn" || env == "WARNING"
+            || env == "warning") {
             min_level = LogLevel::Warning;
+        } else if (env == "DEBUG" || env == "debug") {
+            min_level = LogLevel::Debug;
         } else {
             min_level = LogLevel::Debug;
-
-            if (strcmp(env, "DEBUG") == 0) {
-                log_warning() << "invalid " << ENV_KEY
-                              << ": must be DEBUG, WARN, or INFO" << std::endl;
-            }
+            log_warning() << "invalid " << ENV_KEY
+                          << ": must be DEBUG, WARN, or INFO" << std::endl;
         }
     }
 
