@@ -111,14 +111,7 @@ bool ConfigSpace::is_valid(const Config& config) const {
             return false;
         }
 
-        const TunableValue& value = it->second;
-        bool in_list = false;
-
-        for (const auto& allowed_value : p.values()) {
-            in_list |= value == allowed_value;
-        }
-
-        if (!in_list) {
+        if (!p.has_value(it->second)) {
             return false;
         }
     }

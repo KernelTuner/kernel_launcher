@@ -159,7 +159,73 @@ bool safe_int64_div(int64_t lhs, int64_t rhs, int64_t& output) {
     return false;
 }
 
+bool string_match(const char* pattern, const char* input) {
+    // advance pattern and input until we find the first '*'
+    while (*pattern != '*') {
+        // Reach end of string. strings match!
+        if (*input == '\0' && *pattern == '\0') {
+            return true;
+        }
+
+        // character mismatch, no match.
+        if (*input != *pattern) {
+            return false;
+        }
+
+        input++;
+        pattern++;
+    }
+
+    // Get the next non-* character in pattern.
+    while (*pattern == '*') {
+        pattern++;
+    }
+
+    char next = *pattern;
+
+    // trailing *. This always matches the input.
+    if (next == '\0') {
+        return true;
+    }
+
+    while (*input) {
+        if (next == *input) {
+            if (string_match(pattern + 1, input + 1)) {
+                return true;
+            }
+        }
+
+        input++;
+    }
+
+    return false;
+}
+
+std::vector<std::string> string_split(const char* input, char delim) {
+    size_t start = 0;
+    std::vector<std::string> result;
+
+    while (input[start]) {
+        size_t end = start;
+
+        while (input[end] && input[end] != delim) {
+            end++;
+        }
+
+        if (!input[end]) {
+            break;
+        }
+
+        result.emplace_back(input + start, end - start);
+        start = end += 1;
+    }
+
+    result.emplace_back(input + start);
+    return result;
+}
+
 hash_t hash_string(const char* buffer, size_t num_bytes) {
+    // Simple FNV1a hash
     hash_t hash = 0xcbf29ce484222325;
     hash_t prime = 0x100000001b3;
 

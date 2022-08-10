@@ -30,7 +30,7 @@ bool WisdomSettings::does_kernel_require_tuning(
     bool matches = false;
 
     for (const std::string& pattern : impl_->tuning_patterns_) {
-        if (tuning_key.find(pattern) != std::string::npos) {
+        if (string_match(pattern.c_str(), tuning_key.c_str())) {
             matches = true;
             break;
         }
@@ -104,27 +104,27 @@ WisdomSettings default_wisdom_settings() {
         tuning_dir = value;
     }
 
+    if ((value = getenv("KERNEL_LAUNCHER_DIR"))) {
+        tuning_dir = value;
+    }
+
     if ((value = getenv("KERNEL_LAUNCHER_TUNE"))) {
-        std::string all_patterns = value;
-        size_t begin = 0;
+        if (strcmp(value, "1") == 0 || strcmp(value, "true") == 0
+            || strcmp(value, "TRUE") == 0) {
+            value = "*";
+        }
 
-        while (true) {
-            size_t end = all_patterns.find(',', begin);
-            std::string pattern = all_patterns.substr(begin, end);
-            begin = end + 1;
+        if (strcmp(value, "0") == 0 || strcmp(value, "false") == 0
+            || strcmp(value, "FALSE") == 0) {
+            value = "";
+        }
 
-            if (!pattern.empty() && pattern != "false" && pattern != "0") {
-                if (pattern == "1" || pattern == "*" || pattern == "all"
-                    || pattern == "true") {
-                    pattern = "";
-                }
-
-                tuning_patterns.emplace_back(std::move(pattern));
+        for (std::string pattern : string_split(value, ',')) {
+            if (pattern.empty()) {
+                continue;
             }
 
-            if (end == std::string::npos) {
-                break;
-            }
+            tuning_patterns.push_back(std::move(pattern));
         }
     }
 
@@ -224,8 +224,8 @@ static void parse_line(
     const std::string& line,
     const std::vector<TunableParam>& params,
     const std::string& objective_key,
-    F callback) {
-    Config config;
+    F callback,
+    Config& best_config) {
     std::string empty_string;
 
     nlohmann::json record = nlohmann::json::parse(line);
@@ -235,10 +235,6 @@ static void parse_line(
 
     if (config_json.size() != params.size()) {
         throw std::runtime_error("invalid configuration");
-    }
-
-    for (size_t i = 0; i < params.size(); i++) {
-        config.insert(params[i], json_to_tunable_value(config_json[i]));
     }
 
     ProblemSize problem_size;
@@ -253,32 +249,42 @@ static void parse_line(
         env_json["device_name"].get_ptr<const std::string*>();
     double objective = record[objective_key];
 
-    callback(
-        config,
+    bool is_better = callback(
         problem_size,
         device_name != nullptr ? *device_name : empty_string,
         objective);
+
+    if (is_better) {
+        Config config;
+        for (size_t i = 0; i < params.size(); i++) {
+            config.insert(params[i], json_to_tunable_value(config_json[i]));
+        }
+
+        best_config = std::move(config);
+    }
 }
 
 template<typename F>
-static void process_wisdom_file(
+static Config process_wisdom_file(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
     const ConfigSpace& space,
     F callback) {
+    Config best_config = space.default_config();
+
     std::string path =
         path_join(wisdom_dir, sanitize_tuning_key(tuning_key)) + ".wisdom";
 
     std::ifstream stream(path);
     if (!stream) {
         log_debug() << "wisdom file not found: " << path << "\n";
-        return;
+        return best_config;
     }
 
     std::string line;
     if (!std::getline(stream, line)) {
         log_debug() << "error while reading wisdom file: " << path << "\n";
-        return;
+        return best_config;
     }
 
     std::string objective_key;
@@ -291,7 +297,7 @@ static void process_wisdom_file(
     } catch (const std::exception& e) {
         log_warning() << path << ":1: file is ignored, error while parsing: "
                       << e.what() << "\n";
-        return;
+        return best_config;
     }
 
     // Parse each line
@@ -301,13 +307,15 @@ static void process_wisdom_file(
         }
 
         try {
-            parse_line(line, params, objective_key, callback);
+            parse_line(line, params, objective_key, callback, best_config);
         } catch (const std::exception& e) {
             log_warning() << path << ":" << lineno
                           << ": line is ignored, error while parsing: "
                           << e.what() << "\n";
         }
     }
+
+    return best_config;
 }
 
 Config load_best_config(
@@ -329,16 +337,14 @@ Config load_best_config(
     WisdomResult best_type = WisdomResult::NotFound;
     std::string best_device;
     double best_score = 0.0;
-    Config best_config = space.default_config();
     ProblemSize best_problem_size;
     uint64_t best_distance = std::numeric_limits<uint64_t>::max();
 
-    process_wisdom_file(
+    Config best_config = process_wisdom_file(
         wisdom_dir,
         tuning_key,
         space,
-        [&](const Config& config,
-            ProblemSize row_problem,
+        [&](ProblemSize row_problem,
             const std::string& row_device,
             double score) {
             WisdomResult type;
@@ -359,17 +365,15 @@ Config load_best_config(
                     && (distance < best_distance
                         || (distance == best_distance
                             && score < best_score)))) {
-                if (!space.is_valid(config)) {
-                    throw std::runtime_error("invalid configuration");
-                }
-
                 best_type = type;
                 best_score = score;
-                best_config = Config(config);
-                best_problem_size = problem_size;
+                best_problem_size = row_problem;
                 best_device = row_device;
                 best_distance = distance;
+                return true;
             }
+
+            return false;
         });
 
     if (best_type == WisdomResult::NotFound) {

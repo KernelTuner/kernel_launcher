@@ -318,6 +318,19 @@ struct TunableParam {
         return inner_->values_;
     }
 
+    bool has_value(const TunableValue& needle) const {
+        bool found = false;
+
+        // Maybe binary search?
+        for (const auto& v : inner_->values_) {
+            if (v == needle) {
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
     const std::vector<double>& priors() const {
         return inner_->priors_;
     }

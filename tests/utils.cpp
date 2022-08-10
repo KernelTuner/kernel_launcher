@@ -88,3 +88,39 @@ TEST_CASE("test hash") {
     CHECK(hash_combine(1, 0) != 1);
     CHECK(hash_combine(0, 1) != 1);
 }
+
+TEST_CASE("test string_match") {
+    CHECK(string_match("foo", "foo"));
+    CHECK(string_match("", ""));
+    CHECK(string_match("*", ""));
+    CHECK(string_match("**", ""));
+    CHECK(string_match("*", "foo"));
+    CHECK(string_match("*foo", "foo"));
+    CHECK(string_match("foo*", "foo"));
+    CHECK(string_match("fo*o", "foo"));
+    CHECK(string_match("*fo*o", "foo"));
+    CHECK(string_match("*fo*o*", "foo"));
+    CHECK(string_match("*foo*", "foo"));
+    CHECK(string_match("*fo*", "foo"));
+    CHECK(string_match("**", "foo"));
+
+    CHECK(string_match("bar", "foo") == false);
+    CHECK(string_match("foe", "foo") == false);
+    CHECK(string_match("foobar", "foo") == false);
+    CHECK(string_match("barfoo", "foo") == false);
+    CHECK(string_match("bar*", "foo") == false);
+    CHECK(string_match("*bar", "foo") == false);
+    CHECK(string_match("*r*", "foo") == false);
+    CHECK(string_match("*r*", "") == false);
+    CHECK(string_match("", "foo") == false);
+}
+
+TEST_CASE("test string_split") {
+    using v = std::vector<std::string>;
+    CHECK(string_split("a,b,c", ',') == v {"a", "b", "c"});
+    CHECK(string_split("a,,c", ',') == v {"a", "", "c"});
+    CHECK(string_split("a,b,", ',') == v {"a", "b", ""});
+    CHECK(string_split(",b,c", ',') == v {"", "b", "c"});
+    CHECK(string_split("", ',') == v {""});
+    CHECK(string_split("aaaaa|bbbbb", '|') == v {"aaaaa", "bbbbb"});
+}
