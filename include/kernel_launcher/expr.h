@@ -377,6 +377,14 @@ SelectExpr select(C&& cond, Es&&... operands) {
         {into_expr(std::forward<Es>(operands))...}};
 }
 
+template<typename C, typename... Es>
+SelectExpr ifelse(C&& cond, ET&& true_expr, EF&& false_expr) {
+    return {
+        cast<bool>(std::forward<C>(into_cond)),
+        {into_expr(std::forward<EF>(false_expr)),
+         into_expr(std::forward<ET>(true_expr))}};
+}
+
 struct UnaryExpr: BaseExpr {
     enum struct Op {
         Plus,
