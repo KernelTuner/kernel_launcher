@@ -4,10 +4,12 @@ import logging
 import numpy as np
 import os.path
 import re
+import kernel_tuner
 
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
+
 
 def _type_name_to_dtype(type_name):
     NUMPY_TYPES = {
@@ -59,7 +61,7 @@ def _type_name_to_dtype(type_name):
     return dtype
 
 
-def KernelDef:
+class KernelDef:
     def __init__(self, obj):
         if obj.get("file"):
             self.file = obj["file"]
@@ -73,7 +75,7 @@ def KernelDef:
         self.name = obj["name"]
         self.shared_memory = _parse_expr(obj["shared_memory"])
         self.template_args = _parse_expr_list(obj["template_args"])
-        self.compile_flags = _parse_expr_list(obj["compile_flags"])
+        self.compiler_options = _parse_expr_list(obj["compile_flags"])
 
         self.block_size = _parse_expr_list(obj["block_size"])
         self.grid_size = _parse_expr_list(obj["grid_size"])
@@ -85,11 +87,39 @@ def KernelDef:
             self.grid_size.append(_parse_expr(1))
 
         self.defines = OrderedDict()
-        for k, v in entry.get("defines", dict()).items():
+        for k, v in obj.get("defines", dict()).items():
             self.defines[k] = _parse_expr(v)
 
+    def generate_name(self):
+        name = self.name
+        targs = self.template_args
 
-def ConfigDef:
+        if not targs:
+            return name
+
+        vargs = []
+        for targ in targs:
+            if isinstance(targ, ValueExpr):
+                vargs.append(str(targ.value))
+            elif isinstance(targ, ParamExpr):
+                vargs.append(targ.name)
+            else:
+                raise ValueError(f"invalid template argument expression: {targ!r}")
+
+        return f"{name}<{','.join(vargs)}>"
+
+    def generate_source(self, working_dir):
+        if self.source is not None:
+            source = self.source
+        else:
+            path = os.path.join(working_dir, self.file)
+            with open(path) as f:
+                source = f.read()
+
+        return source
+
+
+class ConfigSpace:
     def __init__(self, obj):
         self.params = OrderedDict()
         self.restrictions = []
@@ -99,6 +129,12 @@ def ConfigDef:
 
         for row in obj["restrictions"]:
             self.restrictions.append(_parse_expr(row))
+
+    def default_config(self):
+        return dict((k, v[0]) for k, v in self.params.items())
+
+    def is_valid(self, config):
+        return all(e(config) for e in self.restrictions)
 
 
 def _parse_scalar_argument(entry):
@@ -120,8 +156,8 @@ def _parse_array_file(file_name: str, data_dir: str, expect_hash: str, dtype, va
     if expect_hash is not None and validate:
         got_hash = hashlib.new("sha1", buf, usedforsecurity=False).hexdigest()
 
-    if got_hash != expect_hash:
-        raise Runtimerror(f"invalid file hash for {file_name}, data was corrupted")
+        if got_hash != expect_hash:
+            raise RuntimeError(f"invalid file hash for {file_name}, data was corrupted")
 
     return np.frombuffer(buf, dtype=dtype)
 
@@ -130,14 +166,15 @@ def _parse_array_argument(entry: dict, data_dir: str, validate_checksum: bool):
     type_name = entry["type"]
     dtype = None
 
-    if type_name.endswith("*"): # is a pointer
+    if type_name.endswith("*"):  # is a pointer
         dtype = _type_name_to_dtype(type_name[:-1])
 
     if dtype is None:
-        logger.warning(f"unknown type \"{type_name}\", falling back to byte array") 
+        logger.warning(f"unknown type \"{type_name}\", falling back to byte array")
         dtype = np.byte
 
-    arg = _parse_array_file(entry["file"], data_dir, entry.get("file_hash"), dtype, validate_checksum)
+    arg = _parse_array_file(entry["file"], data_dir, entry.get("file_hash"),
+                            dtype, validate_checksum)
 
     if "reference_file" in entry:
         answer = _parse_array_file(entry["reference_file"], data_dir, entry.get("reference_hash"),
@@ -149,19 +186,19 @@ def _parse_array_argument(entry: dict, data_dir: str, validate_checksum: bool):
 
 
 class TuningProblem:
-    def __init__(self, obj, data_dir: str, validate_checksum: bool=True):
-        self.space = ConfigSpace(data["config_space"])
-        self.kernel = KernelDef(data["kernel"])
+    def __init__(self, obj, data_dir: str, validate_checksum: bool = True):
+        self.space = ConfigSpace(obj["config_space"])
+        self.kernel = KernelDef(obj["kernel"])
 
-        self.environment = data.get("environment", dict())
-        self.key = data["key"]
-        self.problem_size = data["problem_size"]
+        self.environment = obj.get("environment", dict())
+        self.key = obj["key"]
+        self.problem_size = obj["problem_size"]
         self.args = []
         self.answers = []
 
-        for entry in data["arguments"]:
+        for entry in obj["arguments"]:
             kind = entry.get("kind")
-            
+
             if kind == "scalar":
                 arg = _parse_scalar_argument(entry)
                 answer = None
@@ -173,27 +210,173 @@ class TuningProblem:
             self.args.append(arg)
             self.answers.append(answer)
 
+    def _tune_options(self, working_dir=None, lang="cupy", compiler_options=None, defines=None, **kwargs):
+        if working_dir is None:
+            working_dir = os.getcwd()
 
-def load_tuning_problem(filename: str, data_dir=None, **kwargs): TuningProblem:
-    if data_dir is None:
-        data_dir = os.path.dirname(os.path.abspath(filename))
+        extra_params = dict()
+        block_size_names = []
 
-    with open(filename, encoding="utf8") as handle:
-        return TuningProblem(json.load(handle), data_dir, **kwargs)
+        for axis, expr in zip("XYZ", self.kernel.block_size):
+            expr = expr.resolve_problem(self.problem_size)
+
+            if isinstance(expr, ParamExpr):
+                block_size_names.append(expr.name)
+            elif isinstance(expr, ValueExpr):
+                key = f"__KERNEL_TUNER_PROXY_BLOCK_SIZE_{axis}"
+                extra_params[key] = expr.value
+                block_size_names.append(key)
+            else:
+                raise ValueError(f"invalid block size expression: {expr!r}")
+
+        grid_exprs = [e.resolve_problem(self.problem_size) for e in self.kernel.grid_size]
+
+        def grid_size(config):
+            return [e(config) for e in grid_exprs]
+
+        if not compiler_options:
+            compiler_options = []
+        else:
+            compiler_options = list(compiler_options)
+
+        for expr in self.kernel.compiler_options:
+            if isinstance(expr, ValueExpr):
+                compiler_options.append(str(expr.value))
+            else:
+                raise ValueError(f"invalid compiler options expression: {expr!r}")
+
+        if not defines:
+            defines = dict()
+        else:
+            defines = dict(defines)
+        defines |= self.kernel.defines
+
+        options = dict(
+                kernel_name=self.kernel.generate_name(),
+                kernel_source=self.kernel.generate_source(working_dir),
+                arguments=self.args,
+                problem_size=grid_size,
+                restrictions=self.space.is_valid,
+                defines=defines,
+                compiler_options=compiler_options,
+                block_size_names=block_size_names,
+                grid_div_x=[],
+                grid_div_y=[],
+                grid_div_z=[],
+                lang=lang,
+                **kwargs)
+
+        os.chdir(working_dir)
+        return extra_params, options
+
+    def run(self, config=None, *, check_restrictions=True, **kwargs):
+        if not config:
+            config = self.space.default_config()
+
+        if check_restrictions and self.space.is_valid(config):
+            raise RuntimeError("configuration fails restrictions: {config!r}")
+
+        extra_params, options = self.tune_options(**kwargs)
+        config = dict(config) | extra_params
+
+        return kernel_tuner.run_kernel(params=config, **options)
+
+    def tune(self, params=None, *, strategy="bayes_opt", verify=None, **kwargs):
+        if verify is None:
+            verify = _fancy_verify
+
+        if params is None:
+            params = self.space.params
+        params = OrderedDict(params)  # Copy parameters since it can be modified below
+
+        extra_params, options = self._tune_options(**kwargs)
+
+        for k, v in extra_params.items():
+            params[k] = [v]
+
+        return kernel_tuner.tune_kernel(
+                tune_params=params,
+                strategy=strategy,
+                answer=self.answers,
+                verify=verify,
+                **options)
+
+
+def _fancy_verify(answers, outputs, *, atol=None):
+    INTEGRAL_DTYPES = [np.int8, np.int16, np.int32, np.int64,
+                       np.uint8, np.uint16, np.uint32, np.uint64]
+    FLOATING_DTYPES = [np.float16, np.float32, np.float64]
+    PRINT_TOP_VALUES = 25
+
+    # np.byte represents an unknown data type (it is usually an alias for np.int8 unfortunately)
+    INTEGRAL_DTYPES.remove(np.byte)
+
+    is_valid = True
+
+    for index, (output, expected) in enumerate(zip(outputs, answers)):
+        if output is None or expected is None:
+            continue
+
+        if output.dtype != expected.dtype or output.shape != expected.shape:
+            raise RuntimeError(f"arrays data type or shape do not match: {output} and {expected}")
+
+        if output.dtype in INTEGRAL_DTYPES:
+            matches = output == expected
+        elif output.dtype in FLOATING_DTYPES:
+            matches = np.isclose(output, expected, atol=atol, equal_nan=True)
+        else:
+            matches = True  # unknown data type, skip
+
+        # All match, great!
+        if np.all(matches):
+            continue
+
+        # Overall result is invalid
+        is_valid = False
+
+        indices = np.where(~matches)[0]
+        nerrors = len(indices)
+
+        # Should indices be sorted?
+        # indices = indices[np.argsort(errors[indices], kind="stable")][::-1]
+
+        percentage = nerrors / len(output) * 100
+        print(f"argument {index + 1} fails validation: {nerrors} incorrect values" +
+              f"({percentage:.5}%)")
+
+        errors = np.abs(output - expected)
+
+        for index in indices[:PRINT_TOP_VALUES]:
+            print(f" * at index {index}: {output[index]} != {expected[index]} " +
+                  f"(error: {errors[index]})")
+
+        if nerrors > PRINT_TOP_VALUES:
+            print(f" * ({nerrors - PRINT_TOP_VALUES} more entries have been omitted)")
+
+    return is_valid
 
 
 class Expr:
     def __call__(self, config):
         return self.evaluate(config)
-    
+
     def evaluate(self, config):
-        raise NotImplemented
+        raise NotImplementedError
 
     def visit_children(self, fun):
-        raise NotImplemented
+        raise NotImplementedError
 
     def resolve_problem(self, problem_size):
         return self.visit_children(lambda e: e.resolve_problem(problem_size))
+
+    def free_variables(self):
+        result = set()
+
+        def f(expr):
+            result |= expr.free_variables()
+
+        self.visit_children(f)
+        return result
 
 
 class ValueExpr(Expr):
@@ -202,7 +385,7 @@ class ValueExpr(Expr):
 
     def evaluate(self, config):
         return self.value
-    
+
     def __repr__(self):
         return repr(self.value)
 
@@ -216,12 +399,16 @@ class ParamExpr(Expr):
 
     def evaluate(self, config):
         return config[self.name]
-    
+
     def __repr__(self):
-        return repr(self.value)
+        return repr(self.name)
+
+    def free_variables(self):
+        return [self.name]
 
     def visit_children(self, fun):
         return self
+
 
 class BinaryExpr(Expr):
     def __init__(self, op, lhs, rhs):
@@ -230,6 +417,7 @@ class BinaryExpr(Expr):
         self.rhs = rhs
 
     def evaluate(self, config):
+        op = self.op
         lhs = self.lhs(config)
         rhs = self.rhs(config)
 
@@ -285,6 +473,7 @@ class UnaryExpr(Expr):
         self.arg = arg
 
     def evaluate(self, config):
+        op = self.op
         arg = self.arg.evaluate(config)
 
         if op == "+":
@@ -309,17 +498,17 @@ class ProblemExpr(Expr):
 
     def __repr__(self):
         return f"problem_size_{self.axis}"
-    
+
     def evaluate(self, config):
         raise ValueError("expression cannot be problem dependent")
-    
+
     def visit_children(self, fun):
         return self
 
     def resolve_problem(self, problem_size):
         return ValueExpr(problem_size[self.axis])
 
-    
+
 class SelectExpr(Expr):
     def __init__(self, condition, options):
         self.condition = condition
@@ -329,14 +518,15 @@ class SelectExpr(Expr):
         return f"select({self.condition!r}, {self.options!r})"
 
     def evaluate(self, config):
-        index = self.condition.evaluate(config):
+        index = self.condition.evaluate(config)
 
         if isinstance(index, bool):
             index = int(index)
 
         if not isinstance(index, int) or index < 0 or index >= self.options:
-            raise RuntimeError(f"expression must yield an integer in range 0..{len(self.options)}: {self}")
-        
+            raise RuntimeError("expression must yield an integer in " +
+                               f"range 0..{len(self.options)}: {self}")
+
         return self.options[index].evaluate(config)
 
     def visit_children(self, fun):
@@ -381,3 +571,11 @@ def _parse_expr(entry):
 
 def _parse_expr_list(entries):
     return [_parse_expr(e) for e in entries]
+
+
+def load_tuning_problem(filename: str, data_dir=None, **kwargs) -> TuningProblem:
+    if data_dir is None:
+        data_dir = os.path.dirname(os.path.abspath(filename))
+
+    with open(filename, encoding="utf8") as handle:
+        return TuningProblem(json.load(handle), data_dir, **kwargs)
