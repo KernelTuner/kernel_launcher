@@ -136,21 +136,15 @@ static json tunable_param_to_json(const TunableParam& param) {
         const TunableValue& v = param.values()[i];
         double prior = param.priors()[i];
 
-        if (v == param.default_value()) {
-            // Insert the default value at the front.
-            values.insert(values.begin(), value_to_json(v));
-            priors.insert(priors.begin(), prior);
-        } else {
-            // Insert other values at the back.
-            values.emplace_back(value_to_json(v));
-            priors.emplace_back(prior);
-        }
+        values.emplace_back(value_to_json(v));
+        priors.emplace_back(prior);
     }
 
     return {
         {"name", param.name()},
         {"values", std::move(values)},
         {"priors", std::move(priors)},
+        {"default", value_to_json(param.default_value())}
     };
 }
 

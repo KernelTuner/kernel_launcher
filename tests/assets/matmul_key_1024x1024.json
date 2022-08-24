@@ -20,16 +20,17 @@
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "default": 16
             },
             {
                 "name": "block_size_y",
                 "values": [
-                    16,
                     1,
                     2,
                     4,
                     8,
+                    16,
                     32
                 ],
                 "priors": [
@@ -39,7 +40,8 @@
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "default": 16
             },
             {
                 "name": "tile_size_x",
@@ -54,7 +56,8 @@
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "default": 1
             },
             {
                 "name": "tile_size_y",
@@ -69,7 +72,8 @@
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "default": 1
             }
         ],
         "restrictions": [

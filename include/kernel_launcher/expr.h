@@ -377,10 +377,10 @@ SelectExpr select(C&& cond, Es&&... operands) {
         {into_expr(std::forward<Es>(operands))...}};
 }
 
-template<typename C, typename... Es>
+template<typename C, typename ET, typename EF>
 SelectExpr ifelse(C&& cond, ET&& true_expr, EF&& false_expr) {
     return {
-        cast<bool>(std::forward<C>(into_cond)),
+        cast<bool>(std::forward<C>(cond)),
         {into_expr(std::forward<EF>(false_expr)),
          into_expr(std::forward<ET>(true_expr))}};
 }

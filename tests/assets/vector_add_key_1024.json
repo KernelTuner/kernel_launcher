@@ -12,17 +12,18 @@
             {
                 "name": "threads_per_block",
                 "values": [
-                    256,
                     1,
                     32,
-                    128
+                    128,
+                    256
                 ],
                 "priors": [
                     1.0,
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "default": 256
             },
             {
                 "name": "elements_per_thread",
@@ -35,7 +36,8 @@
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "default": 1
             }
         ],
         "restrictions": [
