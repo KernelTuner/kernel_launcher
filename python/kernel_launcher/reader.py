@@ -6,12 +6,16 @@ import os.path
 import re
 import kernel_tuner
 
+from typing import List
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
 
 def _type_name_to_dtype(type_name):
+    """
+    Converts C type name to numpy type. For example, ``"int"`` => ``np.intc``
+    """
     NUMPY_TYPES = {
         "float": np.single,
         "double": np.double,
@@ -123,15 +127,23 @@ class ConfigSpace:
     def __init__(self, obj):
         self.params = OrderedDict()
         self.restrictions = []
+        self.defaults = dict()
 
         for row in obj["parameters"]:
             self.params[row["name"]] = row["values"]
+
+            if "default" in row:
+                default_value = row["default"]
+            else:
+                default_value = row["values"][0]
+
+            self.defaults[row["name"]] = default_value
 
         for row in obj["restrictions"]:
             self.restrictions.append(_parse_expr(row))
 
     def default_config(self):
-        return dict((k, v[0]) for k, v in self.params.items())
+        return dict(self.defaults)
 
     def is_valid(self, config):
         return all(e(config) for e in self.restrictions)
@@ -245,11 +257,13 @@ class TuningProblem:
             else:
                 raise ValueError(f"invalid compiler options expression: {expr!r}")
 
-        if not defines:
-            defines = dict()
-        else:
-            defines = dict(defines)
-        defines |= self.kernel.defines
+        all_defines = self.kernel.defines
+
+        if defines:
+            all_defines = OrderedDict(all_defines)  # make copy
+
+            for key, value in defines.items():
+                all_defines[key] = value
 
         options = dict(
                 kernel_name=self.kernel.generate_name(),
@@ -257,7 +271,7 @@ class TuningProblem:
                 arguments=self.args,
                 problem_size=grid_size,
                 restrictions=self.space.is_valid,
-                defines=defines,
+                defines=all_defines,
                 compiler_options=compiler_options,
                 block_size_names=block_size_names,
                 grid_div_x=[],
@@ -269,35 +283,65 @@ class TuningProblem:
         os.chdir(working_dir)
         return extra_params, options
 
-    def run(self, config=None, *, check_restrictions=True, **kwargs):
+    def run(self, config=None, arguments=None, *, check_restrictions=True, **kwargs):
+        """Run this kernel once using ``kernel_tuner.run_kernel`` and return the results
+
+        :param config: The configuration to compile. If ``None``, the default configuration is used
+        :param arguments: The arguments to use. If ``None``, the default arguments for this problem size are used
+        :param check_restrictions: Check if the given configuration meets the restrictions on the search space
+        :param kwargs: Additional keyword arguments passed to ``kernel_tuner.run_kernel``
+        :return: Result of ``kernel_tuner.run_kernel``
+        """
         if not config:
             config = self.space.default_config()
 
         if check_restrictions and self.space.is_valid(config):
             raise RuntimeError("configuration fails restrictions: {config!r}")
 
-        extra_params, options = self.tune_options(**kwargs)
+        extra_params, options = self._tune_options(**kwargs)
         config = dict(config) | extra_params
+
+        if arguments is not None:
+            options["arguments"] = arguments
 
         return kernel_tuner.run_kernel(params=config, **options)
 
-    def tune(self, params=None, *, strategy="bayes_opt", verify=None, **kwargs):
-        if verify is None:
-            verify = _fancy_verify
+    def tune(self, params=None, **kwargs):
+        """Execute ``kernel_tuner.tune_kernel`` for this tuning problem.
 
+        :param params: Tunable parameters passed to ``tune_kernel``. If ``None``, the parameters as defined by this
+                       tuning problem are used. This argument is useful to overwrite the tunable parameters, for
+                       instance, if the search space is large and not all parameters need to be tuned.
+        :param kwargs: Additional keyword arguments passed to ``tune_kernel``
+        """
         if params is None:
             params = self.space.params
-        params = OrderedDict(params)  # Copy parameters since it can be modified below
 
         extra_params, options = self._tune_options(**kwargs)
 
+        params = OrderedDict(params)  # Copy parameters since it can be modified below
         for k, v in extra_params.items():
             params[k] = [v]
+
+        verify = options.pop("verify", None)
+        if verify is True:
+            verify = _fancy_verify
+            answer = self.answers
+        elif verify is False:
+            verify = None
+            answer = None
+        else:
+            answer = self.answers
+
+        strategy = options.pop("strategy", None)
+        if strategy is None:
+            total_configs = np.prod([len(v) for v in params.values()])
+            strategy = "brute_force" if total_configs < 100 else "bayes_opt"
 
         return kernel_tuner.tune_kernel(
                 tune_params=params,
                 strategy=strategy,
-                answer=self.answers,
+                answer=answer,
                 verify=verify,
                 **options)
 
@@ -307,9 +351,13 @@ def _fancy_verify(answers, outputs, *, atol=None):
                        np.uint8, np.uint16, np.uint32, np.uint64]
     FLOATING_DTYPES = [np.float16, np.float32, np.float64]
     PRINT_TOP_VALUES = 25
+    DEFAULT_ATOL = 1e-8
 
     # np.byte represents an unknown data type (it is usually an alias for np.int8 unfortunately)
     INTEGRAL_DTYPES.remove(np.byte)
+
+    if atol is None:
+        atol = DEFAULT_ATOL
 
     is_valid = True
 
@@ -461,7 +509,15 @@ class BinaryExpr(Expr):
         raise ValueError(f"invalid binary operator: {self.op}")
 
     def visit_children(self, fun):
-        return BinaryExpr(self.op, fun(self.lhs), fun(self.rhs))
+        lhs = fun(self.lhs)
+        rhs = fun(self.rhs)
+        expr = BinaryExpr(self.op, lhs, rhs)
+
+        # If both sides are values, we can evaluate the result now
+        if isinstance(lhs, ValueExpr) and isinstance(rhs, ValueExpr):
+            return ValueExpr(self.evaluate(dict()))
+
+        return expr
 
     def __repr__(self):
         return f"({self.lhs!r} {self.op} {self.rhs!r})"
@@ -533,12 +589,14 @@ class SelectExpr(Expr):
         return SelectExpr(fun(self.condition), [fun(a) for a in self.options])
 
 
-def _parse_expr(entry):
+def _parse_expr(entry) -> Expr:
+    # literal int, str or float becomes ValueExpr.
     if isinstance(entry, (int, str, float)) or \
             entry is None:
         return ValueExpr(entry)
 
-    if not isinstance(entry, dict):
+    # Otherwise it must be an operator expression
+    if not isinstance(entry, dict) or "operator" not in entry:
         raise ValueError(f"invalid expression: {entry!r}")
 
     op = entry["operator"]
@@ -569,11 +627,20 @@ def _parse_expr(entry):
         raise ValueError(f"invalid operator: {op}")
 
 
-def _parse_expr_list(entries):
+def _parse_expr_list(entries) -> List[Expr]:
     return [_parse_expr(e) for e in entries]
 
 
 def load_tuning_problem(filename: str, data_dir=None, **kwargs) -> TuningProblem:
+    """
+    Load a tuning problem from a file generated by Kernel Launcher.
+
+    :param filename: Path to the tuning file.
+    :param data_dir: Directory were the data files are located. If ``None``, it is assumed to be the same directory as
+                     ``filename``.
+    :param kwargs: Additional keyword arguments passed to ``TuningProblem``.
+    :return: The tuning problem.
+    """
     if data_dir is None:
         data_dir = os.path.dirname(os.path.abspath(filename))
 

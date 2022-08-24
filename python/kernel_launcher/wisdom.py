@@ -15,21 +15,42 @@ WISDOM_VERSION = "1.0"
 WISDOM_OBJECTIVE = "time"
 
 
-def write_wisdom_for_problem(directory: str, problem: TuningProblem, results: list,
+def write_wisdom_for_problem(path: str, problem: TuningProblem, results: list,
                              env: dict, **kwargs):
-    return write_wisdom(directory, problem.key, problem.space.params, problem.problem_size,
-                        results, env, **kwargs)
+    """Write the results of ``TuningProblem.tune`` to a wisdom file. This function calls ``write_wisdom``
+
+    :param path: Directory were wisdom files are stored. Alternatively, this can be a file name ending with ``.wisdom``.
+    :param problem: The ``TuningProblem``.
+    :param results: The results returned by ``kernel_tuner.tune_kernel``.
+    :param env: The environment returned by ``kernel_tuner.tune_kernel``.
+    :param kwargs: Additional keyword arguments passed to `write_wisdom`.
+    """
+    return write_wisdom(path, problem.key, problem.space.params, problem.problem_size, results, env, **kwargs)
 
 
-def write_wisdom(path: str, key: str, params: dict, problem_size, results, env, *, max_results=5):
-    filename = _wisdom_file(path, key)
+def write_wisdom(path: str, key: str, params: dict, problem_size: list, results: list, env: dict, *,
+                 max_results=5, merge_existing_results=False):
+    """Write the results of ``kernel_tuner.tune_kernel`` to a wisdom file.
+
+    :param path: Directory were wisdom files are stored. Alternatively, this can be a file name ending with ``.wisdom``.
+    :param key: The tuning key used inside the wisdom file
+    :param params: The tunable parameters as passed to ``kernel_tuner.tune_kernel``
+    :param problem_size: The problem size as passed to ``kernel_tuner.tune_kernel``
+    :param results: The results returned by ``kernel_tuner.tune_kernel``
+    :param env: The environment returned by ``kernel_tuner.tune_kernel``
+    :param max_results: Only the top ``max_results`` results are written in the wisdom file.
+    :param merge_existing_results: If ``True``, existing results in the wisdom file for the same problem size and
+                                   environment are merged with the provided ``results``.
+
+    """
     device_name = env["device_name"]
+    config2result = dict()
 
-    if not os.path.exists(filename):
-        logger.info(f"creating wisdom file: {filename}")
-        param_keys = list(params.keys())
-        lines = [_create_header(key, param_keys)]
-    else:
+    # Path to the wisdom file
+    filename = _wisdom_file(path, key)
+
+    # If wisdom file exists, read the lines in the file
+    if os.path.exists(filename):
         with open(filename, "r") as handle:
             line = next(handle)
             lines = [line]
@@ -41,30 +62,58 @@ def write_wisdom(path: str, key: str, params: dict, problem_size, results, env, 
                         record["problem_size"] != problem_size or \
                         record["environment"].get("device_name") != device_name:
                     lines.append(line)
+                elif merge_existing_results:
+                    index = tuple(record["config"])
+                    config2result[index] = record
+    else:
+        logger.info(f"creating wisdom file: {filename}")
+        param_keys = list(params.keys())
+        lines = [_create_header(key, param_keys)]
 
-    # Remove invalid result (i.e., failed due to insufficient resources)
-    results = [r for r in results if _is_valid_config(r)]
+    environment = _build_environment(env)
 
-    # Get top results
-    top_results = sorted(results, key=lambda p: p["time"])[:max_results]
+    for result in results:
+        # Skip invalid result (i.e., failed due to insufficient resources)
+        if not _is_valid_config(result):
+            continue
 
-    for result in top_results:
-        logger.info(f"appending entry to {filename} for device {device_name}: {result}")
         config = [result[key] for key in param_keys]
-
-        lines.append(json.dumps({
+        record = {
             "config": config,
             "problem_size": problem_size,
             "time": result[WISDOM_OBJECTIVE],
-            "environment": _build_environment(env),
-        }))
+            "environment": environment,
+        }
 
-    os.rename(filename, filename + ".backup")
+        index = tuple(config)
+        config2result[index] = record
+
+    # Sort results and append the top results to lines.
+    sorted_results = sorted(config2result.values(), key=lambda p: p["time"])
+
+    for result in sorted_results[:max_results]:
+        logger.info(f"writing entry to {filename} for device {device_name}: {result}")
+        lines.append(json.dumps(result))
+
+    # Keep old file if it exists.
+    if os.path.exists(filename):
+        os.rename(filename, filename + ".backup")
+
     with open(filename, "w") as handle:
         handle.writelines(line + "\n" for line in lines)
 
 
-def read_wisdom(path: str, key: str = None, params: dict = None):
+def read_wisdom(path: str, key: str = None, params: dict = None) -> list:
+    """
+    Read the results of a wisdom file.
+
+    :param path: Directory were wisdom file are stored. Alternatively, this can be file name ending with ``.wisdom``
+    :param key: The tuning key. Used to validate if the wisdom file has the correct tuning key. If ``None``, this check
+                is not performed
+    :param params: The tunable parameters. Used to validate if the wisdom file has the correct parameters. If ``None``,
+                    this check is not performed.
+    :return: List of dictionaries.
+    """
     filename = _wisdom_file(path, key)
     results = []
 
@@ -122,7 +171,9 @@ def _check_header(line: str, key: str, params: dict):
     return keys
 
 
-def _create_header(key: str, param_keys: list):
+def _create_header(key: str, param_keys: list) -> str:
+    """Header of wisdom file (ie, the first line).
+    """
     return json.dumps({
         "version": WISDOM_VERSION,
         "objective": WISDOM_OBJECTIVE,
@@ -132,23 +183,32 @@ def _create_header(key: str, param_keys: list):
 
 
 def _is_valid_config(config):
-    time = config.get(WISDOM_OBJECTIVE)
-    return isinstance(time, (float, np.float32, np.float64))
+    objective = config.get(WISDOM_OBJECTIVE)
+    return isinstance(objective, (float, np.float32, np.float64))
+
 
 def _wisdom_file(path, key):
-    if os.path.isdir(path):
+    if os.path.isdir(path) and key is not None:
         return os.path.join(path, key + ".wisdom")
     elif path.endswith(".wisdom"):
         return path
     else:
         raise ValueError(f"path must be a directory or a file ending with .wisdom: {path}")
 
+
 def _build_environment(env):
     env = {
         "date": datetime.now().isoformat(),
         "device_name": env["device_name"],
-        "compute_capability": int(env["compute_capability"])
+        "compute_capability": int(env["compute_capability"]),
     }
+
+    # Kernel tuner related
+    try:
+        import kernel_tuner
+        env["kernel_tuner_version"] = kernel_tuner.__version__
+    except AttributeError as e:
+        logger.warning(f"ignore error: kernel_tuner.__version__ is not available: {e}")
 
     # CUDA related
     try:
