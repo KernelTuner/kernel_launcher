@@ -660,6 +660,16 @@ std::vector<uint8_t> KernelArg::to_bytes() const {
             reinterpret_cast<CUdeviceptr>(data_.array.ptr),
             result.size()));
     } else {
+        // If the type is a pointer, exporting it to bytes will return
+        // the memory address of the pointer and not the data of the buffer it
+        // points to This is likely a bug on the user side. Todo: find a better
+        //  way f handling this error (maybe already in KernelArg ctor?).
+        if (type_.is_pointer()) {
+            throw std::runtime_error("a raw pointer type was provided as "
+                "kernel argument (" + type_.name() + ") which cannot be "
+                "exported since the corresponding buffer size is unknown");
+        }
+
         result.resize(type_.size());
 
         if (is_inline_scalar(type_)) {
