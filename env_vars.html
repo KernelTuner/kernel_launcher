@@ -90,6 +90,13 @@ Additionally, an <code class="docutils literal notranslate"><span class="pre">*<
 <li><p><code class="docutils literal notranslate"><span class="pre">*</span></code>: matches all kernels.</p></li>
 </ul>
 </li>
+<li><p><strong>KERNEL_LAUNCHER_TUNE_FORCE</strong>:
+Same as the previous variable.
+However, while <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_TUNE</span></code> skips kernels that have already been tuned
+(i.e., a wisdom file was found), the <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_TUNE_FORCE</span></code> will always force
+tuning specifications to be exported regardless of whether wisdom files are available.</p></li>
+<li><p><strong>KERNEL_LAUNCHER_DIR</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
+The directory were the tuning specifications will be stored. Defaults to the current working directory.</p></li>
 <li><p><strong>KERNEL_LAUNCHER_WISDOM</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
 The default directory where wisdom files are located. Defaults to the current working directory.</p></li>
 <li><p><strong>KERNEL_LAUNCHER_LOG</strong> (default: <code class="docutils literal notranslate"><span class="pre">info</span></code>):
