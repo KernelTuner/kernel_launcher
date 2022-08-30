@@ -9,16 +9,19 @@ struct WisdomSettingsImpl {
     std::string wisdom_dir_;
     std::string tuning_dir_;
     std::vector<std::string> tuning_patterns_;
+    bool tuning_force_;
 };
 
 WisdomSettings::WisdomSettings(
     std::string wisdom_dir,
     std::string tuning_dir,
-    std::vector<std::string> tuning_patterns) :
+    std::vector<std::string> tuning_patterns,
+    bool tuning_force) :
     impl_(std::make_shared<WisdomSettingsImpl>(WisdomSettingsImpl {
         std::move(wisdom_dir),
         std::move(tuning_dir),
-        std::move(tuning_patterns)})) {}
+        std::move(tuning_patterns),
+        tuning_force})) {}
 
 WisdomSettings::~WisdomSettings() = default;
 WisdomSettings::WisdomSettings(WisdomSettings&&) noexcept = default;
@@ -26,8 +29,15 @@ WisdomSettings::WisdomSettings(const WisdomSettings&) = default;
 
 bool WisdomSettings::does_kernel_require_tuning(
     const std::string& tuning_key,
-    ProblemSize problem_size) const {
+    ProblemSize problem_size,
+    WisdomResult result) const {
     bool matches = false;
+
+    // If wisdom was found for this kernel and we do not force tuning,
+    // then there is no need to tune this kernel.
+    if (result == WisdomResult::Ok && !impl_->tuning_force_) {
+        return false;
+    }
 
     for (const std::string& pattern : impl_->tuning_patterns_) {
         if (string_match(pattern.c_str(), tuning_key.c_str())) {
@@ -108,28 +118,37 @@ WisdomSettings default_wisdom_settings() {
         tuning_dir = value;
     }
 
-    if ((value = getenv("KERNEL_LAUNCHER_TUNE"))) {
-        if (strcmp(value, "1") == 0 || strcmp(value, "true") == 0
-            || strcmp(value, "TRUE") == 0) {
-            value = "*";
+    const char* patterns = "";
+    bool force = false;
+
+    if ((value = getenv("KERNEL_LAUNCHER_TUNE_FORCE")) && strlen(value) > 0) {
+        force = true;
+        patterns = value;
+    } else if ((value = getenv("KERNEL_LAUNCHER_TUNE")) && strlen(value) > 0) {
+        force = false;
+        patterns = value;
+    }
+
+    if (strcmp(patterns, "1") == 0 || strcmp(patterns, "true") == 0
+        || strcmp(patterns, "TRUE") == 0) {
+        patterns = "*";
+    }
+
+    if (strcmp(patterns, "0") == 0 || strcmp(patterns, "false") == 0
+        || strcmp(patterns, "FALSE") == 0) {
+        patterns = "";
+    }
+
+    for (std::string pattern : string_split(patterns, ',')) {
+        if (pattern.empty()) {
+            continue;
         }
 
-        if (strcmp(value, "0") == 0 || strcmp(value, "false") == 0
-            || strcmp(value, "FALSE") == 0) {
-            value = "";
-        }
-
-        for (std::string pattern : string_split(value, ',')) {
-            if (pattern.empty()) {
-                continue;
-            }
-
-            tuning_patterns.push_back(std::move(pattern));
-        }
+        tuning_patterns.push_back(std::move(pattern));
     }
 
     global_wisdom_settings = new WisdomSettings(
-        WisdomSettings {wisdom_dir, tuning_dir, tuning_patterns});
+        WisdomSettings {wisdom_dir, tuning_dir, tuning_patterns, force});
     return *global_wisdom_settings;
 }
 
@@ -520,10 +539,10 @@ void WisdomKernel::launch(
 
         WisdomResult result =
             compile(problem_size, CudaDevice::current(), param_types);
-        bool write_tuning = result != WisdomResult::Ok
-            && impl_->settings_.does_kernel_require_tuning(
-                impl_->tuning_key_,
-                problem_size);
+        bool write_tuning = impl_->settings_.does_kernel_require_tuning(
+            impl_->tuning_key_,
+            problem_size,
+            result);
 
         if (write_tuning) {
             std::vector<std::vector<uint8_t>> inputs;

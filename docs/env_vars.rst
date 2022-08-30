@@ -15,6 +15,14 @@ Environment Variables
   * ``*_matrix_*``: matches kernels that contains ``matrix``.
   * ``*``: matches all kernels.
 
+* **KERNEL_LAUNCHER_TUNE_FORCE**:
+  Same as the previous variable.
+  However, while ``KERNEL_LAUNCHER_TUNE`` skips kernels that have already been tuned
+  (i.e., a wisdom file was found), the ``KERNEL_LAUNCHER_TUNE_FORCE`` will always force
+  tuning specifications to be exported regardless of whether wisdom files are available.
+
+* **KERNEL_LAUNCHER_DIR** (default: ``.``):
+  The directory were the tuning specifications will be stored. Defaults to the current working directory.
 
 * **KERNEL_LAUNCHER_WISDOM** (default: ``.``):
   The default directory where wisdom files are located. Defaults to the current working directory.

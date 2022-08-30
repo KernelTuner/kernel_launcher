@@ -144,8 +144,7 @@ static json tunable_param_to_json(const TunableParam& param) {
         {"name", param.name()},
         {"values", std::move(values)},
         {"priors", std::move(priors)},
-        {"default", value_to_json(param.default_value())}
-    };
+        {"default", value_to_json(param.default_value())}};
 }
 
 struct KernelBuilderSerializerHack {

@@ -60,14 +60,16 @@ struct WisdomSettings {
     WisdomSettings(
         std::string wisdom_dir,
         std::string tuning_dir,
-        std::vector<std::string> tuning_patterns = {});
+        std::vector<std::string> tuning_patterns = {},
+        bool tuning_force = true);
     ~WisdomSettings();
     WisdomSettings(WisdomSettings&&) noexcept;
     WisdomSettings(const WisdomSettings&);
 
     bool does_kernel_require_tuning(
         const std::string& tuning_key,
-        ProblemSize problem_size) const;
+        ProblemSize problem_size,
+        WisdomResult result = WisdomResult::NotFound) const;
     const std::string& wisdom_directory() const;
     const std::string& tuning_directory() const;
     const std::vector<std::string>& tuning_patterns() const;
