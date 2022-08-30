@@ -11,6 +11,10 @@
 #include "nlohmann/json.hpp"
 #include "teeny-sha1/teeny-sha1.h"
 
+#ifdef KERNEL_LAUNCHER_USE_ZLIB
+    #include <zlib.h>
+#endif
+
 namespace kernel_launcher {
 
 using json = nlohmann::ordered_json;
@@ -216,7 +220,7 @@ struct DataFile {
 static const DataFile& write_kernel_arg(
     const std::string& tuning_key,
     const std::string& data_dir,
-    const std::vector<uint8_t>& data,
+    const std::vector<uint8_t>& raw_data,
     std::vector<DataFile>& previous_files) {
     static constexpr size_t random_suffix_length = 8;
     static constexpr char random_chars[] =
@@ -224,15 +228,59 @@ static const DataFile& write_kernel_arg(
         "abcdefghijklmnopqrstuvwxyz";
 
     char hash_data[41] = {0};  // 20 bytes digest = 40 char in hex + 1 nul byte
-    sha1digest(nullptr, hash_data, data.data(), data.size());
+    sha1digest(nullptr, hash_data, raw_data.data(), raw_data.size());
     std::string hash = hash_data;
 
     // Find if a previous file has the same hash and size
     for (const auto& p : previous_files) {
-        if (p.hash == hash && p.size == data.size()) {
+        if (p.hash == hash && p.size == raw_data.size()) {
             return p;
         }
     }
+
+    const uint8_t* data = raw_data.data();
+    size_t data_size = raw_data.size();
+    const char* file_suffix = ".bin";
+
+    // Compress data using zlib if it is available.
+#ifdef KERNEL_LAUNCHER_USE_ZLIB
+    // Buffer to store compressed data.
+    std::vector<uint8_t> compressed_data;
+    compressed_data.resize(data_size);
+
+    // zlib cannot handle buffers larger than what fits into uInt
+    if (data_size <= std::numeric_limits<uInt>::max()) {
+
+        // Initialize zstream
+        z_stream zs;
+        zs.zalloc = Z_NULL;
+        zs.zfree = Z_NULL;
+        zs.opaque = Z_NULL;
+        zs.avail_in = uInt(data_size);
+        zs.next_in =
+            const_cast<uint8_t*>(raw_data.data());  // next_in should be const
+        zs.avail_out = uInt(data_size);
+        zs.next_out = compressed_data.data();
+
+        // Using basic zlib API.
+        deflateInit2(
+            &zs,
+            Z_DEFAULT_COMPRESSION,
+            Z_DEFLATED,
+            15 | 16,
+            8,
+            Z_DEFAULT_STRATEGY);
+        deflate(&zs, Z_FINISH);
+        deflateEnd(&zs);
+
+        // Only use the compressed data if it is actually smaller than the original data.
+        if (zs.total_out < raw_data.size()) {
+            data = compressed_data.data();
+            data_size = zs.total_out;
+            file_suffix = ".bin.gz";
+        }
+    }
+#endif
 
     // -2 since:
     //  * uniform_int_distribution is inclusive
@@ -250,17 +298,17 @@ static const DataFile& write_kernel_arg(
             file_name += random_chars[dist(rng)];
         }
 
-        file_name += ".bin";
+        file_name += file_suffix;
 
         path = path_join(data_dir, file_name);
-        if (!write_file(path, (char*)data.data(), data.size())) {
+        if (!write_file(path, (char*)data, data_size)) {
             continue;
         }
 
-        log_debug() << "writing " << data.size() << " bytes to " << path
+        log_debug() << "writing " << data_size << " bytes to " << path
                     << " for kernel " << tuning_key << std::endl;
 
-        previous_files.push_back({hash, data.size(), file_name});
+        previous_files.push_back({hash, raw_data.size(), file_name});
         return previous_files.back();
     }
 

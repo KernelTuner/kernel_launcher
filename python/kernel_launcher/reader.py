@@ -1,3 +1,4 @@
+import gzip
 import hashlib
 import json
 import logging
@@ -162,8 +163,14 @@ def _parse_scalar_argument(entry):
 
 
 def _parse_array_file(file_name: str, data_dir: str, expect_hash: str, dtype, validate: bool):
-    with open(os.path.join(data_dir, file_name), "rb") as handle:
-        buf = handle.read()
+    file_path = os.path.join(data_dir, file_name)
+
+    if file_name.endswidth(".gz"):
+        with gzip.open(file_path, "rb") as handle:
+            buf = handle.read()
+    else:
+        with open(file_path, "rb") as handle:
+            buf = handle.read()
 
     if expect_hash is not None and validate:
         got_hash = hashlib.new("sha1", buf, usedforsecurity=False).hexdigest()
