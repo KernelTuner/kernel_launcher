@@ -1,3 +1,6 @@
+.. highlight:: c++
+   :linenothreshold: 2
+
 Wisdom Files
 ============
 
@@ -12,36 +15,92 @@ Let's see this in action.
 C++ source code
 ---------------
 
-The following snippet show an example:
+Again, consider the following CUDA kernel ``vector_add.cu`` to perform vector addition:
+
+.. literalinclude:: vector_add.cu
+
+The following code snippet show an example of the associated host code:
 
 .. literalinclude:: wisdom.cpp
 
 
-Notice how this example is similar to the previous example, except ``kl::Kernel`` has been replaced by ``kl::WisdomKernel``.
-On the first call this kernel, the kernel searches for the wisdom file for the key ``vector_add`` and compiles the kernel for the given ``problem_size`` and the current GPU.
-If no wisdom file has been found, the default configuration is chosen (in this case, that will be ``block_size=32,elements_per_thread=1``).
+Code Explanation
+----------------
 
+Notice how this example is similar to the previous example, with some minor differences such that ``kl::Kernel`` has been replaced by ``kl::WisdomKernel``.
+We now highlight the important lines of this code example.
+
+.. literalinclude:: wisdom.cpp
+   :lines: 6-20
+   :lineno-start: 6
+
+This function creates the ``KernelBuilder`` object and returns it.
+The purpose and usage of ``KernelBuilder`` was explained on the previous page.
+
+.. literalinclude:: wisdom.cpp
+   :lines: 23-24
+   :lineno-start: 23
+
+These two lines set global settings for the application.
+The function ``set_global_wisdom_directory`` sets the directory containing the wisdom files.
+When a kernel is compiled, this is where ``kernel_launcher`` will search for the associated wisdom file.
+The function ``set_global_tuning_directory`` sets the directory for tuning files.
+When exporting a kernel, this is where ``kernel_launcher`` will store the resulting files.
+
+.. literalinclude:: wisdom.cpp
+   :lines: 27-29
+   :lineno-start: 27
+
+The ``tuning_key`` is a string that uniquely identifies this kernel and is used to search for the kernel's wisdom file.
+In this example, ``kernel_launcher`` will search for the file ``wisdom/vector_add.wisdom``.
+If no wisdom file can be been found, the default configuration is chosen (in this case, that will be ``block_size=32,elements_per_thread=1``).
 
 
 Export the kernel
 -----------------
-To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable ``KERNEL_LAUNCHER_TUNE=vector_add``::
+.. highlight:: bash
+   :linenothreshold: 1000
+
+To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable ``KERNEL_LAUNCHER_TUNE``::
 
     KERNEL_LAUNCHER_TUNE=vector_add ./main
 
 This generates a file ``vector_add_1000000.json`` in the directory set by ``set_global_tuning_directory``.
 
+Alternatively, it is possible to export several kernels at once by using the wildcard ``*``.
+For example, the following command export all kernels that are start with ``vector_``::
+
+    KERNEL_LAUNCHER_TUNE=vector_* ./main
+
+See :doc:`../env_vars` for an overview and description of additional environment variables.
 
 Tune the kernel
 ---------------
-TODO: Using kernel tuner
+To tune the kernel, run the Python script ``tune.py`` in the directory ``python`` which internally uses ``kernel_tuner`` to tune the kernel.
+Use ``--help`` to get an overview of all available options.
+For example, to tune spend 10 minutes (600 seconds) tuning the kernel for the current kernel, use the following command::
+
+    python tune.py tuning/vector_add_1000000.json --output wisdom/ --time 600
+
+To tune multiple kernels all at once, use a wildcard::
+
+    python tune.py tuning/*.json --output wisdom/
+
+If everything goes well, the script should run for ten minutes and eventually create a file ``wisdom/vector_add.wisdom`` containing the tuning results.
+Note that it is possible to tune the same kernel for different devices and problem sizes, for which all results will be stored in the same wisdom file.
+After tuning, the files in the ``tuning/`` directory can safely be deleted.
+
 
 
 Import the wisdom
 -----------------
-After tuning the kernel and obtaining the wisdom file, we place this wisdom file in the directory specified by ``set_global_wisdom_directory``.
+To use the wisdom file, make sure that the file ``wisdom/vector_add.wisdom`` is available and simply rerun the program.
 Now, when running the program, on the first call to ``vector_add_kernel``, the kernel finds the wisdom file and compiles the kernel given the optimal configuration.
+To confirm that wisdom file has indeed been found, check the debugging output by define the environment variable ``KERNEL_LAUNCHER_LOG=debug``::
 
-To confirm that wisdom file has indeed been found, check the debugging output by define the environment variable ``KERNEL_LAUNCHER_LOG=debug``.
 
+    KERNEL_LAUNCHER_LOG=debug ./main
 
+    KERNEL_LAUNCHER [DEBUG] reading wisdom file wisdom/vector_add.wisdom
+    KERNEL_LAUNCHER [DEBUG] found configuration for kernel vector_add, device NVIDIA A100-PCIE-40GB, problem size (1000000, 1, 1): {"block_size": 128, "elements_per_thread": 4}
+    KERNEL_LAUNCHER [DEBUG] compiling kernel (vector_add.cu)
