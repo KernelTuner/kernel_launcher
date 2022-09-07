@@ -147,6 +147,25 @@ WisdomSettings default_wisdom_settings() {
         tuning_patterns.push_back(std::move(pattern));
     }
 
+    // Print info message on which kernels will be tuned.
+    if (!tuning_patterns.empty()) {
+        std::stringstream ss;
+
+        bool needs_comma = false;
+        for (const auto& pattern : tuning_patterns) {
+            if (needs_comma) {
+                log_info() << ", ";
+            } else {
+                needs_comma = true;
+            }
+
+            ss << pattern;
+        }
+
+        log_info() << "tuning enabled for the following kernels: " << ss.str()
+                   << "\n";
+    }
+
     global_wisdom_settings = new WisdomSettings(
         WisdomSettings {wisdom_dir, tuning_dir, tuning_patterns, force});
     return *global_wisdom_settings;
@@ -398,11 +417,11 @@ Config load_best_config(
     if (best_type == WisdomResult::NotFound) {
         log_warning() << "no wisdom found for kernel \"" << tuning_key
                       << "\" in directory \"" << wisdom_dir
-                      << "\", using default kernel configuration.\n";
+                      << "\", using default kernel configuration\n";
     } else if (best_type == WisdomResult::DeviceMismatch) {
         log_warning() << "no wisdom found for kernel \"" << tuning_key
                       << "\" and device \"" << device_name
-                      << "\", using configuration for different device: \""
+                      << "\", using configuration for different device \""
                       << best_device << "\".\n";
     } else if (best_type == WisdomResult::ProblemSizeMismatch) {
         log_info() << "no wisdom found for kernel \"" << tuning_key
@@ -411,6 +430,10 @@ Config load_best_config(
                    << ", using configuration for different problem size: "
                    << best_problem_size << ".\n";
     }
+
+    log_debug() << "for kernel \"" << tuning_key << "\", device \""
+                << device_name << "\", and problem size " << problem_size
+                << ", using configuration: " << best_config << ".\n";
 
     if (result_out != nullptr) {
         *result_out = best_type;

@@ -250,7 +250,6 @@ static const DataFile& write_kernel_arg(
 
     // zlib cannot handle buffers larger than what fits into uInt
     if (data_size <= std::numeric_limits<uInt>::max()) {
-
         // Initialize zstream
         z_stream zs;
         zs.zalloc = Z_NULL;
@@ -461,8 +460,8 @@ void export_tuning_file(
             inputs,
             outputs);
 
-        log_debug() << "writing wisdom file to " << file_name << " for kernel "
-                    << tuning_key << std::endl;
+        log_info() << "writing wisdom file to " << file_name << " for kernel "
+                   << tuning_key << std::endl;
 
         std::string content = content_json.dump(4);
         write_file(file_name, content);
