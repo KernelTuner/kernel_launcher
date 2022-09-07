@@ -4,7 +4,7 @@
 namespace kl = kernel_launcher;
 
 kl::KernelBuilder build_kernel() {
-    kl::KernelBuilder builder("vector_add", "vector_add_kernel.cu");
+    kl::KernelBuilder builder("vector_add", "vector_add.cu");
 
     auto threads_per_block = builder.tune("block_size", {32, 64, 128, 256, 512, 1024});
     auto elements_per_thread = builder.tune("elements_per_thread", {1, 2, 4, 8});

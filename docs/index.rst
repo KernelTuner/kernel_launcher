@@ -40,58 +40,12 @@ This sections hows a basic code example. See :ref:`example` for a more advance e
 Consider the following CUDA kernel for vector addition.
 This kernel has a template parameter ``T`` and a tunable parameter ``ELEMENTS_PER_THREAD``.
 
-::
-
-    template <typename T>
-    __global__
-    void vector_add(int n, T* C, const T* A, const T* B) {
-        for (int k = 0; k < ELEMENTS_PER_THREAD; k++) {
-            int i = (blockIdx.x * ELEMENTS_PER_THREAD + k) * blockDim.x + threadIdx.x;
-
-            if (i < n) {
-                C[i] = A[i] + B[i];
-            }
-        }
-    }
+.. literalinclude:: examples/vector_add.cu
 
 
-The following C++ snippet shows how to use *Kernel Launcher* in host code::
+The following C++ snippet shows how to use *Kernel Launcher* in host code:
 
-    #include "kernel_launcher.h"
-
-    int main() {
-        // Namespace alias.
-        namespace kl = kernel_launcher;
-
-        // Create a kernel builder
-        kl::KernelBuilder builder("vector_add", "vector_add_kernel.cu");
-
-        // Define the variables that can be tuned for this kernel.
-        kl::ParamExpr threads_per_block = builder.tune("block_size", {32, 64, 128, 256, 512, 1024});
-        kl::ParamExpr elements_per_thread = builder.tune("elements_per_thread", {1, 2, 4, 8});
-
-        // Set kernel properties such as block size, grid divisor, template arguments, etc.
-        builder
-            .block_size(threads_per_block)
-            .grid_divisors(threads_per_block * elements_per_thread)
-            .template_args(kl::type_of<float>())
-            .define("ELEMENTS_PER_THREAD", elements_per_thread);
-
-        // Define the kernel
-        kl::WisdomKernel vector_add_kernel("vector_add", builder);
-
-        // Initialize CUDA memory. This is outside the scope of kernel_launcher.
-        unsigned int n = 1000000;
-        float *dev_A, *dev_B, *dev_C;
-        /* cudaMalloc, cudaMemcpy, ... */
-
-        // Launch the kernel! Note that kernel is compiled on the first call.
-        // The grid size and block size do not need to be specified, they are
-        // derived from the kernel specifications and problem size.
-        unsigned int problem_size = n;
-        vector_add_kernel(problem_size)(n, dev_C, dev_A, dev_B);
-    }
-
+.. literalinclude:: examples/index.cpp
 
 
 
