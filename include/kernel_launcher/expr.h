@@ -370,13 +370,48 @@ struct SelectExpr: BaseExpr {
     std::vector<Expr> options_;
 };
 
+/**
+ * Returns a new expression that first evaluates ``index``` as an integer `n`
+ * and then evaluates the `n`-th operand in the list of ``operand`` expressions.
+ * For example, if ``index`` returns 0, then the first operand is evaluated.
+ * Note that ``index`` can also be a boolean expression, in which case ``false``
+ * is interpreted as ``0`` and ``true`` is interpreted as ``1``.
+ *
+ * @param index The index expression
+ * @param operands The operand expressions.
+ */
 template<typename C, typename... Es>
-SelectExpr select(C&& cond, Es&&... operands) {
+SelectExpr select(C&& index, Es&&... operands) {
     return {
-        into_expr(std::forward<C>(cond)),
+        into_expr(std::forward<C>(index)),
         {into_expr(std::forward<Es>(operands))...}};
 }
 
+/**
+ * Returns a new expression that first evaluates ``index``` as an integer `n`
+ * and then evaluates the `n`-th operand in the list of ``operand`` expressions.
+ * For example, if ``index`` returns 0, then the first operand is evaluated.
+ *
+ * This function is equivalent to ``select``, expect it takes an iterable
+ * (e..g, vector, array) instead of a variadic list of arguments.
+ *
+ * @param index The index expression
+ * @param operands The operand expressions.
+ */
+template<typename C, typename Es>
+SelectExpr index(C&& cond, Es&& operands) {
+    std::vector<Expr> options(std::begin(operands), std::end(operands));
+    return {into_expr(std::forward<C>(cond)), options};
+}
+
+/**
+ * Returns a new expression that evaluates ``cond`` and either evaluates
+ * ``true_expr`` if the condition is true and ``false_expr`` otherwise.
+ *
+ * @param cond Condition expression.
+ * @param true_expr The expression if the condition is true.
+ * @param false_expr The expression if the condition is false.
+ */
 template<typename C, typename ET, typename EF>
 SelectExpr ifelse(C&& cond, ET&& true_expr, EF&& false_expr) {
     return {

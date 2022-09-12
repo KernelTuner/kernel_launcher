@@ -82,11 +82,24 @@ TEST_CASE("test Expr") {
     }
 
     SECTION("test SelectExpr") {
-        auto e = select(xe < ye, xe, ye);
-        CHECK(e.eval(eval) == 200);
+        auto e = ifelse(xe < ye, xe, ye);
+        CHECK(e.eval(eval) == 3);
+
+        auto e1 = ifelse(xe >= ye, xe, ye);
+        CHECK(e1.eval(eval) == 200);
 
         auto e2 = select(xe, "a", "b", "c", "d", "e");
         CHECK(e2.eval(eval) == "d");
+
+        auto e3 = select(100, "a", "b", "c", "d", "e");
+        CHECK_THROWS(e3.eval(eval));
+
+        std::vector<std::string> options = {"a", "b", "c", "d", "e"};
+        auto e4 = index(xe, options);
+        CHECK(e4.eval(eval) == "d");
+
+        auto e5 = index(100, options);
+        CHECK_THROWS(e5.eval(eval));
     }
 
     SECTION("test cast") {
