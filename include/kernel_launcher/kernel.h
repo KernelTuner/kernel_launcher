@@ -156,6 +156,7 @@ struct KernelBuilder: ConfigSpace {
     std::vector<KernelSource> preheaders_;
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
     std::array<TypedExpr<uint32_t>, 3> grid_size_ = {1u, 1u, 1u};
+    bool grid_set_ = false;
     TypedExpr<uint32_t> shared_mem_ = {0u};
     std::vector<TypedExpr<TemplateArg>> template_args_ {};
     std::vector<TypedExpr<std::string>> compile_flags_ {};

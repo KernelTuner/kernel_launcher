@@ -9,13 +9,23 @@ KernelBuilder& KernelBuilder::block_size(
     block_size_[0] = std::move(x);
     block_size_[1] = std::move(y);
     block_size_[2] = std::move(z);
-    return grid_divisors(block_size_[0], block_size_[1], block_size_[2]);
+
+    // if `grid_size` or `grid_divisors` has not been called explicitly yet,
+    // then we set the grid size implicitly here.
+    if (!grid_set_) {
+        grid_size_[0] = div_ceil(problem_size(0), block_size_[0]);
+        grid_size_[1] = div_ceil(problem_size(1), block_size_[1]);
+        grid_size_[2] = div_ceil(problem_size(2), block_size_[2]);
+    }
+
+    return *this;
 }
 
 KernelBuilder& KernelBuilder::grid_size(
     TypedExpr<uint32_t> x,
     TypedExpr<uint32_t> y,
     TypedExpr<uint32_t> z) {
+    grid_set_ = true;
     grid_size_[0] = std::move(x);
     grid_size_[1] = std::move(y);
     grid_size_[2] = std::move(z);
