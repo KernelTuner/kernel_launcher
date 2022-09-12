@@ -55,6 +55,7 @@ struct Config {
 
   private:
     std::unordered_map<TunableParam, TunableValue> inner_;
+    std::vector<TunableParam> keys_;
 };
 
 struct KernelBuilderSerializerHack;

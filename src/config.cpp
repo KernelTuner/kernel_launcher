@@ -12,6 +12,7 @@ void Config::insert(TunableParam k, TunableValue v) {
         }
     }
 
+    keys_.push_back(k);
     inner_.insert({std::move(k), std::move(v)});
 }
 
@@ -37,14 +38,14 @@ const TunableValue& Config::at(const TunableParam& param) const {
 std::ostream& operator<<(std::ostream& s, const Config& c) {
     s << "{";
     bool is_first = true;
-    for (const auto& p : c.inner_) {
+    for (const auto& p : c.keys_) {
         if (is_first) {
             is_first = false;
         } else {
             s << ", ";
         }
 
-        s << "\"" << p.first.name() << "\": " << p.second;
+        s << "\"" << p.name() << "\": " << c.inner_.at(p);
     }
     return s << "}";
 }
