@@ -165,7 +165,7 @@ def _parse_scalar_argument(entry):
 def _parse_array_file(file_name: str, data_dir: str, expect_hash: str, dtype, validate: bool):
     file_path = os.path.join(data_dir, file_name)
 
-    if file_name.endswidth(".gz"):
+    if file_name.endswith(".gz"):
         with gzip.open(file_path, "rb") as handle:
             buf = handle.read()
     else:
