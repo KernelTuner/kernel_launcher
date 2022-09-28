@@ -185,7 +185,7 @@ struct KernelBuilderSerializerHack {
             });
         }
 
-        json defines;
+        json defines = json::object();
         for (const auto& p : builder.defines_) {
             defines[p.first] = expr_to_json(p.second);
         }

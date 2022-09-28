@@ -522,7 +522,7 @@ class BinaryExpr(Expr):
 
         # If both sides are values, we can evaluate the result now
         if isinstance(lhs, ValueExpr) and isinstance(rhs, ValueExpr):
-            return ValueExpr(self.evaluate(dict()))
+            return ValueExpr(expr.evaluate(dict()))
 
         return expr
 
