@@ -28,7 +28,7 @@ def should_skip_kernel(args, problem):
     device = device_name()
     problem_size = problem.problem_size
 
-    wisdom = kl.read_wisdom(args.output, problem.key, problem.space.params, error_if_missing=False)
+    wisdom = kl.read_wisdom(args.output_dir, problem.key, problem.space.params, error_if_missing=False)
 
     for record in wisdom:
         if record.get("problem_size") == problem_size and \
@@ -54,7 +54,8 @@ def tune_kernel(filename, args):
     )
     strategy_options = dict(
         time_limit=args.time_limit,
-        max_fevals=1e99,
+        fraction=1,
+        # max_fevals=1e99,
     )
 
     print(f"host name: {socket.gethostname()}")
@@ -94,7 +95,6 @@ def tune_kernel(filename, args):
             strategy_options["time_limit"] = time_remaining
             more_results, _ = problem.tune(
                 more_params,
-                strategy="bayes_opt",
                 strategy_options=strategy_options,
                 **options)
 
