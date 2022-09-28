@@ -465,6 +465,10 @@ class ParamExpr(Expr):
         return self
 
 
+def is_int_like(v):
+    return isinstance(v, (int, np.integer, bool, np.bool_))
+
+
 class BinaryExpr(Expr):
     def __init__(self, op, lhs, rhs):
         self.op = op
@@ -483,7 +487,7 @@ class BinaryExpr(Expr):
         if op == "*":
             return lhs * rhs
         if op == "/":
-            if isinstance(lhs, int) and isinstance(rhs, int):
+            if is_int_like(lhs) and is_int_like(rhs):
                 # To get the same behavior for ints as in C, we perform regular FP division
                 # and then truncate the result. This is different from Python's `//` operator
                 # which will always round down (not truncate).
@@ -491,7 +495,7 @@ class BinaryExpr(Expr):
             else:
                 return lhs / rhs
         if op == "%":
-            if isinstance(lhs, int) and isinstance(rhs, int):
+            if is_int_like(lhs) and is_int_like(rhs):
                 # see above
                 return lhs - int(lhs / rhs) * rhs
             else:
