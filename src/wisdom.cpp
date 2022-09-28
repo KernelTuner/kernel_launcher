@@ -106,7 +106,7 @@ WisdomSettings default_wisdom_settings() {
 
     std::string wisdom_dir = ".";
     std::string tuning_dir = ".";
-    std::vector<std::string> tuning_patterns = {};
+    std::vector<std::string> capture_patterns = {};
     const char* value;
 
     if ((value = getenv("KERNEL_LAUNCHER_WISDOM"))) {
@@ -118,41 +118,53 @@ WisdomSettings default_wisdom_settings() {
         tuning_dir = value;
     }
 
-    const char* patterns = "";
+    std::string patterns = "";
     bool force = false;
 
-    if ((value = getenv("KERNEL_LAUNCHER_TUNE_FORCE")) && strlen(value) > 0) {
-        force = true;
+    // Try the following environment keys in order
+    const char* env_keys[4] = {
+        "KERNEL_LAUNCHER_CAPTURE_FORCE",
+        "KERNEL_LAUNCHER_CAPTURE",
+        "KERNEL_LAUNCHER_TUNE_FORCE",
+        "KERNEL_LAUNCHER_TUNE",
+    };
+
+    for (const char* key : env_keys) {
+        if ((value = getenv(key)) == nullptr) {
+            continue;
+        }
+
+        if (!patterns.empty()) {
+            log_warning() << "environment key " << key << " was ignored\n";
+            continue;
+        }
+
         patterns = value;
-    } else if ((value = getenv("KERNEL_LAUNCHER_TUNE")) && strlen(value) > 0) {
-        force = false;
-        patterns = value;
+        force = strstr(value, "FORCE") != nullptr;
     }
 
-    if (strcmp(patterns, "1") == 0 || strcmp(patterns, "true") == 0
-        || strcmp(patterns, "TRUE") == 0) {
+    if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
         patterns = "*";
     }
 
-    if (strcmp(patterns, "0") == 0 || strcmp(patterns, "false") == 0
-        || strcmp(patterns, "FALSE") == 0) {
+    if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
         patterns = "";
     }
 
-    for (std::string pattern : string_split(patterns, ',')) {
+    for (std::string pattern : string_split(patterns.c_str(), ',')) {
         if (pattern.empty()) {
             continue;
         }
 
-        tuning_patterns.push_back(std::move(pattern));
+        capture_patterns.push_back(std::move(pattern));
     }
 
     // Print info message on which kernels will be tuned.
-    if (!tuning_patterns.empty()) {
+    if (!capture_patterns.empty()) {
         std::stringstream ss;
 
         bool needs_comma = false;
-        for (const auto& pattern : tuning_patterns) {
+        for (const auto& pattern : capture_patterns) {
             if (needs_comma) {
                 log_info() << ", ";
             } else {
@@ -162,12 +174,12 @@ WisdomSettings default_wisdom_settings() {
             ss << pattern;
         }
 
-        log_info() << "tuning enabled for the following kernels: " << ss.str()
+        log_info() << "capture enabled for the following kernels: " << ss.str()
                    << "\n";
     }
 
     global_wisdom_settings = new WisdomSettings(
-        WisdomSettings {wisdom_dir, tuning_dir, tuning_patterns, force});
+        WisdomSettings {wisdom_dir, tuning_dir, capture_patterns, force});
     return *global_wisdom_settings;
 }
 
