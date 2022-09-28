@@ -1,5 +1,7 @@
 #include "kernel_launcher/wisdom.h"
 
+#include <mutex>
+
 #include "kernel_launcher/export.h"
 #include "nlohmann/json.hpp"
 
@@ -27,7 +29,7 @@ WisdomSettings::~WisdomSettings() = default;
 WisdomSettings::WisdomSettings(WisdomSettings&&) noexcept = default;
 WisdomSettings::WisdomSettings(const WisdomSettings&) = default;
 
-bool WisdomSettings::does_kernel_require_tuning(
+bool WisdomSettings::should_capture_kernel(
     const std::string& tuning_key,
     ProblemSize problem_size,
     WisdomResult result) const {
@@ -455,6 +457,7 @@ Config load_best_config(
 }
 
 struct WisdomKernelImpl {
+    std::mutex mutex_;
     bool compiled_;
     std::string tuning_key_;
     KernelBuilder builder_;
@@ -473,7 +476,8 @@ void WisdomKernel::initialize(
     KernelBuilder builder,
     Compiler compiler,
     WisdomSettings settings) {
-    impl_ = std::make_unique<WisdomKernelImpl>(WisdomKernelImpl {
+    impl_ = std::unique_ptr<WisdomKernelImpl>(new WisdomKernelImpl {
+        {},
         false,
         std::move(tuning_key),
         std::move(builder),
@@ -485,8 +489,31 @@ void WisdomKernel::initialize(
 
 void WisdomKernel::clear() {
     if (impl_) {
+        std::lock_guard<std::mutex> guard(impl_->mutex_);
         impl_->compiled_ = false;
     }
+}
+
+WisdomResult compile_impl(
+    WisdomKernelImpl* impl,
+    ProblemSize problem_size,
+    CudaDevice device,
+    std::vector<TypeInfo> param_types) {
+    WisdomResult result;
+    Config config = load_best_config(
+        impl->settings_.wisdom_directory(),
+        impl->tuning_key_,
+        impl->builder_,
+        device.name(),
+        device.arch(),
+        problem_size,
+        &result);
+
+    impl->param_types_ = std::move(param_types);
+    impl->instance_ =
+        impl->builder_.compile(config, impl->param_types_, impl->compiler_);
+    impl->compiled_ = true;
+    return result;
 }
 
 WisdomResult WisdomKernel::compile(
@@ -497,21 +524,12 @@ WisdomResult WisdomKernel::compile(
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    WisdomResult result;
-    Config config = load_best_config(
-        impl_->settings_.wisdom_directory(),
-        impl_->tuning_key_,
-        impl_->builder_,
-        device.name(),
-        device.arch(),
+    std::lock_guard<std::mutex> guard(impl_->mutex_);
+    return compile_impl(
+        impl_.get(),
         problem_size,
-        &result);
-
-    impl_->param_types_ = std::move(param_types);
-    impl_->instance_ =
-        impl_->builder_.compile(config, impl_->param_types_, impl_->compiler_);
-    impl_->compiled_ = true;
-    return result;
+        device,
+        std::move(param_types));
 }
 
 static void assert_types_equal(
@@ -561,6 +579,8 @@ void WisdomKernel::launch(
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
+    std::lock_guard<std::mutex> guard(impl_->mutex_);
+
     std::vector<void*> ptrs;
     for (const KernelArg& arg : args) {
         ptrs.push_back(arg.as_void_ptr());
@@ -572,14 +592,17 @@ void WisdomKernel::launch(
             param_types.push_back(arg.type());
         }
 
-        WisdomResult result =
-            compile(problem_size, CudaDevice::current(), param_types);
-        bool write_tuning = impl_->settings_.does_kernel_require_tuning(
+        WisdomResult result = compile_impl(
+            impl_.get(),
+            problem_size,
+            CudaDevice::current(),
+            param_types);
+        bool should_capture = impl_->settings_.should_capture_kernel(
             impl_->tuning_key_,
             problem_size,
             result);
 
-        if (write_tuning) {
+        if (should_capture) {
             std::vector<std::vector<uint8_t>> inputs;
             std::vector<std::vector<uint8_t>> outputs;
 

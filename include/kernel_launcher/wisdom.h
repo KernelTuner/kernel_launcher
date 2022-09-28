@@ -66,7 +66,7 @@ struct WisdomSettings {
     WisdomSettings(WisdomSettings&&) noexcept;
     WisdomSettings(const WisdomSettings&);
 
-    bool does_kernel_require_tuning(
+    bool should_capture_kernel(
         const std::string& tuning_key,
         ProblemSize problem_size,
         WisdomResult result = WisdomResult::NotFound) const;
