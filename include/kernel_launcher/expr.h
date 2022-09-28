@@ -89,43 +89,11 @@ struct Eval {
     bool has_problem_size_ = false;
 };
 
-struct SharedExpr: BaseExpr {
-    SharedExpr() noexcept = default;
-
-    template<typename E>
-    SharedExpr(std::shared_ptr<E> inner) : inner_(std::move(inner)) {}
-
-    const BaseExpr& inner() const {
-        if (!inner_) {
-            throw std::runtime_error("SharedExpr is not initialized");
-        }
-
-        return *inner_;
-    }
-
-    std::string to_string() const override {
-        return inner().to_string();
-    }
-
-    TunableValue eval(const Eval& ctx) const override {
-        return inner().eval(ctx);
-    }
-
-  private:
-    std::shared_ptr<BaseExpr> inner_ {};
-};
-
 struct ScalarExpr: BaseExpr {
     ScalarExpr(TunableValue v) : value_(std::move(v)) {}
 
-    std::string to_string() const override {
-        return value_.to_string();
-    }
-
-    TunableValue eval(const Eval& ctx) const override {
-        return value_;
-    }
-
+    std::string to_string() const override;
+    TunableValue eval(const Eval& ctx) const override;
     Expr resolve(const Eval& eval) const override;
 
     const TunableValue& value() const {
@@ -146,19 +114,13 @@ struct ParamExpr: BaseExpr {
         //
     }
 
-    std::string to_string() const override {
-        return "$" + param_.name();
-    }
-
-    TunableValue eval(const Eval& ctx) const override {
-        return ctx.lookup(param_);
-    }
+    std::string to_string() const override;
+    TunableValue eval(const Eval& ctx) const override;
+    Expr resolve(const Eval& eval) const override;
 
     const TunableParam& parameter() const {
         return param_;
     }
-
-    Expr resolve(const Eval& eval) const override;
 
   private:
     TunableParam param_;
@@ -217,6 +179,36 @@ namespace detail {
     };
 }  // namespace detail
 
+struct SharedExpr: BaseExpr {
+    SharedExpr() noexcept = default;
+
+    template<typename E>
+    SharedExpr(std::shared_ptr<E> inner) : inner_(std::move(inner)) {}
+
+    const BaseExpr& inner() const {
+        if (!inner_) {
+            throw std::runtime_error("SharedExpr is not initialized");
+        }
+
+        return *inner_;
+    }
+
+    std::string to_string() const override {
+        return inner().to_string();
+    }
+
+    TunableValue eval(const Eval& ctx) const override {
+        return inner().eval(ctx);
+    }
+
+    bool is_constant() const {
+        return dynamic_cast<const ScalarExpr*>(inner_.get()) != nullptr;
+    }
+
+  private:
+    std::shared_ptr<BaseExpr> inner_ {};
+};
+
 template<typename T>
 struct TypedExpr: SharedExpr {
     template<typename R>
@@ -244,10 +236,6 @@ struct TypedExpr: SharedExpr {
 
         return result;
     }
-
-    bool is_constant() const {
-        return dynamic_cast<const ScalarExpr*>(&inner()) != nullptr;
-    }
 };
 
 template<typename T, typename E>
@@ -260,18 +248,6 @@ Expr into_expr(E&& value) {
     return {std::forward<E>(value)};
 }
 
-inline Expr ScalarExpr::resolve(const Eval& eval) const {
-    return *this;
-}
-
-inline Expr ParamExpr::resolve(const Eval& eval) const {
-    if (eval.has(param_)) {
-        return ScalarExpr(eval.lookup(param_));
-    } else {
-        return ParamExpr(param_);
-    }
-}
-
 struct ProblemExpr: BaseExpr {
     ProblemExpr(size_t axis) : axis_(axis) {
         if (axis_ >= 3) {
@@ -279,23 +255,9 @@ struct ProblemExpr: BaseExpr {
         }
     }
 
-    std::string to_string() const override {
-        std::stringstream ss;
-        ss << "$problem_size_" << axis_;
-        return ss.str();
-    }
-
-    TunableValue eval(const Eval& eval) const override {
-        return eval.problem_size(axis_);
-    }
-
-    Expr resolve(const Eval& eval) const override {
-        if (eval.has_problem_size()) {
-            return ScalarExpr(eval.problem_size(axis_));
-        } else {
-            return ProblemExpr(axis_);
-        }
-    }
+    std::string to_string() const override;
+    TunableValue eval(const Eval& eval) const override;
+    Expr resolve(const Eval& eval) const override;
 
     size_t axis() const {
         return axis_;
@@ -326,36 +288,9 @@ struct SelectExpr: BaseExpr {
         cond_(std::move(index)),
         options_(std::move(options)) {}
 
-    TunableValue eval(const Eval& ctx) const override {
-        auto index = cond_.eval(ctx).to<int64_t>();
-        if (index < 0 || size_t(index) >= options_.size()) {
-            throw std::invalid_argument("index out of bounds");
-        }
-
-        return options_[size_t(index)].eval(ctx);
-    }
-
-    std::string to_string() const override {
-        std::stringstream ss;
-        ss << "select(" << cond_.to_string();
-        for (const auto& v : options_) {
-            ss << ", " << v.to_string();
-        }
-        ss << ")";
-
-        return ss.str();
-    }
-
-    Expr resolve(const Eval& eval) const override {
-        Expr cond = cond_.resolve(eval);
-
-        std::vector<Expr> options;
-        for (const auto& v : options_) {
-            options.push_back(v.resolve(eval));
-        }
-
-        return SelectExpr(cond_.resolve(eval), options);
-    }
+    TunableValue eval(const Eval& ctx) const override;
+    std::string to_string() const override;
+    Expr resolve(const Eval& eval) const override;
 
     const BaseExpr& condition() const {
         return cond_.inner();
@@ -405,8 +340,8 @@ SelectExpr index(C&& cond, Es&& operands) {
 }
 
 /**
- * Returns a new expression that evaluates ``cond`` and either evaluates
- * ``true_expr`` if the condition is true and ``false_expr`` otherwise.
+ * Returns a new expression that first evaluates ``cond`` and then evaluates
+ * either ``true_expr`` if the condition is true and ``false_expr`` otherwise.
  *
  * @param cond Condition expression.
  * @param true_expr The expression if the condition is true.
@@ -432,39 +367,10 @@ struct UnaryExpr: BaseExpr {
         operator_(op),
         operand_(std::move(operand)) {}
 
-    TunableValue eval(const Eval& ctx) const override {
-        TunableValue operand = operand_.eval(ctx);
-
-        switch (operator_) {
-            case Op::Plus:
-                return +operand;
-            case Op::Minus:
-                return -operand;
-            case Op::LogicNot:
-                return !operand;
-            default:
-                throw std::runtime_error("invalid operator");
-        }
-    }
-
-    std::string op_name() const {
-        switch (operator_) {
-            case Op::Plus:
-                return "-";
-            case Op::Minus:
-                return "-";
-            case Op::LogicNot:
-                return "!";
-            default:
-                return "???";
-        }
-    }
-
-    std::string to_string() const override {
-        std::stringstream ss;
-        ss << "(" << op_name() << " " << operand_.to_string() << ")";
-        return ss.str();
-    }
+    TunableValue eval(const Eval& ctx) const override;
+    std::string to_string() const override;
+    Expr resolve(const Eval& eval) const override;
+    std::string op_name() const;
 
     Op op() const {
         return operator_;
@@ -472,16 +378,6 @@ struct UnaryExpr: BaseExpr {
 
     const BaseExpr& operand() const {
         return operand_.inner();
-    }
-
-    Expr resolve(const Eval& eval) const override {
-        UnaryExpr result(operator_, operand_.resolve(eval));
-
-        if (result.operand_.is_constant()) {
-            return ScalarExpr(result.eval({}));
-        } else {
-            return result;
-        }
     }
 
   private:
@@ -517,91 +413,11 @@ struct BinaryExpr: BaseExpr {
         lhs_(std::move(left)),
         rhs_(std::move(right)) {}
 
-    TunableValue eval(const Eval& ctx) const override {
-        TunableValue lhs = lhs_.eval(ctx);
-        TunableValue rhs = rhs_.eval(ctx);
+    TunableValue eval(const Eval& ctx) const override;
+    std::string to_string() const override;
+    Expr resolve(const Eval& eval) const override;
 
-        switch (operator_) {
-            case Op::Add:
-                return lhs + rhs;
-            case Op::Sub:
-                return lhs - rhs;
-            case Op::Mul:
-                return lhs * rhs;
-            case Op::Div:
-                return lhs / rhs;
-            case Op::Mod:
-                return lhs % rhs;
-            case Op::Eq:
-                return lhs == rhs;
-            case Op::Neq:
-                return lhs != rhs;
-            case Op::Lt:
-                return lhs < rhs;
-            case Op::Gt:
-                return lhs > rhs;
-            case Op::Lte:
-                return lhs <= rhs;
-            case Op::Gte:
-                return lhs >= rhs;
-            case Op::LogicAnd:
-                return lhs.to_bool() && rhs.to_bool();
-            case Op::LogicOr:
-                return lhs.to_bool() || rhs.to_bool();
-            default:
-                throw std::runtime_error("invalid operator");
-        }
-    }
-
-    std::string op_name() const {
-        switch (operator_) {
-            case Op::Add:
-                return "+";
-            case Op::Sub:
-                return "-";
-            case Op::Mul:
-                return "*";
-            case Op::Div:
-                return "/";
-            case Op::Mod:
-                return "%";
-            case Op::Eq:
-                return "==";
-            case Op::Neq:
-                return "!=";
-            case Op::Lt:
-                return "<";
-            case Op::Gt:
-                return ">";
-            case Op::Lte:
-                return "<=";
-            case Op::Gte:
-                return ">=";
-            case Op::LogicAnd:
-                return "&&";
-            case Op::LogicOr:
-                return "||";
-            default:
-                return "???";
-        }
-    }
-
-    std::string to_string() const override {
-        std::stringstream ss;
-        ss << "(" + lhs_.to_string() << " " << op_name() << " "
-           << rhs_.to_string() << ")";
-        return ss.str();
-    }
-
-    Expr resolve(const Eval& eval) const override {
-        BinaryExpr result(operator_, lhs_.resolve(eval), rhs_.resolve(eval));
-
-        if (result.lhs_.is_constant() && result.lhs_.is_constant()) {
-            return ScalarExpr(result.eval({}));
-        } else {
-            return result;
-        }
-    }
+    std::string op_name() const;
 
     Op op() const {
         return operator_;
