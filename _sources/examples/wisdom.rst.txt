@@ -61,16 +61,16 @@ Export the kernel
 .. highlight:: bash
    :linenothreshold: 1000
 
-To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable ``KERNEL_LAUNCHER_TUNE``::
+To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable ``KERNEL_LAUNCHER_CAPTURE``::
 
-    KERNEL_LAUNCHER_TUNE=vector_add ./main
+    KERNEL_LAUNCHER_CAPTURE=vector_add ./main
 
 This generates a file ``vector_add_1000000.json`` in the directory set by ``set_global_tuning_directory``.
 
 Alternatively, it is possible to export several kernels at once by using the wildcard ``*``.
 For example, the following command export all kernels that are start with ``vector_``::
 
-    KERNEL_LAUNCHER_TUNE=vector_* ./main
+    KERNEL_LAUNCHER_CAPTURE=vector_* ./main
 
 See :doc:`../env_vars` for an overview and description of additional environment variables.
 

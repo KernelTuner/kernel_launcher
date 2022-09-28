@@ -3,7 +3,7 @@ Environment Variables
 
 `Kernel Launcher` recognizes the following environment variables:
 
-* **KERNEL_LAUNCHER_TUNE** (default: ``0``):
+* **KERNEL_LAUNCHER_CAPTURE** (default: ``0``):
   Kernels for which a tuning specification will be exported on the first call to the kernel.
   The value should a comma-seperated list of kernel names.
   Additionally, an ``*`` can be used as a wild card.
@@ -15,10 +15,10 @@ Environment Variables
   * ``*_matrix_*``: matches kernels that contains ``matrix``.
   * ``*``: matches all kernels.
 
-* **KERNEL_LAUNCHER_TUNE_FORCE**:
+* **KERNEL_LAUNCHER_CAPTURE_FORCE**:
   Same as the previous variable.
-  However, while ``KERNEL_LAUNCHER_TUNE`` skips kernels that have already been tuned
-  (i.e., a wisdom file was found), the ``KERNEL_LAUNCHER_TUNE_FORCE`` will always force
+  However, while ``KERNEL_LAUNCHER_CAPTURE`` skips kernels that have already been tuned
+  (i.e., a wisdom file was found), the ``KERNEL_LAUNCHER_CAPTURE_FORCE`` will always force
   tuning specifications to be exported regardless of whether wisdom files are available.
 
 * **KERNEL_LAUNCHER_DIR** (default: ``.``):

@@ -79,7 +79,7 @@
 <h1>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this heading"></a></h1>
 <p><cite>Kernel Launcher</cite> recognizes the following environment variables:</p>
 <ul>
-<li><p><strong>KERNEL_LAUNCHER_TUNE</strong> (default: <code class="docutils literal notranslate"><span class="pre">0</span></code>):
+<li><p><strong>KERNEL_LAUNCHER_CAPTURE</strong> (default: <code class="docutils literal notranslate"><span class="pre">0</span></code>):
 Kernels for which a tuning specification will be exported on the first call to the kernel.
 The value should a comma-seperated list of kernel names.
 Additionally, an <code class="docutils literal notranslate"><span class="pre">*</span></code> can be used as a wild card.</p>
@@ -91,10 +91,10 @@ Additionally, an <code class="docutils literal notranslate"><span class="pre">*<
 <li><p><code class="docutils literal notranslate"><span class="pre">*</span></code>: matches all kernels.</p></li>
 </ul>
 </li>
-<li><p><strong>KERNEL_LAUNCHER_TUNE_FORCE</strong>:
+<li><p><strong>KERNEL_LAUNCHER_CAPTURE_FORCE</strong>:
 Same as the previous variable.
-However, while <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_TUNE</span></code> skips kernels that have already been tuned
-(i.e., a wisdom file was found), the <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_TUNE_FORCE</span></code> will always force
+However, while <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE</span></code> skips kernels that have already been tuned
+(i.e., a wisdom file was found), the <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE_FORCE</span></code> will always force
 tuning specifications to be exported regardless of whether wisdom files are available.</p></li>
 <li><p><strong>KERNEL_LAUNCHER_DIR</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
 The directory were the tuning specifications will be stored. Defaults to the current working directory.</p></li>

@@ -196,14 +196,14 @@ If no wisdom file can be been found, the default configuration is chosen (in thi
 </section>
 <section id="export-the-kernel">
 <h2>Export the kernel<a class="headerlink" href="#export-the-kernel" title="Permalink to this heading"></a></h2>
-<p>To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_TUNE</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_TUNE</span><span class="o">=</span>vector_add ./main
+<p>To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_CAPTURE</span><span class="o">=</span>vector_add ./main
 </pre></div>
 </div>
 <p>This generates a file <code class="docutils literal notranslate"><span class="pre">vector_add_1000000.json</span></code> in the directory set by <code class="docutils literal notranslate"><span class="pre">set_global_tuning_directory</span></code>.</p>
 <p>Alternatively, it is possible to export several kernels at once by using the wildcard <code class="docutils literal notranslate"><span class="pre">*</span></code>.
 For example, the following command export all kernels that are start with <code class="docutils literal notranslate"><span class="pre">vector_</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_TUNE</span><span class="o">=</span>vector_* ./main
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_CAPTURE</span><span class="o">=</span>vector_* ./main
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="../env_vars.html"><span class="doc">Environment Variables</span></a> for an overview and description of additional environment variables.</p>
