@@ -10,24 +10,40 @@ namespace kernel_launcher {
 struct WisdomSettingsImpl {
     std::string wisdom_dir_;
     std::string tuning_dir_;
-    std::vector<std::string> tuning_patterns_;
-    bool tuning_force_;
+    std::vector<std::string> capture_patterns_;
+    bool force_capture_;
 };
 
 WisdomSettings::WisdomSettings(
     std::string wisdom_dir,
     std::string tuning_dir,
-    std::vector<std::string> tuning_patterns,
+    std::vector<std::string> capture_patterns,
     bool tuning_force) :
     impl_(std::make_shared<WisdomSettingsImpl>(WisdomSettingsImpl {
         std::move(wisdom_dir),
         std::move(tuning_dir),
-        std::move(tuning_patterns),
+        std::move(capture_patterns),
         tuning_force})) {}
 
 WisdomSettings::~WisdomSettings() = default;
 WisdomSettings::WisdomSettings(WisdomSettings&&) noexcept = default;
 WisdomSettings::WisdomSettings(const WisdomSettings&) = default;
+
+Config WisdomSettings::load_config(
+    const std::string& key,
+    const ConfigSpace& builder,
+    ProblemSize problem_size,
+    CudaDevice device,
+    WisdomResult* result_out) {
+    return load_best_config(
+        impl_->wisdom_dir_,
+        key,
+        builder,
+        device.name(),
+        device.arch(),
+        problem_size,
+        result_out);
+}
 
 bool WisdomSettings::should_capture_kernel(
     const std::string& tuning_key,
@@ -37,11 +53,11 @@ bool WisdomSettings::should_capture_kernel(
 
     // If wisdom was found for this kernel and we do not force tuning,
     // then there is no need to tune this kernel.
-    if (result == WisdomResult::Ok && !impl_->tuning_force_) {
+    if (result == WisdomResult::Ok && !impl_->force_capture_) {
         return false;
     }
 
-    for (const std::string& pattern : impl_->tuning_patterns_) {
+    for (const std::string& pattern : impl_->capture_patterns_) {
         if (string_match(pattern.c_str(), tuning_key.c_str())) {
             matches = true;
             break;
@@ -67,8 +83,8 @@ const std::string& WisdomSettings::tuning_directory() const {
     return impl_->tuning_dir_;
 }
 
-const std::vector<std::string>& WisdomSettings::tuning_patterns() const {
-    return impl_->tuning_patterns_;
+const std::vector<std::string>& WisdomSettings::capture_patterns() const {
+    return impl_->capture_patterns_;
 }
 
 WisdomSettings* global_wisdom_settings = nullptr;
@@ -78,7 +94,7 @@ void set_global_wisdom_directory(std::string dir) {
     global_wisdom_settings = new WisdomSettings(
         std::move(dir),
         s.tuning_directory(),
-        s.tuning_patterns());
+        s.capture_patterns());
 }
 
 void set_global_tuning_directory(std::string dir) {
@@ -86,13 +102,13 @@ void set_global_tuning_directory(std::string dir) {
     global_wisdom_settings = new WisdomSettings(
         s.wisdom_directory(),
         std::move(dir),
-        s.tuning_patterns());
+        s.capture_patterns());
 }
 
-void add_global_tuning_pattern(std::string pattern) {
+void add_global_capture_pattern(std::string pattern) {
     WisdomSettings s = default_wisdom_settings();
 
-    std::vector<std::string> patterns = s.tuning_patterns();
+    std::vector<std::string> patterns = s.capture_patterns();
     patterns.emplace_back(std::move(pattern));
 
     global_wisdom_settings = new WisdomSettings(
@@ -500,18 +516,20 @@ WisdomResult compile_impl(
     CudaDevice device,
     std::vector<TypeInfo> param_types) {
     WisdomResult result;
-    Config config = load_best_config(
-        impl->settings_.wisdom_directory(),
+    Config config = impl->settings_.load_config(
         impl->tuning_key_,
         impl->builder_,
-        device.name(),
-        device.arch(),
         problem_size,
+        device,
         &result);
 
+    // Assign result to temporary variable since compile may throw
+    auto instance =
+        impl->builder_.compile(config, param_types, impl->compiler_);
+
+    // Compile was successful. Overwrite fields of impl
+    impl->instance_ = std::move(instance);
     impl->param_types_ = std::move(param_types);
-    impl->instance_ =
-        impl->builder_.compile(config, impl->param_types_, impl->compiler_);
     impl->compiled_ = true;
     return result;
 }

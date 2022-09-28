@@ -60,19 +60,25 @@ struct WisdomSettings {
     WisdomSettings(
         std::string wisdom_dir,
         std::string tuning_dir,
-        std::vector<std::string> tuning_patterns = {},
+        std::vector<std::string> capture_patterns = {},
         bool tuning_force = true);
     ~WisdomSettings();
     WisdomSettings(WisdomSettings&&) noexcept;
     WisdomSettings(const WisdomSettings&);
 
+    Config load_config(
+        const std::string& key,
+        const ConfigSpace& space,
+        ProblemSize problem_size,
+        CudaDevice device,
+        WisdomResult* result_out);
     bool should_capture_kernel(
         const std::string& tuning_key,
         ProblemSize problem_size,
         WisdomResult result = WisdomResult::NotFound) const;
     const std::string& wisdom_directory() const;
     const std::string& tuning_directory() const;
-    const std::vector<std::string>& tuning_patterns() const;
+    const std::vector<std::string>& capture_patterns() const;
 
   private:
     std::shared_ptr<WisdomSettingsImpl> impl_;
@@ -80,7 +86,7 @@ struct WisdomSettings {
 
 void set_global_wisdom_directory(std::string);
 void set_global_tuning_directory(std::string);
-void add_global_tuning_pattern(std::string);
+void add_global_capture_pattern(std::string);
 WisdomSettings default_wisdom_settings();
 
 struct KernelArg {
