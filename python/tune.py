@@ -32,7 +32,7 @@ def should_skip_kernel(args, problem):
 
     for record in wisdom:
         if record.get("problem_size") == problem_size and \
-                record.get("env", dict()).get("device_name") == device:
+                record.get("environment", dict()).get("device_name") == device:
             return True
 
     return False

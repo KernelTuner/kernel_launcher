@@ -1,6 +1,7 @@
 import itertools
 import json
 import logging
+import math
 import numpy as np
 import os.path
 import socket
@@ -77,7 +78,7 @@ def write_wisdom(path: str, key: str, params: dict, problem_size: list, results:
         if not _is_valid_config(result):
             continue
 
-        config = [result[key] for key in param_keys]
+        config = _convert_config(result, param_keys)
         record = {
             "config": config,
             "problem_size": problem_size,
@@ -133,7 +134,7 @@ def read_wisdom(path: str, key: str = None, params: dict = None, *, error_if_mis
 
                 # Append to results
                 results.append(record)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         if error_if_missing:
             raise
 
@@ -191,6 +192,34 @@ def _create_header(key: str, param_keys: list) -> str:
 def _is_valid_config(config):
     objective = config.get(WISDOM_OBJECTIVE)
     return isinstance(objective, (float, np.float32, np.float64))
+
+
+def _convert_config(config: dict, keys: list):
+    result = []
+
+    for key in keys:
+        if key not in config:
+            raise ValueError(f"invalid configuration, missing key {key}: {config!r}")
+
+        value = config[key]
+
+        if isinstance(value, np.integer):
+            value = int(value)
+        elif isinstance(value, np.bool_):
+            value = bool(value)
+        elif isinstance(value, (np.inexact, float)):
+            # It can happen that what was suppose to be an integer, accidentally gets cast to a float.
+            # To combat this, here we cast the value back to an integer if its fractional part is zero.
+            whole, frac = math.modf(value)
+
+            if frac == 0.0 and int(whole) == whole:
+                value = int(whole)
+            else:
+                value = float(value)
+
+        result.append(value)
+
+    return result
 
 
 def _wisdom_file(path, key):
