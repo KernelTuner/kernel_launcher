@@ -103,7 +103,7 @@ def write_wisdom(path: str, key: str, params: dict, problem_size: list, results:
         handle.writelines(line + "\n" for line in lines)
 
 
-def read_wisdom(path: str, key: str = None, params: dict = None) -> list:
+def read_wisdom(path: str, key: str = None, params: dict = None, *, error_if_missing: bool = True) -> list:
     """
     Read the results of a wisdom file.
 
@@ -112,24 +112,30 @@ def read_wisdom(path: str, key: str = None, params: dict = None) -> list:
                 is not performed
     :param params: The tunable parameters. Used to validate if the wisdom file has the correct parameters. If ``None``,
                     this check is not performed.
-    :return: List of dictionaries.
+    :param error_if_missing: If ``True``, throws an exception if the wisdom file was not found. If ``False``, the error
+                             is ignored instead and an empty list is returned.
+    :return: List of dictionaries containing the wisdom records.
     """
     filename = _wisdom_file(path, key)
     results = []
 
-    with open(filename, "r") as handle:
-        param_keys = _check_header(next(handle), key, params)
+    try:
+        with open(filename, "r") as handle:
+            param_keys = _check_header(next(handle), key, params)
 
-        for line, record in _parse_wisdom(handle):
-            # Skip lines that do not have a valid record
-            if not record:
-                continue
+            for line, record in _parse_wisdom(handle):
+                # Skip lines that do not have a valid record
+                if not record:
+                    continue
 
-            # Replace configuration
-            record["config"] = dict(zip(param_keys, record["config"]))
+                # Replace configuration
+                record["config"] = dict(zip(param_keys, record["config"]))
 
-            # Append to results
-            results.append(record)
+                # Append to results
+                results.append(record)
+    except FileNotFoundError as e:
+        if error_if_missing:
+            raise
 
     return results
 
