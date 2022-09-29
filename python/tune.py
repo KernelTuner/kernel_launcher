@@ -52,11 +52,6 @@ def tune_kernel(filename, args):
             verify=args.verify,
             atol=args.atol,
     )
-    strategy_options = dict(
-        time_limit=args.time_limit,
-        fraction=1,
-        # max_fevals=1e99,
-    )
 
     print(f"host name: {socket.gethostname()}")
     print(f"device name: {device_name()}")
@@ -75,10 +70,11 @@ def tune_kernel(filename, args):
 
         before = datetime.datetime.now()
 
+        strategy_options = dict()
         results, env = problem.tune(
             block_params,
             strategy="brute_force",
-            strategy_options=dict(max_fevals=1e99),
+            strategy_options=strategy_options,
             **options)
 
         after = datetime.datetime.now()
@@ -92,7 +88,10 @@ def tune_kernel(filename, args):
                 for var in expr.free_variables():
                     more_params[var] = [best_result[var]]
 
-            strategy_options["time_limit"] = time_remaining
+            strategy_options = dict(
+                max_fevals=1e99,
+                time_limit=time_remaining,
+            )
             more_results, _ = problem.tune(
                 more_params,
                 strategy_options=strategy_options,
@@ -101,12 +100,22 @@ def tune_kernel(filename, args):
             results += more_results
 
     elif args.strategy == "random":
+        strategy_options = dict(
+            time_limit=args.time_limit,
+            fraction=1
+        )
+
         results, env = problem.tune(
             strategy="random_sample",
             strategy_options=strategy_options,
             **options)
 
     elif args.strategy == "bayes":
+        strategy_options = dict(
+            time_limit=args.time_limit,
+            max_fevals=1e99,
+        )
+
         results, env = problem.tune(
             strategy="bayes_opt",
             strategy_options=strategy_options,
@@ -179,7 +188,6 @@ def main():
     parser.add_argument("files", nargs="*")
 
     args = parser.parse_args()
-    print(args)
 
     if not os.path.isdir(args.output_dir):
         print(f"error: not a valid directory: {args.output_dir}")
