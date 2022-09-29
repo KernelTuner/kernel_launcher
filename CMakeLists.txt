@@ -26,6 +26,10 @@ if (KERNEL_LAUNCHER_BUILD_TEST)
     add_subdirectory(tests)
 endif()
 
+if (KERNEL_LAUNCHER_BUILD_EXAMPLE)
+    add_subdirectory(examples)
+endif()
+
 if (KERNEL_LAUNCHER_ZLIB)
     find_package(ZLIB REQUIRED)
     target_include_directories(${PROJECT_NAME} PRIVATE ${ZLIB_INCLUDE_DIRS})

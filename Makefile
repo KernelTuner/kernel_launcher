@@ -1,7 +1,7 @@
 BUILD_DIR=build
 
 fmt:
-	clang-format -i include/kernel_launcher/*.h src/*.cpp tests/*.cpp
+	clang-format -i include/kernel_launcher/*.h src/*.cpp tests/*.cpp examples/*/*.cu
 
 test: ${BUILD_DIR}
 	cd ${BUILD_DIR} && make kernel_launcher_tests
