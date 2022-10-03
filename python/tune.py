@@ -7,7 +7,7 @@ import re
 import datetime
 
 KERNEL_LAUNCHER_HOME = os.path.join(os.path.dirname(__file__), "..")
-sys.path.insert(0, os.path.join(KERNEL_LAUNCHER_HOME, "python/kernel_launcher"))
+sys.path.insert(0, os.path.join(KERNEL_LAUNCHER_HOME, "python"))
 import kernel_launcher as kl
 
 
