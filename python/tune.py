@@ -58,10 +58,17 @@ def tune_kernel(filename, args):
     print(f"kernel name: {problem.key}")
     print(f"problem size: {problem.problem_size}")
 
+    # Run kernel once with default configuration.
+    default_config = problem.space.default_config()
+    default_params = dict((k, [v]) for k, v in default_config.items())
+    results, env = problem.tune(
+            default_params,
+            strategy="brute_force")
+
     if args.strategy == "block":
         block_params = dict()
 
-        for k, v in problem.space.default_config().items():
+        for k, v in default_config.items():
             block_params[k] = [v]
 
         for expr in problem.kernel.block_size:
@@ -71,11 +78,12 @@ def tune_kernel(filename, args):
         before = datetime.datetime.now()
 
         strategy_options = dict()
-        results, env = problem.tune(
+        more_results, _ = problem.tune(
             block_params,
             strategy="brute_force",
             strategy_options=strategy_options,
             **options)
+        results += more_results
 
         after = datetime.datetime.now()
         time_remaining = args.time_limit - (after - before).total_seconds()
@@ -105,10 +113,11 @@ def tune_kernel(filename, args):
             fraction=1
         )
 
-        results, env = problem.tune(
+        more_results, _ = problem.tune(
             strategy="random_sample",
             strategy_options=strategy_options,
             **options)
+        results += more_results
 
     elif args.strategy == "bayes":
         strategy_options = dict(
@@ -116,10 +125,11 @@ def tune_kernel(filename, args):
             max_fevals=1e99,
         )
 
-        results, env = problem.tune(
+        more_results, _ = problem.tune(
             strategy="bayes_opt",
             strategy_options=strategy_options,
             **options)
+        results += more_results
 
     else:
         raise ValueError(f"unknown strategy: {args.strategy}")
