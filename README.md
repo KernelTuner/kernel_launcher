@@ -13,7 +13,7 @@
 
 
 _Kernel Launcher_ is a C++ library that makes it easy to dynamically compile _CUDA_ kernels at run time (using [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)) and call them in an easy type-safe way using C++ magic.
-Additionally, _Kernel Launcher_ supports exporting kernel specifications, to enable tuning by [Kernel Tuner](https://github.com/benvanwerkhoven/kernel_tuner), and importing the tuning results, known as _wisdom_ files, back into the application.
+Additionally, _Kernel Launcher_ supports exporting kernel specifications, to enable tuning by [Kernel Tuner](https://github.com/KernelTuner/kernel_tuner), and importing the tuning results, known as _wisdom_ files, back into the application.
 
 
 
@@ -70,5 +70,5 @@ Licensed under Apache 2.0. See [LICENSE](https://github.com/KernelTuner/kernel_l
 
 ## Related Work
 
-* [Kernel Tuner](https://github.com/benvanwerkhoven/kernel_tuner)
+* [Kernel Tuner](https://github.com/KernelTuner/kernel_tuner)
 
