@@ -7,133 +7,49 @@
 
 namespace kernel_launcher {
 
-struct WisdomSettingsImpl {
-    std::string wisdom_dir_;
-    std::string tuning_dir_;
-    std::vector<std::string> capture_patterns_;
-    bool force_capture_;
-};
+std::shared_ptr<DefaultOracle> global_default_wisdom = nullptr;
 
-WisdomSettings::WisdomSettings(
+static std::shared_ptr<DefaultOracle> set_global_wisdom(DefaultOracle oracle) {
+    auto ptr = std::make_shared<DefaultOracle>(std::move(oracle));
+    atomic_store(&global_default_wisdom, ptr);
+    return ptr;
+}
+
+static std::shared_ptr<DefaultOracle> get_global_wisdom() {
+    auto ptr = atomic_load(&global_default_wisdom);
+
+    if (!ptr) {
+        ptr = set_global_wisdom(DefaultOracle::from_env());
+    }
+
+    return ptr;
+}
+
+DefaultOracle::DefaultOracle() : DefaultOracle(*get_global_wisdom()) {}
+
+DefaultOracle::DefaultOracle(
     std::string wisdom_dir,
-    std::string tuning_dir,
+    std::string capture_dir,
     std::vector<std::string> capture_patterns,
-    bool tuning_force) :
-    impl_(std::make_shared<WisdomSettingsImpl>(WisdomSettingsImpl {
-        std::move(wisdom_dir),
-        std::move(tuning_dir),
-        std::move(capture_patterns),
-        tuning_force})) {}
+    bool force_capture) :
+    wisdom_dir_(std::move(wisdom_dir)),
+    capture_dir_(std::move(capture_dir)),
+    capture_patterns_(std::move(capture_patterns)),
+    force_capture_(force_capture) {}
 
-WisdomSettings::~WisdomSettings() = default;
-WisdomSettings::WisdomSettings(WisdomSettings&&) noexcept = default;
-WisdomSettings::WisdomSettings(const WisdomSettings&) = default;
-
-Config WisdomSettings::load_config(
-    const std::string& key,
-    const ConfigSpace& builder,
-    ProblemSize problem_size,
-    CudaDevice device,
-    WisdomResult* result_out) {
-    return load_best_config(
-        impl_->wisdom_dir_,
-        key,
-        builder,
-        device.name(),
-        device.arch(),
-        problem_size,
-        result_out);
-}
-
-bool WisdomSettings::should_capture_kernel(
-    const std::string& tuning_key,
-    ProblemSize problem_size,
-    WisdomResult result) const {
-    bool matches = false;
-
-    // If wisdom was found for this kernel and we do not force tuning,
-    // then there is no need to tune this kernel.
-    if (result == WisdomResult::Ok && !impl_->force_capture_) {
-        return false;
-    }
-
-    for (const std::string& pattern : impl_->capture_patterns_) {
-        if (string_match(pattern.c_str(), tuning_key.c_str())) {
-            matches = true;
-            break;
-        }
-    }
-
-    if (!matches) {
-        return false;
-    }
-
-    if (tuning_file_exists(impl_->tuning_dir_, tuning_key, problem_size)) {
-        return false;
-    }
-
-    return true;
-}
-
-const std::string& WisdomSettings::wisdom_directory() const {
-    return impl_->wisdom_dir_;
-}
-
-const std::string& WisdomSettings::tuning_directory() const {
-    return impl_->tuning_dir_;
-}
-
-const std::vector<std::string>& WisdomSettings::capture_patterns() const {
-    return impl_->capture_patterns_;
-}
-
-WisdomSettings* global_wisdom_settings = nullptr;
-
-void set_global_wisdom_directory(std::string dir) {
-    WisdomSettings s = default_wisdom_settings();
-    global_wisdom_settings = new WisdomSettings(
-        std::move(dir),
-        s.tuning_directory(),
-        s.capture_patterns());
-}
-
-void set_global_tuning_directory(std::string dir) {
-    WisdomSettings s = default_wisdom_settings();
-    global_wisdom_settings = new WisdomSettings(
-        s.wisdom_directory(),
-        std::move(dir),
-        s.capture_patterns());
-}
-
-void add_global_capture_pattern(std::string pattern) {
-    WisdomSettings s = default_wisdom_settings();
-
-    std::vector<std::string> patterns = s.capture_patterns();
-    patterns.emplace_back(std::move(pattern));
-
-    global_wisdom_settings = new WisdomSettings(
-        s.wisdom_directory(),
-        s.tuning_directory(),
-        patterns);
-}
-
-WisdomSettings default_wisdom_settings() {
-    if (global_wisdom_settings) {
-        return *global_wisdom_settings;
-    }
-
+DefaultOracle DefaultOracle::from_env() {
     std::string wisdom_dir = ".";
-    std::string tuning_dir = ".";
+    std::string capture_dir = ".";
     std::vector<std::string> capture_patterns = {};
     const char* value;
 
     if ((value = getenv("KERNEL_LAUNCHER_WISDOM"))) {
         wisdom_dir = value;
-        tuning_dir = value;
+        capture_dir = value;
     }
 
     if ((value = getenv("KERNEL_LAUNCHER_DIR"))) {
-        tuning_dir = value;
+        capture_dir = value;
     }
 
     std::string patterns = "";
@@ -184,7 +100,7 @@ WisdomSettings default_wisdom_settings() {
         bool needs_comma = false;
         for (const auto& pattern : capture_patterns) {
             if (needs_comma) {
-                log_info() << ", ";
+                ss << ", ";
             } else {
                 needs_comma = true;
             }
@@ -196,10 +112,139 @@ WisdomSettings default_wisdom_settings() {
                    << "\n";
     }
 
-    global_wisdom_settings = new WisdomSettings(
-        WisdomSettings {wisdom_dir, tuning_dir, capture_patterns, force});
-    return *global_wisdom_settings;
+    return DefaultOracle(
+        std::move(wisdom_dir),
+        std::move(capture_dir),
+        std::move(capture_patterns),
+        force);
 }
+
+Config DefaultOracle::load_config(
+    const std::string& tuning_key,
+    const ConfigSpace& space,
+    ProblemSize problem_size,
+    CudaDevice device,
+    bool* should_capture_out) const {
+    WisdomResult result = WisdomResult::Ok;
+    Config config = load_best_config(
+        wisdom_dir_,
+        tuning_key,
+        space,
+        device.name(),
+        device.arch(),
+        problem_size,
+        &result);
+
+    if (should_capture_out) {
+        *should_capture_out =
+            this->should_capture_kernel(tuning_key, problem_size, result);
+    }
+
+    return config;
+}
+
+void DefaultOracle::capture_kernel(
+    const std::string& tuning_key,
+    const KernelBuilder& builder,
+    ProblemSize problem_size,
+    const std::vector<TypeInfo>& param_types,
+    const std::vector<std::vector<uint8_t>>& inputs,
+    const std::vector<std::vector<uint8_t>>& outputs) const {
+    export_tuning_file(
+        capture_dir_,
+        tuning_key,
+        builder,
+        problem_size,
+        param_types,
+        inputs,
+        outputs);
+}
+
+bool DefaultOracle::should_capture_kernel(
+    const std::string& tuning_key,
+    ProblemSize problem_size,
+    WisdomResult result) const {
+    bool matches = false;
+
+    // If wisdom was found for this kernel and we do not force tuning,
+    // then there is no need to tune this kernel.
+    if (result == WisdomResult::Ok && !force_capture_) {
+        return false;
+    }
+
+    for (const std::string& pattern : capture_patterns_) {
+        if (string_match(pattern.c_str(), tuning_key.c_str())) {
+            matches = true;
+            break;
+        }
+    }
+
+    if (!matches) {
+        return false;
+    }
+
+    if (tuning_file_exists(capture_dir_, tuning_key, problem_size)) {
+        return false;
+    }
+
+    return true;
+}
+
+void set_global_wisdom_directory(std::string dir) {
+    auto wisdom = get_global_wisdom();
+
+    set_global_wisdom(DefaultOracle(
+        std::move(dir),
+        wisdom->capture_directory(),
+        wisdom->capture_patterns(),
+        wisdom->is_capture_forced()));
+}
+
+void set_global_tuning_directory(std::string dir) {
+    auto wisdom = get_global_wisdom();
+
+    set_global_wisdom(DefaultOracle(
+        wisdom->wisdom_directory(),
+        std::move(dir),
+        wisdom->capture_patterns(),
+        wisdom->is_capture_forced()));
+}
+
+void add_global_capture_pattern(std::string pattern) {
+    auto wisdom = get_global_wisdom();
+    std::vector<std::string> patterns = wisdom->capture_patterns();
+    patterns.push_back(std::move(pattern));
+
+    set_global_wisdom(DefaultOracle(
+        wisdom->wisdom_directory(),
+        wisdom->capture_directory(),
+        patterns,
+        wisdom->is_capture_forced()));
+}
+
+WisdomSettings default_wisdom_settings() {
+    return get_global_wisdom();
+}
+
+WisdomSettings::WisdomSettings() : WisdomSettings(get_global_wisdom()) {}
+
+WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
+    impl_(std::move(oracle)) {
+    if (!oracle) {
+        throw std::runtime_error("Oracle cannot be null");
+    }
+}
+
+WisdomSettings::WisdomSettings(
+    std::string wisdom_dir,
+    std::string capture_dir,
+    std::vector<std::string> capture_patterns,
+    bool force_capture) :
+    WisdomSettings(std::make_shared<DefaultOracle>(
+        std::move(wisdom_dir),
+        std::move(capture_dir),
+        std::move(capture_patterns),
+        force_capture)) {}
 
 static std::string sanitize_tuning_key(const std::string& key) {
     std::string output;
@@ -510,18 +555,18 @@ void WisdomKernel::clear() {
     }
 }
 
-WisdomResult compile_impl(
+void compile_impl(
     WisdomKernelImpl* impl,
     ProblemSize problem_size,
     CudaDevice device,
-    std::vector<TypeInfo> param_types) {
-    WisdomResult result;
+    std::vector<TypeInfo> param_types,
+    bool* should_capture = nullptr) {
     Config config = impl->settings_.load_config(
         impl->tuning_key_,
         impl->builder_,
         problem_size,
         device,
-        &result);
+        should_capture);
 
     // Assign result to temporary variable since compile may throw
     auto instance =
@@ -531,10 +576,9 @@ WisdomResult compile_impl(
     impl->instance_ = std::move(instance);
     impl->param_types_ = std::move(param_types);
     impl->compiled_ = true;
-    return result;
 }
 
-WisdomResult WisdomKernel::compile(
+void WisdomKernel::compile(
     ProblemSize problem_size,
     CudaDevice device,
     std::vector<TypeInfo> param_types) {
@@ -543,11 +587,12 @@ WisdomResult WisdomKernel::compile(
     }
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
-    return compile_impl(
+    compile_impl(
         impl_.get(),
         problem_size,
         device,
-        std::move(param_types));
+        std::move(param_types),
+        nullptr);
 }
 
 static void assert_types_equal(
@@ -597,28 +642,25 @@ void WisdomKernel::launch(
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    std::lock_guard<std::mutex> guard(impl_->mutex_);
-
     std::vector<void*> ptrs;
     for (const KernelArg& arg : args) {
         ptrs.push_back(arg.as_void_ptr());
     }
 
+    std::lock_guard<std::mutex> guard(impl_->mutex_);
     if (!impl_->compiled_) {
         std::vector<TypeInfo> param_types;
         for (const KernelArg& arg : args) {
             param_types.push_back(arg.type());
         }
 
-        WisdomResult result = compile_impl(
+        bool should_capture = false;
+        compile_impl(
             impl_.get(),
             problem_size,
             CudaDevice::current(),
-            param_types);
-        bool should_capture = impl_->settings_.should_capture_kernel(
-            impl_->tuning_key_,
-            problem_size,
-            result);
+            param_types,
+            &should_capture);
 
         if (should_capture) {
             std::vector<std::vector<uint8_t>> inputs;
@@ -641,8 +683,7 @@ void WisdomKernel::launch(
             }
 
             try {
-                export_tuning_file(
-                    impl_->settings_.tuning_directory(),
+                impl_->settings_.capture_kernel(
                     impl_->tuning_key_,
                     impl_->builder_,
                     problem_size,
@@ -655,13 +696,12 @@ void WisdomKernel::launch(
                     << impl_->tuning_key_ << "\": " << err.what();
             }
 
-        } else {
-            impl_->instance_.launch(stream, problem_size, ptrs.data());
+            return;
         }
-    } else {
-        assert_types_equal(args, impl_->param_types_);
-        impl_->instance_.launch(stream, problem_size, ptrs.data());
     }
+
+    assert_types_equal(args, impl_->param_types_);
+    impl_->instance_.launch(stream, problem_size, ptrs.data());
 }
 
 static bool is_inline_scalar(TypeInfo type) {
