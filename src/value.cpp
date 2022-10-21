@@ -1,5 +1,6 @@
 #include "kernel_launcher/value.h"
 
+#include <atomic>
 #include <cstring>
 #include <mutex>
 #include <sstream>
@@ -361,6 +362,9 @@ TunableValue operator||(const TunableValue& lhs, const TunableValue& rhs) {
 TunableValue operator!(const TunableValue& v) {
     return !v.to_bool();
 }
+
+static std::atomic<uint64_t> global_var_counter;
+Variable::Variable() : id_(global_var_counter += 1) {}
 
 TunableParam::TunableParam(
     std::string name,

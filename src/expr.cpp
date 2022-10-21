@@ -19,12 +19,20 @@ std::string ParamExpr::to_string() const {
 }
 
 TunableValue ParamExpr::eval(const Eval& ctx) const {
-    return ctx.lookup(param_);
+    TunableValue value;
+    if (!ctx.lookup(param_.variable(), value)) {
+        throw std::runtime_error(
+            "parameter $" + param_.name() + "is undefined");
+    }
+
+    return value;
 }
 
 Expr ParamExpr::resolve(const Eval& eval) const {
-    if (eval.has(param_)) {
-        return ScalarExpr(eval.lookup(param_));
+    TunableValue value;
+
+    if (eval.lookup(param_.variable(), value)) {
+        return ScalarExpr(value);
     } else {
         return ParamExpr(param_);
     }
@@ -37,15 +45,32 @@ std::string ProblemExpr::to_string() const {
 }
 
 TunableValue ProblemExpr::eval(const Eval& eval) const {
-    return eval.problem_size(axis_);
+    auto var = variable();
+    TunableValue value;
+
+    if (!eval.lookup(var, value)) {
+        throw std::runtime_error(
+            "attempted to evaluate expression that "
+            "cannot be problem dependent");
+    }
+
+    return value;
 }
 
 Expr ProblemExpr::resolve(const Eval& eval) const {
-    if (eval.has_problem_size()) {
-        return ScalarExpr(eval.problem_size(axis_));
+    auto var = variable();
+    TunableValue value;
+
+    if (eval.lookup(var, value)) {
+        return ScalarExpr(value);
     } else {
         return ProblemExpr(axis_);
     }
+}
+
+Variable ProblemExpr::variable() const {
+    static Variable vars[3] = {Variable(), Variable(), Variable()};
+    return vars[axis_];
 }
 
 TunableValue SelectExpr::eval(const Eval& ctx) const {
@@ -104,7 +129,7 @@ Expr UnaryExpr::resolve(const Eval& eval) const {
     UnaryExpr result(operator_, operand_.resolve(eval));
 
     if (result.operand_.is_constant()) {
-        return ScalarExpr(result.eval({}));
+        return ScalarExpr(result.eval(eval));
     } else {
         return result;
     }
@@ -203,7 +228,7 @@ Expr BinaryExpr::resolve(const Eval& eval) const {
     BinaryExpr result(operator_, lhs_.resolve(eval), rhs_.resolve(eval));
 
     if (result.lhs_.is_constant() && result.lhs_.is_constant()) {
-        return ScalarExpr(result.eval({}));
+        return ScalarExpr(result.eval(eval));
     } else {
         return result;
     }

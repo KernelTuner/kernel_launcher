@@ -2,6 +2,45 @@
 
 namespace kernel_launcher {
 
+struct ProblemSizeEval: Eval {
+    ProblemSizeEval(ProblemSize p) : problem_(p) {}
+
+    bool lookup(const Variable& v, TunableValue& value) const override {
+        if (v == problem_size_x().variable()) {
+            value = problem_[0];
+        } else if (v == problem_size_y().variable()) {
+            value = problem_[1];
+        } else if (v == problem_size_z().variable()) {
+            value = problem_[2];
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
+  private:
+    ProblemSize problem_;
+};
+
+void KernelInstance::launch(
+    cudaStream_t stream,
+    ProblemSize problem_size,
+    void** args) const {
+    ProblemSizeEval ctx(problem_size);
+    dim3 grid_size = {
+        ctx(grid_size_[0]),
+        ctx(grid_size_[1]),
+        ctx(grid_size_[2])};
+
+    dim3 block_size = {
+        ctx(block_size_[0]),
+        ctx(block_size_[1]),
+        ctx(block_size_[2])};
+
+    return module_.launch(stream, grid_size, block_size, shared_mem_, args);
+}
+
 KernelBuilder& KernelBuilder::block_size(
     TypedExpr<uint32_t> x,
     TypedExpr<uint32_t> y,
@@ -82,7 +121,7 @@ KernelDef KernelBuilder::build(
         throw std::runtime_error(ss.str());
     }
 
-    Eval eval = {config.get()};
+    const Eval& eval = config;
     KernelDef def(kernel_name_, kernel_source_);
 
     for (TypeInfo param : param_types) {
@@ -120,7 +159,7 @@ KernelInstance KernelBuilder::compile(
     CudaContextHandle ctx) const {
     CudaModule module = compiler.compile(ctx, build(config, param_types));
 
-    Eval eval = {config.get()};
+    const Eval& eval = config;
     std::array<TypedExpr<uint32_t>, 3> block_size = {
         block_size_[0].resolve(eval),
         block_size_[1].resolve(eval),

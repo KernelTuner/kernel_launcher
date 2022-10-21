@@ -25,20 +25,7 @@ struct KernelInstance {
         shared_mem_(shared_mem) {}
 
     void
-    launch(cudaStream_t stream, ProblemSize problem_size, void** args) const {
-        Eval ctx {{}, problem_size};
-        dim3 grid_size = {
-            ctx(grid_size_[0]),
-            ctx(grid_size_[1]),
-            ctx(grid_size_[2])};
-
-        dim3 block_size = {
-            ctx(block_size_[0]),
-            ctx(block_size_[1]),
-            ctx(block_size_[2])};
-
-        return module_.launch(stream, grid_size, block_size, shared_mem_, args);
-    }
+    launch(cudaStream_t stream, ProblemSize problem_size, void** args) const;
 
   private:
     CudaModule module_;

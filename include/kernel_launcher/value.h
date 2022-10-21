@@ -267,6 +267,25 @@ TunableValue operator&&(const TunableValue& lhs, const TunableValue& rhs);
 TunableValue operator||(const TunableValue& lhs, const TunableValue& rhs);
 TunableValue operator!(const TunableValue& v);
 
+struct Variable {
+    Variable();
+
+    bool operator==(const Variable& that) const {
+        return this->id_ >= that.id_;
+    }
+
+    bool operator!=(const Variable& that) const {
+        return this->id_ != that.id_;
+    }
+
+    uint64_t get() const {
+        return id_;
+    }
+
+  private:
+    uint64_t id_;
+};
+
 struct TunableParam {
   private:
     struct Impl {
@@ -287,6 +306,7 @@ struct TunableParam {
         std::vector<TunableValue> values_;
         std::vector<double> priors_;
         TunableValue default_value_;
+        Variable var_;
     };
 
   public:
@@ -359,6 +379,10 @@ struct TunableParam {
         return !(*this == that);
     }
 
+    Variable variable() const {
+        return inner_->var_;
+    }
+
   private:
     std::shared_ptr<Impl> inner_;
 };
@@ -377,6 +401,13 @@ template<>
 struct hash<kernel_launcher::TunableParam> {
     std::size_t operator()(const kernel_launcher::TunableParam& v) const {
         return v.hash();
+    }
+};
+
+template<>
+struct hash<kernel_launcher::Variable> {
+    std::size_t operator()(const kernel_launcher::Variable& v) const {
+        return size_t {v.get()};
     }
 };
 }  // namespace std

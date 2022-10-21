@@ -8,13 +8,17 @@
 
 namespace kernel_launcher {
 
+using TunableMap = std::unordered_map<Variable, TunableValue>;
+
 struct ConfigSpace;
-struct Config {
+struct Config: Eval {
     Config() = default;
     Config(Config&&) = default;
     explicit Config(const Config&) = default;
     Config& operator=(Config&&) = default;
     Config& operator=(const Config&) = delete;
+
+    bool lookup(const Variable& v, TunableValue& out) const override;
 
     const TunableValue& at(const std::string& param) const;
     const TunableValue& at(const TunableParam& param) const;
@@ -54,7 +58,7 @@ struct Config {
     friend std::ostream& operator<<(std::ostream&, const Config& c);
 
   private:
-    std::unordered_map<TunableParam, TunableValue> inner_;
+    std::unordered_map<Variable, TunableValue> inner_;
     std::vector<TunableParam> keys_;
 };
 
@@ -189,7 +193,7 @@ struct hash<kernel_launcher::Config> {
         size_t result = 0;
 
         for (const auto& it : config.get()) {
-            size_t k = std::hash<kernel_launcher::TunableParam> {}(it.first);
+            size_t k = std::hash<kernel_launcher::Variable> {}(it.first);
             result = kernel_launcher::hash_combine(result, k);
 
             size_t v = std::hash<kernel_launcher::TunableValue> {}(it.second);

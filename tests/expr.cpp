@@ -4,21 +4,44 @@
 
 using namespace kernel_launcher;
 
+using TunableMap = std::unordered_map<Variable, TunableValue>;
+
+struct MyEval: Eval {
+    MyEval(TunableMap m) : map(m) {}
+
+    bool lookup(const Variable& v, TunableValue& value) const override {
+        auto it = map.find(v);
+
+        // Not found
+        if (it == map.end()) {
+            return false;
+        }
+
+        value = it->second;
+        return true;
+    }
+
+    TunableMap map;
+};
+
 TEST_CASE("test Expr") {
     TunableParam x {"x", {1, 2, 3}, 1};
     TunableParam y {"y", {100, 200, 300}, 200};
     TunableParam z {"z", {false, true}, true};
     TunableParam w {"w", {-1, 1}, -1};
-    TunableMap c = {{x, x[2]}, {y, y[1]}, {z, z[0]}};
-    Eval eval {c};
+    TunableMap c = {
+        {x.variable(), x[2]},
+        {y.variable(), y[1]},
+        {z.variable(), z[0]}};
+    MyEval eval {c};
 
     auto xe = ParamExpr {x};
     auto ye = ParamExpr {y};
     auto ze = ParamExpr {z};
 
     SECTION("test Eval") {
-        CHECK(eval.lookup(x) == x[2]);
-        CHECK_THROWS(eval.lookup(w));
+        CHECK(ParamExpr {x}.eval(eval) == x[2]);
+        CHECK_THROWS(ParamExpr {w}.eval(eval));
     }
 
     SECTION("test ScalarExpr") {

@@ -25,52 +25,11 @@ struct BaseExpr {
     virtual Expr resolve(const Eval& eval) const = 0;
 };
 
-using TunableMap = std::unordered_map<TunableParam, TunableValue>;
-static const TunableMap EMPTY_CONFIG = {};
-
 struct Eval {
-    Eval() {}
+    Eval() = default;
+    virtual ~Eval() = default;
 
-    Eval(const TunableMap& mapping) : inner_(mapping) {
-        //
-    }
-
-    Eval(const TunableMap& mapping, ProblemSize problem_size) :
-        inner_(mapping),
-        problem_size_(problem_size),
-        has_problem_size_(true) {
-        //
-    }
-
-    Eval(ProblemSize problem_size) :
-        problem_size_(problem_size),
-        has_problem_size_(true) {
-        //
-    }
-
-    bool has_problem_size() const {
-        return has_problem_size_;
-    }
-
-    uint32_t problem_size(size_t axis) const {
-        if (!has_problem_size_) {
-            throw std::runtime_error("expression cannot be problem-dependent");
-        }
-
-        return problem_size_[axis];
-    }
-
-    bool has(const TunableParam& param) const {
-        return inner_.find(param) != inner_.end();
-    }
-
-    TunableValue lookup(const TunableParam& param) const {
-        return inner_.at(param);
-    }
-
-    TunableValue eval(const BaseExpr& expr) const {
-        return expr.eval(*this);
-    }
+    virtual bool lookup(const Variable& v, TunableValue& out) const = 0;
 
     template<typename T>
     T operator()(const TypedExpr<T>& expr) const {
@@ -82,11 +41,6 @@ struct Eval {
             throw;
         }
     }
-
-  private:
-    const TunableMap& inner_ = EMPTY_CONFIG;
-    ProblemSize problem_size_ = {};
-    bool has_problem_size_ = false;
 };
 
 struct ScalarExpr: BaseExpr {
@@ -258,6 +212,8 @@ struct ProblemExpr: BaseExpr {
     std::string to_string() const override;
     TunableValue eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
+
+    Variable variable() const;
 
     size_t axis() const {
         return axis_;

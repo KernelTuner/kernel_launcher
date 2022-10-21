@@ -2,24 +2,34 @@
 
 namespace kernel_launcher {
 
+bool Config::lookup(const Variable& v, TunableValue& out) const {
+    auto it = inner_.find(v);
+    if (it != inner_.end()) {
+        out = it->second;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void Config::insert(TunableParam k, TunableValue v) {
     const std::string& name = k.name();
 
-    for (const auto& it : inner_) {
-        if (it.first.name() == name) {
+    for (const auto& it : keys_) {
+        if (it.name() == name) {
             throw std::runtime_error(
                 "duplicate parameter: key " + name + " already exists");
         }
     }
 
     keys_.push_back(k);
-    inner_.insert({std::move(k), std::move(v)});
+    inner_.insert({k.variable(), std::move(v)});
 }
 
 const TunableValue& Config::at(const std::string& param) const {
-    for (const auto& it : inner_) {
-        if (it.first.name() == param) {
-            return it.second;
+    for (const auto& it : keys_) {
+        if (it.name() == param) {
+            return inner_.at(it.variable());
         }
     }
 
@@ -27,7 +37,7 @@ const TunableValue& Config::at(const std::string& param) const {
 }
 
 const TunableValue& Config::at(const TunableParam& param) const {
-    auto it = inner_.find(param);
+    auto it = inner_.find(param.variable());
     if (it == inner_.end()) {
         throw std::invalid_argument("unknown parameter: " + param.name());
     }
@@ -45,7 +55,7 @@ std::ostream& operator<<(std::ostream& s, const Config& c) {
             s << ", ";
         }
 
-        s << "\"" << p.name() << "\": " << c.inner_.at(p);
+        s << "\"" << p.name() << "\": " << c.inner_.at(p.variable());
     }
     return s << "}";
 }
@@ -107,7 +117,7 @@ bool ConfigSpace::is_valid(const Config& config) const {
     }
 
     for (const auto& p : params_) {
-        auto it = m.find(p);
+        auto it = m.find(p.variable());
         if (it == m.end()) {
             return false;
         }
@@ -117,10 +127,8 @@ bool ConfigSpace::is_valid(const Config& config) const {
         }
     }
 
-    Eval eval = {config.get()};
-
     for (const auto& r : restrictions_) {
-        if (!eval(r)) {
+        if (!config(r)) {
             return false;
         }
     }
