@@ -9,4 +9,5 @@
 #include "kernel_launcher/utils.h"
 #include "kernel_launcher/value.h"
 #include "kernel_launcher/wisdom.h"
+#include "kernel_launcher/wisdom_kernel.h"
 #include "kernel_launcher/registry.h"

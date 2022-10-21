@@ -1,4 +1,4 @@
-#include "kernel_launcher/wisdom.h"
+#include "kernel_launcher/wisdom_kernel.h"
 
 #include "catch.hpp"
 #include "test_utils.h"
