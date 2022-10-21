@@ -103,6 +103,8 @@
 </li>
       <li><a href="api.html#_CPPv4N15kernel_launcher6Config6insertE12TunableParam12TunableValue">kernel_launcher::Config::insert (C++ function)</a>, <a href="api.html#_CPPv4N15kernel_launcher6Config6insertERK9ParamExpr12TunableValue">[1]</a>
 </li>
+      <li><a href="api.html#_CPPv4NK15kernel_launcher6Config6lookupERK8VariableR12TunableValue">kernel_launcher::Config::lookup (C++ function)</a>
+</li>
       <li><a href="api.html#_CPPv4NK15kernel_launcher6ConfigneERK6Config">kernel_launcher::Config::operator!= (C++ function)</a>
 </li>
       <li><a href="api.html#_CPPv4N15kernel_launcher6ConfiglsERNSt7ostreamERK6Config">kernel_launcher::Config::operator&lt;&lt; (C++ function)</a>
@@ -251,12 +253,12 @@
 </li>
       <li><a href="api.html#_CPPv4N15kernel_launcher14KernelRegistryE">kernel_launcher::KernelRegistry (C++ struct)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#_CPPv4NK15kernel_launcher14KernelRegistry11instantiateE19AnyKernelDescriptor12cudaStream_t11ProblemSize">kernel_launcher::KernelRegistry::instantiate (C++ function)</a>
 </li>
       <li><a href="api.html#_CPPv4N15kernel_launcher14KernelRegistry14KernelRegistryE8Compiler14WisdomSettings">kernel_launcher::KernelRegistry::KernelRegistry (C++ function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#_CPPv4NK15kernel_launcher14KernelRegistry6lookupE19AnyKernelDescriptor">kernel_launcher::KernelRegistry::lookup (C++ function)</a>
 </li>
       <li><a href="api.html#_CPPv4NK15kernel_launcher14KernelRegistryclE19AnyKernelDescriptor11ProblemSize">kernel_launcher::KernelRegistry::operator() (C++ function)</a>, <a href="api.html#_CPPv4NK15kernel_launcher14KernelRegistryclE19AnyKernelDescriptor12cudaStream_t11ProblemSize">[1]</a>
@@ -304,6 +306,8 @@
       <li><a href="api.html#_CPPv4N15kernel_launcher12TunableParam12TunableParamENSt6stringENSt6vectorI12TunableValueEE12TunableValue">kernel_launcher::TunableParam::TunableParam (C++ function)</a>, <a href="api.html#_CPPv4N15kernel_launcher12TunableParam12TunableParamENSt6stringENSt6vectorI12TunableValueEENSt6vectorIdEE12TunableValue">[1]</a>
 </li>
       <li><a href="api.html#_CPPv4NK15kernel_launcher12TunableParam6valuesEv">kernel_launcher::TunableParam::values (C++ function)</a>
+</li>
+      <li><a href="api.html#_CPPv4NK15kernel_launcher12TunableParam8variableEv">kernel_launcher::TunableParam::variable (C++ function)</a>
 </li>
       <li><a href="api.html#_CPPv4N15kernel_launcher12TunableValueE">kernel_launcher::TunableValue (C++ struct)</a>
 </li>
@@ -419,19 +423,11 @@
 </li>
       <li><a href="api.html#_CPPv4N15kernel_launcher14WisdomSettingsE">kernel_launcher::WisdomSettings (C++ struct)</a>
 </li>
-      <li><a href="api.html#_CPPv4NK15kernel_launcher14WisdomSettings16capture_patternsEv">kernel_launcher::WisdomSettings::capture_patterns (C++ function)</a>
+      <li><a href="api.html#_CPPv4NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">kernel_launcher::WisdomSettings::capture_kernel (C++ function)</a>
 </li>
-      <li><a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDeviceP12WisdomResult">kernel_launcher::WisdomSettings::load_config (C++ function)</a>
+      <li><a href="api.html#_CPPv4NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePb">kernel_launcher::WisdomSettings::load_config (C++ function)</a>
 </li>
-      <li><a href="api.html#_CPPv4NK15kernel_launcher14WisdomSettings21should_capture_kernelERKNSt6stringE11ProblemSize12WisdomResult">kernel_launcher::WisdomSettings::should_capture_kernel (C++ function)</a>
-</li>
-      <li><a href="api.html#_CPPv4NK15kernel_launcher14WisdomSettings16tuning_directoryEv">kernel_launcher::WisdomSettings::tuning_directory (C++ function)</a>
-</li>
-      <li><a href="api.html#_CPPv4NK15kernel_launcher14WisdomSettings16wisdom_directoryEv">kernel_launcher::WisdomSettings::wisdom_directory (C++ function)</a>
-</li>
-      <li><a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsENSt6stringENSt6stringENSt6vectorINSt6stringEEEb">kernel_launcher::WisdomSettings::WisdomSettings (C++ function)</a>, <a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsERK14WisdomSettings">[1]</a>, <a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsERR14WisdomSettings">[2]</a>
-</li>
-      <li><a href="api.html#_CPPv4N15kernel_launcher14WisdomSettingsD0Ev">kernel_launcher::WisdomSettings::~WisdomSettings (C++ function)</a>
+      <li><a href="api.html#_CPPv4I0EN15kernel_launcher14WisdomSettings14WisdomSettingsENSt10shared_ptrI1TEE">kernel_launcher::WisdomSettings::WisdomSettings (C++ function)</a>, <a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsENSt10shared_ptrI6OracleEE">[1]</a>, <a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsENSt6stringENSt6stringENSt6vectorINSt6stringEEEb">[2]</a>, <a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsERK14WisdomSettings">[3]</a>, <a href="api.html#_CPPv4N15kernel_launcher14WisdomSettings14WisdomSettingsEv">[4]</a>
 </li>
   </ul></td>
 </tr></table>
