@@ -230,7 +230,7 @@ WisdomSettings::WisdomSettings() : WisdomSettings(get_global_wisdom()) {}
 
 WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
     impl_(std::move(oracle)) {
-    if (!oracle) {
+    if (!impl_) {
         throw std::runtime_error("Oracle cannot be null");
     }
 }
