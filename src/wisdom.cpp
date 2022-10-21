@@ -327,8 +327,8 @@ static TunableValue json_to_tunable_value(const nlohmann::json& value) {
         case nlohmann::json::value_t::string:
             return (const std::string&)value;
         default:
-            //            throw std::runtime_error("invalid tunable value");
-            return nullptr;
+            std::string repr = value.dump();
+            throw std::runtime_error("cannot interpret json value: " + repr);
     }
 }
 
