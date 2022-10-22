@@ -1,6 +1,5 @@
-#include "kernel_launcher/wisdom_kernel.h"
-
 #include "catch.hpp"
+#include "kernel_launcher/wisdom_kernel.h"
 #include "test_utils.h"
 
 using namespace kernel_launcher;

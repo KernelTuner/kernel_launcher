@@ -191,7 +191,6 @@ void set_global_tuning_directory(std::string);
 void add_global_capture_pattern(std::string);
 WisdomSettings default_wisdom_settings();
 
-
 }  // namespace kernel_launcher
 
 #endif  //KERNEL_LAUNCHER_WISDOM_H

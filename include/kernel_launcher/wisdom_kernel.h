@@ -1,9 +1,10 @@
 #ifndef KERNEL_LAUNCHER_WISDOM_KERNEL_H
 #define KERNEL_LAUNCHER_WISDOM_KERNEL_H
 
+#include <cstring>
+
 #include "kernel_launcher/kernel.h"
 #include "kernel_launcher/wisdom.h"
-#include <cstring>
 
 namespace kernel_launcher {
 
@@ -200,6 +201,6 @@ void WisdomKernelLaunch::launch(Args&&... args) const {
     kernel_ref_.launch(stream_, problem_size_, kargs);
 }
 
-}
+}  // namespace kernel_launcher
 
 #endif  //KERNEL_LAUNCHER_WISDOM_KERNEL_H

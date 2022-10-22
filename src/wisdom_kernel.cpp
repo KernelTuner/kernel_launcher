@@ -1,6 +1,8 @@
 #include "kernel_launcher/wisdom_kernel.h"
-#include "kernel_launcher/wisdom.h"
+
 #include <mutex>
+
+#include "kernel_launcher/wisdom.h"
 
 namespace kernel_launcher {
 
@@ -316,4 +318,4 @@ void* KernelArg::as_void_ptr() const {
         return data_.large_scalar;
     }
 }
-}
+}  // namespace kernel_launcher

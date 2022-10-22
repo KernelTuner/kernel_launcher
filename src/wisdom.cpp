@@ -517,5 +517,4 @@ Config load_best_config(
     return best_config;
 }
 
-
 }  // namespace kernel_launcher
