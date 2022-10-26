@@ -78,7 +78,7 @@ struct DefaultOracle: Oracle {
 
     DefaultOracle();
     DefaultOracle(
-        std::string wisdom_dir,
+        std::vector<std::string> wisdom_dirs,
         std::string capture_dir,
         std::vector<std::string> capture_patterns = {},
         bool force_capture = false);
@@ -114,8 +114,8 @@ struct DefaultOracle: Oracle {
             WisdomResult::NotFound);
     }
 
-    const std::string& wisdom_directory() const {
-        return wisdom_dir_;
+    const std::vector<std::string>& wisdom_directories() const {
+        return wisdom_dirs_;
     }
 
     const std::string& capture_directory() const {
@@ -131,7 +131,7 @@ struct DefaultOracle: Oracle {
     }
 
   private:
-    std::string wisdom_dir_;
+    std::vector<std::string> wisdom_dirs_;
     std::string capture_dir_;
     std::vector<std::string> capture_patterns_;
     bool force_capture_;
@@ -185,6 +185,8 @@ struct WisdomSettings {
   private:
     std::shared_ptr<Oracle> impl_;
 };
+
+void append_global_wisdom_directory(std::string);
 
 void set_global_wisdom_directory(std::string);
 void set_global_tuning_directory(std::string);

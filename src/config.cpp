@@ -16,14 +16,17 @@ void Config::insert(TunableParam k, TunableValue v) {
     const std::string& name = k.name();
 
     for (const auto& it : keys_) {
-        if (it.name() == name) {
+        if (it == k) {
+            inner_.emplace(k.variable(), std::move(v));
+            return;
+        } else if (it.name() == name) {
             throw std::runtime_error(
                 "duplicate parameter: key " + name + " already exists");
         }
     }
 
     keys_.push_back(k);
-    inner_.insert({k.variable(), std::move(v)});
+    inner_.emplace(k.variable(), std::move(v));
 }
 
 const TunableValue& Config::at(const std::string& param) const {

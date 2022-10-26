@@ -5,246 +5,24 @@
 #include "kernel_launcher/export.h"
 #include "nlohmann/json.hpp"
 
+static std::string string_comma_join(const std::vector<std::string>& items) {
+    std::stringstream ss;
+
+    bool needs_comma = false;
+    for (const auto& pattern : items) {
+        if (needs_comma) {
+            ss << ", ";
+        } else {
+            needs_comma = true;
+        }
+
+        ss << pattern;
+    }
+
+    return ss.str();
+}
+
 namespace kernel_launcher {
-
-std::shared_ptr<DefaultOracle> global_default_wisdom = nullptr;
-
-static std::shared_ptr<DefaultOracle> set_global_wisdom(DefaultOracle oracle) {
-    auto ptr = std::make_shared<DefaultOracle>(std::move(oracle));
-    atomic_store(&global_default_wisdom, ptr);
-    return ptr;
-}
-
-static std::shared_ptr<DefaultOracle> get_global_wisdom() {
-    auto ptr = atomic_load(&global_default_wisdom);
-
-    if (!ptr) {
-        ptr = set_global_wisdom(DefaultOracle::from_env());
-    }
-
-    return ptr;
-}
-
-DefaultOracle::DefaultOracle() : DefaultOracle(*get_global_wisdom()) {}
-
-DefaultOracle::DefaultOracle(
-    std::string wisdom_dir,
-    std::string capture_dir,
-    std::vector<std::string> capture_patterns,
-    bool force_capture) :
-    wisdom_dir_(std::move(wisdom_dir)),
-    capture_dir_(std::move(capture_dir)),
-    capture_patterns_(std::move(capture_patterns)),
-    force_capture_(force_capture) {}
-
-DefaultOracle DefaultOracle::from_env() {
-    std::string wisdom_dir = ".";
-    std::string capture_dir = ".";
-    std::vector<std::string> capture_patterns = {};
-    const char* value;
-
-    if ((value = getenv("KERNEL_LAUNCHER_WISDOM"))) {
-        wisdom_dir = value;
-        capture_dir = value;
-    }
-
-    if ((value = getenv("KERNEL_LAUNCHER_DIR"))) {
-        capture_dir = value;
-    }
-
-    std::string patterns = "";
-    bool force = false;
-
-    // Try the following environment keys in order
-    const char* env_keys[4] = {
-        "KERNEL_LAUNCHER_CAPTURE_FORCE",
-        "KERNEL_LAUNCHER_CAPTURE",
-        "KERNEL_LAUNCHER_TUNE_FORCE",
-        "KERNEL_LAUNCHER_TUNE",
-    };
-
-    for (const char* key : env_keys) {
-        if ((value = getenv(key)) == nullptr) {
-            continue;
-        }
-
-        if (!patterns.empty()) {
-            log_warning() << "environment key " << key << " was ignored\n";
-            continue;
-        }
-
-        patterns = value;
-        force = strstr(value, "FORCE") != nullptr;
-    }
-
-    if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
-        patterns = "*";
-    }
-
-    if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
-        patterns = "";
-    }
-
-    for (std::string pattern : string_split(patterns.c_str(), ',')) {
-        if (pattern.empty()) {
-            continue;
-        }
-
-        capture_patterns.push_back(std::move(pattern));
-    }
-
-    // Print info message on which kernels will be tuned.
-    if (!capture_patterns.empty()) {
-        std::stringstream ss;
-
-        bool needs_comma = false;
-        for (const auto& pattern : capture_patterns) {
-            if (needs_comma) {
-                ss << ", ";
-            } else {
-                needs_comma = true;
-            }
-
-            ss << pattern;
-        }
-
-        log_info() << "capture enabled for the following kernels: " << ss.str()
-                   << "\n";
-    }
-
-    return DefaultOracle(
-        std::move(wisdom_dir),
-        std::move(capture_dir),
-        std::move(capture_patterns),
-        force);
-}
-
-Config DefaultOracle::load_config(
-    const std::string& tuning_key,
-    const ConfigSpace& space,
-    ProblemSize problem_size,
-    CudaDevice device,
-    bool* should_capture_out) const {
-    WisdomResult result = WisdomResult::Ok;
-    Config config = load_best_config(
-        wisdom_dir_,
-        tuning_key,
-        space,
-        device.name(),
-        device.arch(),
-        problem_size,
-        &result);
-
-    if (should_capture_out) {
-        *should_capture_out =
-            this->should_capture_kernel(tuning_key, problem_size, result);
-    }
-
-    return config;
-}
-
-void DefaultOracle::capture_kernel(
-    const std::string& tuning_key,
-    const KernelBuilder& builder,
-    ProblemSize problem_size,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs) const {
-    export_tuning_file(
-        capture_dir_,
-        tuning_key,
-        builder,
-        problem_size,
-        param_types,
-        inputs,
-        outputs);
-}
-
-bool DefaultOracle::should_capture_kernel(
-    const std::string& tuning_key,
-    ProblemSize problem_size,
-    WisdomResult result) const {
-    bool matches = false;
-
-    // If wisdom was found for this kernel and we do not force tuning,
-    // then there is no need to tune this kernel.
-    if (result == WisdomResult::Ok && !force_capture_) {
-        return false;
-    }
-
-    for (const std::string& pattern : capture_patterns_) {
-        if (string_match(pattern.c_str(), tuning_key.c_str())) {
-            matches = true;
-            break;
-        }
-    }
-
-    if (!matches) {
-        return false;
-    }
-
-    if (tuning_file_exists(capture_dir_, tuning_key, problem_size)) {
-        return false;
-    }
-
-    return true;
-}
-
-void set_global_wisdom_directory(std::string dir) {
-    auto wisdom = get_global_wisdom();
-
-    set_global_wisdom(DefaultOracle(
-        std::move(dir),
-        wisdom->capture_directory(),
-        wisdom->capture_patterns(),
-        wisdom->is_capture_forced()));
-}
-
-void set_global_tuning_directory(std::string dir) {
-    auto wisdom = get_global_wisdom();
-
-    set_global_wisdom(DefaultOracle(
-        wisdom->wisdom_directory(),
-        std::move(dir),
-        wisdom->capture_patterns(),
-        wisdom->is_capture_forced()));
-}
-
-void add_global_capture_pattern(std::string pattern) {
-    auto wisdom = get_global_wisdom();
-    std::vector<std::string> patterns = wisdom->capture_patterns();
-    patterns.push_back(std::move(pattern));
-
-    set_global_wisdom(DefaultOracle(
-        wisdom->wisdom_directory(),
-        wisdom->capture_directory(),
-        patterns,
-        wisdom->is_capture_forced()));
-}
-
-WisdomSettings default_wisdom_settings() {
-    return get_global_wisdom();
-}
-
-WisdomSettings::WisdomSettings() : WisdomSettings(get_global_wisdom()) {}
-
-WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
-    impl_(std::move(oracle)) {
-    if (!impl_) {
-        throw std::runtime_error("Oracle cannot be null");
-    }
-}
-
-WisdomSettings::WisdomSettings(
-    std::string wisdom_dir,
-    std::string capture_dir,
-    std::vector<std::string> capture_patterns,
-    bool force_capture) :
-    WisdomSettings(std::make_shared<DefaultOracle>(
-        std::move(wisdom_dir),
-        std::move(capture_dir),
-        std::move(capture_patterns),
-        force_capture)) {}
 
 static std::string sanitize_tuning_key(const std::string& key) {
     std::string output;
@@ -267,13 +45,21 @@ static std::string sanitize_tuning_key(const std::string& key) {
 
 static void parse_header(
     const std::string& line,
+    const std::string& tuning_key,
     const ConfigSpace& space,
     std::vector<TunableParam>& params,
     std::string& objective) {
+    constexpr static const char* WISDOM_VERSION = "1.0";
+
     nlohmann::json header = nlohmann::json::parse(line);
 
-    if (header["version"] != "1.0") {
-        throw std::runtime_error("invalid version");
+    if (header["version"] != WISDOM_VERSION) {
+        throw std::runtime_error(
+            "invalid version: " + header["version"].dump());
+    }
+
+    if (header["key"] != tuning_key) {
+        throw std::runtime_error("invalid key: " + header["key"].dump());
     }
 
     if (!header["objective"].is_string()) {
@@ -293,16 +79,16 @@ static void parse_header(
             throw std::runtime_error("invalid parameter");
         }
 
-        bool found = false;
+        bool found_all = false;
         for (const TunableParam& p : space.parameters()) {
             if (p.name() == record) {
-                found = true;
+                found_all = true;
                 params.push_back(p);
                 break;
             }
         }
 
-        if (!found) {
+        if (!found_all) {
             throw std::runtime_error(
                 "parameter \"" + std::string(record)
                 + "\" was not found in the configuration space");
@@ -368,36 +154,32 @@ static void parse_line(
         objective);
 
     if (is_better) {
-        Config config;
         for (size_t i = 0; i < params.size(); i++) {
-            config.insert(params[i], json_to_tunable_value(config_json[i]));
+            best_config.insert(params[i], json_to_tunable_value(config_json[i]));
         }
-
-        best_config = std::move(config);
     }
 }
 
 template<typename F>
-static Config process_wisdom_file(
+static bool process_wisdom_file(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
     const ConfigSpace& space,
+    Config& best_config,
     F callback) {
-    Config best_config = space.default_config();
-
     std::string path =
         path_join(wisdom_dir, sanitize_tuning_key(tuning_key)) + ".wisdom";
 
     std::ifstream stream(path);
     if (!stream) {
         log_debug() << "wisdom file not found: " << path << "\n";
-        return best_config;
+        return false;
     }
 
     std::string line;
     if (!std::getline(stream, line)) {
         log_debug() << "error while reading wisdom file: " << path << "\n";
-        return best_config;
+        return false;
     }
 
     std::string objective_key;
@@ -406,11 +188,11 @@ static Config process_wisdom_file(
 
     // Parse header
     try {
-        parse_header(line, space, params, objective_key);
+        parse_header(line, tuning_key, space, params, objective_key);
     } catch (const std::exception& e) {
         log_warning() << path << ":1: file is ignored, error while parsing: "
                       << e.what() << "\n";
-        return best_config;
+        return true;
     }
 
     // Parse each line
@@ -428,11 +210,11 @@ static Config process_wisdom_file(
         }
     }
 
-    return best_config;
+    return true;
 }
 
 Config load_best_config(
-    const std::string& wisdom_dir,
+    const std::vector<std::string>& wisdom_dirs,
     const std::string& tuning_key,
     const ConfigSpace& space,
     const std::string& device_name,
@@ -447,52 +229,61 @@ Config load_best_config(
         return Config {};
     }
 
+    Config best_config = space.default_config();
     WisdomResult best_type = WisdomResult::NotFound;
     std::string best_device;
     double best_score = 0.0;
     ProblemSize best_problem_size;
     uint64_t best_distance = std::numeric_limits<uint64_t>::max();
 
-    Config best_config = process_wisdom_file(
-        wisdom_dir,
-        tuning_key,
-        space,
-        [&](ProblemSize row_problem,
-            const std::string& row_device,
-            double score) {
-            WisdomResult type;
-            if (row_device != device_name) {
-                type = WisdomResult::DeviceMismatch;
-            } else if (row_problem != problem_size) {
-                type = WisdomResult::ProblemSizeMismatch;
-            } else {
-                type = WisdomResult::Ok;
-            }
+    for (const auto& dir : wisdom_dirs) {
+        bool success = process_wisdom_file(
+            dir,
+            tuning_key,
+            space,
+            best_config,
+            [&](ProblemSize row_problem,
+                const std::string& row_device,
+                double score) {
+                WisdomResult type;
+                if (row_device != device_name) {
+                    type = WisdomResult::DeviceMismatch;
+                } else if (row_problem != problem_size) {
+                    type = WisdomResult::ProblemSizeMismatch;
+                } else {
+                    type = WisdomResult::Ok;
+                }
 
-            uint64_t l = problem_size.x * problem_size.y * problem_size.z;
-            uint64_t r = row_problem.x * row_problem.y * row_problem.z;
-            uint64_t distance = l > r ? l - r : r - l;
+                uint64_t l = problem_size.x * problem_size.y * problem_size.z;
+                uint64_t r = row_problem.x * row_problem.y * row_problem.z;
+                uint64_t distance = l > r ? l - r : r - l;
 
-            if (type > best_type
-                || (type == best_type
-                    && (distance < best_distance
-                        || (distance == best_distance
-                            && score < best_score)))) {
-                best_type = type;
-                best_score = score;
-                best_problem_size = row_problem;
-                best_device = row_device;
-                best_distance = distance;
-                return true;
-            }
+                if (type > best_type
+                    || (type == best_type
+                        && (distance < best_distance
+                            || (distance == best_distance
+                                && score < best_score)))) {
+                    best_type = type;
+                    best_score = score;
+                    best_problem_size = row_problem;
+                    best_device = row_device;
+                    best_distance = distance;
+                    return true;
+                }
 
-            return false;
-        });
+                return false;
+            });
+
+        if (success) {
+            break;
+        }
+    }
 
     if (best_type == WisdomResult::NotFound) {
-        log_warning() << "no wisdom found for kernel \"" << tuning_key
-                      << "\" in directory \"" << wisdom_dir
-                      << "\", using default kernel configuration\n";
+        log_warning() << "using default configuration for kernel \""
+                      << tuning_key
+                      << "\", no wisdom found in the following directories: "
+                      << string_comma_join(wisdom_dirs) << "\n";
     } else if (best_type == WisdomResult::DeviceMismatch) {
         log_warning() << "no wisdom found for kernel \"" << tuning_key
                       << "\" and device \"" << device_name
@@ -516,5 +307,271 @@ Config load_best_config(
 
     return best_config;
 }
+
+Config load_best_config(
+    const std::string& wisdom_dir,
+    const std::string& tuning_key,
+    const ConfigSpace& space,
+    const std::string& device_name,
+    CudaArch device_arch,
+    ProblemSize problem_size,
+    WisdomResult* result_out) {
+    return load_best_config(
+        std::vector<std::string> {wisdom_dir},
+        tuning_key,
+        space,
+        device_name,
+        device_arch,
+        problem_size,
+        result_out);
+}
+
+std::shared_ptr<DefaultOracle> global_default_wisdom = nullptr;
+
+static std::shared_ptr<DefaultOracle> set_global_wisdom(DefaultOracle oracle) {
+    auto ptr = std::make_shared<DefaultOracle>(std::move(oracle));
+    atomic_store(&global_default_wisdom, ptr);
+    return ptr;
+}
+
+static std::shared_ptr<DefaultOracle> get_global_wisdom() {
+    auto ptr = atomic_load(&global_default_wisdom);
+
+    if (!ptr) {
+        ptr = set_global_wisdom(DefaultOracle::from_env());
+    }
+
+    return ptr;
+}
+
+DefaultOracle::DefaultOracle() : DefaultOracle(*get_global_wisdom()) {}
+
+DefaultOracle::DefaultOracle(
+    std::vector<std::string> wisdom_dirs,
+    std::string capture_dir,
+    std::vector<std::string> capture_patterns,
+    bool force_capture) :
+    wisdom_dirs_(std::move(wisdom_dirs)),
+    capture_dir_(std::move(capture_dir)),
+    capture_patterns_(std::move(capture_patterns)),
+    force_capture_(force_capture) {}
+
+DefaultOracle DefaultOracle::from_env() {
+    std::vector<std::string> wisdom_dirs = {"."};
+    std::string capture_dir = ".";
+    std::vector<std::string> capture_patterns = {};
+    const char* value;
+
+    if ((value = getenv("KERNEL_LAUNCHER_WISDOM"))) {
+        for (std::string dir : string_split(value, ':')) {
+            if (!dir.empty()) {
+                wisdom_dirs.emplace_back(std::move(dir));
+            }
+        }
+
+        if (!wisdom_dirs.empty()) {
+            capture_dir = wisdom_dirs[0];
+        }
+    }
+
+    if ((value = getenv("KERNEL_LAUNCHER_DIR"))) {
+        capture_dir = value;
+    }
+
+    std::string patterns = "";
+    bool force = false;
+
+    // Try the following environment keys in order
+    const char* env_keys[4] = {
+        "KERNEL_LAUNCHER_CAPTURE_FORCE",
+        "KERNEL_LAUNCHER_CAPTURE",
+        "KERNEL_LAUNCHER_TUNE_FORCE",
+        "KERNEL_LAUNCHER_TUNE",
+    };
+
+    for (const char* key : env_keys) {
+        if ((value = getenv(key)) == nullptr) {
+            continue;
+        }
+
+        if (!patterns.empty()) {
+            log_warning() << "environment key " << key << " was ignored\n";
+            continue;
+        }
+
+        patterns = value;
+        force = strstr(value, "FORCE") != nullptr;
+    }
+
+    if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
+        patterns = "*";
+    }
+
+    if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
+        patterns = "";
+    }
+
+    for (std::string pattern : string_split(patterns.c_str(), ',')) {
+        if (pattern.empty()) {
+            continue;
+        }
+
+        capture_patterns.push_back(std::move(pattern));
+    }
+
+    // Print info message on which kernels will be tuned.
+    if (!capture_patterns.empty()) {
+        std::stringstream ss;
+
+        log_info() << "capture enabled for the following kernels: "
+                   << string_comma_join(capture_patterns) << "\n";
+    }
+
+    return DefaultOracle(
+        std::move(wisdom_dirs),
+        std::move(capture_dir),
+        std::move(capture_patterns),
+        force);
+}
+
+Config DefaultOracle::load_config(
+    const std::string& tuning_key,
+    const ConfigSpace& space,
+    ProblemSize problem_size,
+    CudaDevice device,
+    bool* should_capture_out) const {
+    WisdomResult result = WisdomResult::Ok;
+    Config config = load_best_config(
+        wisdom_dirs_,
+        tuning_key,
+        space,
+        device.name(),
+        device.arch(),
+        problem_size,
+        &result);
+
+    if (should_capture_out) {
+        *should_capture_out =
+            this->should_capture_kernel(tuning_key, problem_size, result);
+    }
+
+    return config;
+}
+
+void DefaultOracle::capture_kernel(
+    const std::string& tuning_key,
+    const KernelBuilder& builder,
+    ProblemSize problem_size,
+    const std::vector<TypeInfo>& param_types,
+    const std::vector<std::vector<uint8_t>>& inputs,
+    const std::vector<std::vector<uint8_t>>& outputs) const {
+    export_tuning_file(
+        capture_dir_,
+        tuning_key,
+        builder,
+        problem_size,
+        param_types,
+        inputs,
+        outputs);
+}
+
+bool DefaultOracle::should_capture_kernel(
+    const std::string& tuning_key,
+    ProblemSize problem_size,
+    WisdomResult result) const {
+    bool matches = false;
+
+    // If wisdom was found for this kernel and we do not force tuning,
+    // then there is no need to tune this kernel.
+    if (result == WisdomResult::Ok && !force_capture_) {
+        return false;
+    }
+
+    for (const std::string& pattern : capture_patterns_) {
+        if (string_match(pattern.c_str(), tuning_key.c_str())) {
+            matches = true;
+            break;
+        }
+    }
+
+    if (!matches) {
+        return false;
+    }
+
+    if (tuning_file_exists(capture_dir_, tuning_key, problem_size)) {
+        return false;
+    }
+
+    return true;
+}
+
+void append_global_wisdom_directory(std::string dir) {
+    auto wisdom = get_global_wisdom();
+
+    auto dirs = wisdom->wisdom_directories();
+    dirs.push_back(std::move(dir));
+
+    set_global_wisdom(DefaultOracle(
+        std::move(dirs),
+        wisdom->capture_directory(),
+        wisdom->capture_patterns(),
+        wisdom->is_capture_forced()));
+}
+
+void set_global_wisdom_directory(std::string dir) {
+    auto wisdom = get_global_wisdom();
+
+    set_global_wisdom(DefaultOracle(
+        std::vector<std::string> {std::move(dir)},
+        wisdom->capture_directory(),
+        wisdom->capture_patterns(),
+        wisdom->is_capture_forced()));
+}
+
+void set_global_tuning_directory(std::string dir) {
+    auto wisdom = get_global_wisdom();
+
+    set_global_wisdom(DefaultOracle(
+        wisdom->wisdom_directories(),
+        std::move(dir),
+        wisdom->capture_patterns(),
+        wisdom->is_capture_forced()));
+}
+
+void add_global_capture_pattern(std::string pattern) {
+    auto wisdom = get_global_wisdom();
+    std::vector<std::string> patterns = wisdom->capture_patterns();
+    patterns.push_back(std::move(pattern));
+
+    set_global_wisdom(DefaultOracle(
+        wisdom->wisdom_directories(),
+        wisdom->capture_directory(),
+        patterns,
+        wisdom->is_capture_forced()));
+}
+
+WisdomSettings default_wisdom_settings() {
+    return get_global_wisdom();
+}
+
+WisdomSettings::WisdomSettings() : WisdomSettings(get_global_wisdom()) {}
+
+WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
+    impl_(std::move(oracle)) {
+    if (!impl_) {
+        throw std::runtime_error("Oracle cannot be null");
+    }
+}
+
+WisdomSettings::WisdomSettings(
+    std::string wisdom_dir,
+    std::string capture_dir,
+    std::vector<std::string> capture_patterns,
+    bool force_capture) :
+    WisdomSettings(std::make_shared<DefaultOracle>(
+        std::vector<std::string> {std::move(wisdom_dir)},
+        std::move(capture_dir),
+        std::move(capture_patterns),
+        force_capture)) {}
 
 }  // namespace kernel_launcher
