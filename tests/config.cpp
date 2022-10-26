@@ -31,8 +31,8 @@ TEST_CASE("Config") {
     CHECK(param_foo != param_foo2);
     CHECK(c != c2);
 
-    // Cannot add same parameter twice
-    CHECK_THROWS(c.insert(param_foo, 3));
+    // Can only insert key with same name if it is the same parameter.
+    CHECK_NOTHROW(c.insert(param_foo, 3));
     CHECK_THROWS(c.insert(param_foo2, 3));
 
     CHECK_NOTHROW(c.insert(param_bar, true));

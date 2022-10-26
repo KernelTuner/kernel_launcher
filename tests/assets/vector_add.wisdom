@@ -1,4 +1,4 @@
-{"tunable_parameters": ["threads_per_block", "elements_per_thread"], "version": "1.0", "objective": "time"}
+{"tunable_parameters": ["threads_per_block", "elements_per_thread"], "version": "1.0", "objective": "time", "key": "vector_add"}
 {"config": [1, 1], "problem_size": [1000000000], "time": 721.036914, "environment": {"device_name": "GTX fictional"}}
 {"config": [1, 2], "problem_size": [1000000000], "time": 383.018460, "environment": {"device_name": "GTX fictional"}}
 {"config": [1, 4], "problem_size": [1000000000], "time": 215.939489, "environment": {"device_name": "GTX fictional"}}

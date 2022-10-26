@@ -17,7 +17,7 @@ void Config::insert(TunableParam k, TunableValue v) {
 
     for (const auto& it : keys_) {
         if (it == k) {
-            inner_.emplace(k.variable(), std::move(v));
+            inner_[k.variable()] = v;
             return;
         } else if (it.name() == name) {
             throw std::runtime_error(

@@ -53,6 +53,23 @@ TEST_CASE("test load_best_config") {
         CHECK(config["block_size_y"] == 1);
     }
 
+    SECTION("test invalid key") {
+        // The file name should still be `example_kernel.wisdom` since
+        // the `$` is replace by `_`. But key in the file will be incorrect.
+        Config config = load_best_config(
+            wisdom_dir,
+            "example$kernel",
+            space,
+            device_name,
+            device_arch,
+            problem_size,
+            &result);
+
+        CHECK(result == WisdomResult::NotFound);
+        CHECK(config["block_size_x"] == 1);
+        CHECK(config["block_size_y"] == 1);
+    }
+
     SECTION("test wrong device") {
         Config config = load_best_config(
             wisdom_dir,
@@ -66,6 +83,25 @@ TEST_CASE("test load_best_config") {
         CHECK(result == WisdomResult::DeviceMismatch);
         CHECK(config["block_size_x"] == 2);
         CHECK(config["block_size_y"] == 1);
+    }
+
+    SECTION("test wisdom file missing parameters") {
+        // Expand parameter space. This will not be in the wisdom file.
+        space.tune("block_size_z", {1024});
+
+        Config config = load_best_config(
+            wisdom_dir,
+            tuning_key,
+            space,
+            device_name,
+            device_arch,
+            problem_size,
+            &result);
+
+        CHECK(result == WisdomResult::Ok);
+        CHECK(config["block_size_x"] == 3);
+        CHECK(config["block_size_y"] == 1);
+        CHECK(config["block_size_z"] == 1024);
     }
 
     SECTION("test valid configuration") {

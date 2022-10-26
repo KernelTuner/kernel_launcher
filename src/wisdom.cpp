@@ -44,6 +44,7 @@ static std::string sanitize_tuning_key(const std::string& key) {
 }
 
 static void parse_header(
+    const std::string& path,
     const std::string& line,
     const std::string& tuning_key,
     const ConfigSpace& space,
@@ -58,6 +59,7 @@ static void parse_header(
             "invalid version: " + header["version"].dump());
     }
 
+    // Should we throw an exception if the key is incorrect?
     if (header["key"] != tuning_key) {
         throw std::runtime_error("invalid key: " + header["key"].dump());
     }
@@ -74,29 +76,39 @@ static void parse_header(
         throw std::runtime_error("key \"tunable_parameters\" not found");
     }
 
+    std::vector<TunableParam> remaining = space.parameters();
+
     for (const nlohmann::json& record : params_json) {
         if (!record.is_string()) {
             throw std::runtime_error("invalid parameter");
         }
 
-        bool found_all = false;
-        for (const TunableParam& p : space.parameters()) {
-            if (p.name() == record) {
-                found_all = true;
-                params.push_back(p);
+        bool found = false;
+        for (auto it = remaining.begin(); it != remaining.end(); it++) {
+            if (it->name() == record) {
+                found = true;
+                params.push_back(*it);
+                remaining.erase(it);
                 break;
             }
         }
 
-        if (!found_all) {
+        if (!found) {
             throw std::runtime_error(
-                "parameter \"" + std::string(record)
-                + "\" was not found in the configuration space");
+                "parameter " + record.dump()
+                + +" was not found in the tunable parameters");
         }
     }
 
-    if (params.size() != space.parameters().size()) {
-        throw std::runtime_error("invalid number of parameters");
+    // For each remaining parameter, print a warning. We use the default value
+    // for parameters that are not found in the wisdom file. This allows
+    // adding additional tunable parameters and still load older wisdom files.
+    for (const auto& param : remaining) {
+        log_warning() << "parameter \"" << param.name()
+                      << "\" is in configuration space of kernel \""
+                      << tuning_key
+                      << "\" but it was not found in wisdom file:" << path
+                      << "\n";
     }
 }
 
@@ -155,7 +167,9 @@ static void parse_line(
 
     if (is_better) {
         for (size_t i = 0; i < params.size(); i++) {
-            best_config.insert(params[i], json_to_tunable_value(config_json[i]));
+            best_config.insert(
+                params[i],
+                json_to_tunable_value(config_json[i]));
         }
     }
 }
@@ -188,7 +202,7 @@ static bool process_wisdom_file(
 
     // Parse header
     try {
-        parse_header(line, tuning_key, space, params, objective_key);
+        parse_header(path, line, tuning_key, space, params, objective_key);
     } catch (const std::exception& e) {
         log_warning() << path << ":1: file is ignored, error while parsing: "
                       << e.what() << "\n";
@@ -197,7 +211,7 @@ static bool process_wisdom_file(
 
     // Parse each line
     for (size_t lineno = 2; std::getline(stream, line); lineno++) {
-        if (line.empty()) {
+        if (line.empty() || line[0] == '#') {
             continue;
         }
 
