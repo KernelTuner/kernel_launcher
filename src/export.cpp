@@ -19,20 +19,19 @@ namespace kernel_launcher {
 
 using json = nlohmann::ordered_json;
 
-std::string sanitize_tuning_key(std::string key) {
-    std::stringstream output;
+static std::string sanitize_tuning_key(const std::string& key) {
+    std::string output = key;
 
-    for (char c : key) {
-        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-            || (c >= '0' && c <= '9') || c == ' ' || c == '_' || c == '-') {
-            output << c;
-        } else {
-            output << '$' << std::hex << std::setw(2) << std::setfill('0')
-                   << ((unsigned int)(unsigned char)c);
+    for (char& c : output) {
+        bool valid = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z')
+            || (c >= 'A' && c <= 'Z') || c == '_' || c == '-' || c == '.';
+
+        if (!valid) {
+            c = '_';
         }
     }
 
-    return output.str();
+    return output;
 }
 
 static json value_to_json(const TunableValue& expr) {

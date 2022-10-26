@@ -5,6 +5,8 @@
 #include "kernel_launcher/export.h"
 #include "nlohmann/json.hpp"
 
+namespace kernel_launcher {
+
 static std::string string_comma_join(const std::vector<std::string>& items) {
     std::stringstream ss;
 
@@ -22,21 +24,15 @@ static std::string string_comma_join(const std::vector<std::string>& items) {
     return ss.str();
 }
 
-namespace kernel_launcher {
-
 static std::string sanitize_tuning_key(const std::string& key) {
-    std::string output;
-    output.resize(key.size());
+    std::string output = key;
 
-    for (size_t i = 0; i < key.size(); i++) {
-        char c = key[i];
+    for (char& c : output) {
         bool valid = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z')
             || (c >= 'A' && c <= 'Z') || c == '_' || c == '-' || c == '.';
 
-        if (valid) {
-            output[i] = c;
-        } else {
-            output[i] = '_';
+        if (!valid) {
+            c = '_';
         }
     }
 
