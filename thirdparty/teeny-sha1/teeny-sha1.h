@@ -80,7 +80,7 @@ sha1digest(uint8_t *digest, char *hexdigest, const uint8_t *data, size_t databyt
    if (!digest && !hexdigest)
        return -1;
 
-   if (!data)
+   if (!data && databytes)
        return -1;
 
    /* Pre-processing of data tail (includes padding to fill out 512-bit chunk):
