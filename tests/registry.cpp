@@ -5,7 +5,7 @@
 
 using namespace kernel_launcher;
 
-struct VectorAddDescriptor: KernelDescriptor {
+struct VectorAddDescriptor: IKernelDescriptor {
     std::string tuning_key() const override {
         return "vector_add";
     }
@@ -14,7 +14,7 @@ struct VectorAddDescriptor: KernelDescriptor {
         return build_vector_add_kernel();
     }
 
-    bool equals(const KernelDescriptor& that) const override {
+    bool equals(const IKernelDescriptor& that) const override {
         return dynamic_cast<const VectorAddDescriptor*>(&that) != nullptr;
     }
 };

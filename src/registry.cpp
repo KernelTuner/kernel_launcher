@@ -11,7 +11,7 @@ const KernelRegistry& default_registry() {
     return *global_default_registry;
 }
 
-WisdomKernel& KernelRegistry::lookup_internal(AnyKernelDescriptor key) const {
+WisdomKernel& KernelRegistry::lookup_internal(KernelDescriptor key) const {
     std::lock_guard<std::mutex> guard(mutex_);
 
     auto it = cache_.find(key);
@@ -20,8 +20,8 @@ WisdomKernel& KernelRegistry::lookup_internal(AnyKernelDescriptor key) const {
     }
 
     WisdomKernel kernel(
-        key.descriptor().tuning_key(),
-        key.descriptor().build(),
+        key.get().tuning_key(),
+        key.get().build(),
         compiler_,
         settings_);
 

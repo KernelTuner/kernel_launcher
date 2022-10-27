@@ -9,30 +9,30 @@
 
 namespace kernel_launcher {
 
-struct KernelDescriptor {
-    virtual ~KernelDescriptor() = default;
+struct IKernelDescriptor {
+    virtual ~IKernelDescriptor() = default;
     virtual std::string tuning_key() const = 0;
     virtual KernelBuilder build() const = 0;
-    virtual bool equals(const KernelDescriptor& that) const = 0;
+    virtual bool equals(const IKernelDescriptor& that) const = 0;
     virtual hash_t hash() const {
         return 0;
     }
 };
 
-struct AnyKernelDescriptor {
-    AnyKernelDescriptor(AnyKernelDescriptor&&) noexcept = default;
-    AnyKernelDescriptor(AnyKernelDescriptor&) noexcept = default;
-    AnyKernelDescriptor(const AnyKernelDescriptor&) = default;
+struct KernelDescriptor {
+    KernelDescriptor(KernelDescriptor&&) noexcept = default;
+    KernelDescriptor(KernelDescriptor&) noexcept = default;
+    KernelDescriptor(const KernelDescriptor&) = default;
 
     template<typename D>
-    AnyKernelDescriptor(D&& descriptor) {
+    KernelDescriptor(D&& descriptor) {
         using T = typename std::decay<D>::type;
         descriptor_type_ = type_of<T>();
         descriptor_ = std::make_shared<T>(std::forward<D>(descriptor));
         hash_ = hash_fields(descriptor_type_, descriptor_->hash());
     }
 
-    const KernelDescriptor& descriptor() const {
+    const IKernelDescriptor& get() const {
         return *descriptor_;
     }
 
@@ -40,26 +40,26 @@ struct AnyKernelDescriptor {
         return hash_;
     }
 
-    bool operator==(const AnyKernelDescriptor& that) const {
+    bool operator==(const KernelDescriptor& that) const {
         return that.hash_ == hash_ && that.descriptor_type_ == descriptor_type_
             && that.descriptor_->equals(*descriptor_);
     }
 
-    bool operator!=(const AnyKernelDescriptor& that) const {
+    bool operator!=(const KernelDescriptor& that) const {
         return !(*this == that);
     }
 
   private:
     hash_t hash_;
     TypeInfo descriptor_type_;
-    std::shared_ptr<KernelDescriptor> descriptor_;
+    std::shared_ptr<IKernelDescriptor> descriptor_;
 };
 }  // namespace kernel_launcher
 
 namespace std {
 template<>
-struct hash<kernel_launcher::AnyKernelDescriptor> {
-    size_t operator()(const kernel_launcher::AnyKernelDescriptor& d) const {
+struct hash<kernel_launcher::KernelDescriptor> {
+    size_t operator()(const kernel_launcher::KernelDescriptor& d) const {
         return d.hash();
     }
 };
@@ -73,49 +73,49 @@ struct KernelRegistry {
         compiler_(std::move(compiler)),
         settings_(std::move(settings)) {}
 
-    WisdomKernel& lookup(AnyKernelDescriptor descriptor) const {
+    WisdomKernel& lookup(KernelDescriptor descriptor) const {
         return lookup_internal(std::move(descriptor));
     }
 
     WisdomKernelLaunch instantiate(
-        AnyKernelDescriptor descriptor,
+        KernelDescriptor descriptor,
         cudaStream_t stream,
         ProblemSize problem_size) const {
         return lookup(std::move(descriptor)).instantiate(stream, problem_size);
     }
 
     WisdomKernelLaunch operator()(
-        AnyKernelDescriptor descriptor,
+        KernelDescriptor descriptor,
         cudaStream_t stream,
         ProblemSize problem_size) const {
         return instantiate(std::move(descriptor), stream, problem_size);
     }
 
     WisdomKernelLaunch
-    operator()(AnyKernelDescriptor descriptor, ProblemSize problem_size) const {
+    operator()(KernelDescriptor descriptor, ProblemSize problem_size) const {
         return instantiate(std::move(descriptor), nullptr, problem_size);
     }
 
   private:
-    WisdomKernel& lookup_internal(AnyKernelDescriptor key) const;
+    WisdomKernel& lookup_internal(KernelDescriptor key) const;
 
     Compiler compiler_;
     WisdomSettings settings_;
     mutable std::mutex mutex_;
     mutable std::
-        unordered_map<AnyKernelDescriptor, std::unique_ptr<WisdomKernel>>
+        unordered_map<KernelDescriptor, std::unique_ptr<WisdomKernel>>
             cache_ = {};
 };
 
 const KernelRegistry& default_registry();
 
 inline WisdomKernelLaunch
-launch(AnyKernelDescriptor descriptor, cudaStream_t stream, ProblemSize size) {
+launch(KernelDescriptor descriptor, cudaStream_t stream, ProblemSize size) {
     return default_registry().instantiate(descriptor, stream, size);
 }
 
 inline WisdomKernelLaunch
-launch(AnyKernelDescriptor descriptor, ProblemSize size) {
+launch(KernelDescriptor descriptor, ProblemSize size) {
     return launch(descriptor, (cudaStream_t) nullptr, size);
 }
 

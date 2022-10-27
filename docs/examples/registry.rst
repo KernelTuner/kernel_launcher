@@ -30,21 +30,21 @@ In the first part, a class ``VectorAddDescriptor`` is defined.
 In the second part, this class is searched in the global kernel registry.
 
 
-Defining KernelDescriptor
+Defining IKernelDescriptor
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. literalinclude:: registry.cpp
    :lines: 6-45
    :lineno-start: 6
 
-This part of the code defines a ``KernelDescriptor``:
+This part of the code defines a ``IKernelDescriptor``:
 a class that encapsulate the information required to compile a kernel.
 This class should override three methods:
 
 - ``tuning_key`` to obtain the tuning key
 - ``build`` to instantiate a ``KernelBuilder``,
--  ``equals`` to check for equality with another ``KernelDescriptor``.
+-  ``equals`` to check for equality with another ``IKernelDescriptor``.
 
-The last method is required since a kernel registry is essentially a hash table that maps ``KernelDescriptor`` objects to ``Kernel`` objects.
+The last method is required since a kernel registry is essentially a hash table that maps ``IKernelDescriptor`` objects to ``Kernel`` objects.
 The ``equals`` method is used to check if two keys in the hash table are equivalent.
 
 
