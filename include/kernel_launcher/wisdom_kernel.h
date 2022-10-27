@@ -69,7 +69,7 @@ struct IntoKernelArg;
 
 template<>
 struct IntoKernelArg<KernelArg> {
-    static KernelArg into(KernelArg arg) {
+    static KernelArg convert(KernelArg arg) {
         return arg;
     }
 };
