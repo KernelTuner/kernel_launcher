@@ -155,7 +155,7 @@ KernelDef KernelBuilder::build(
 KernelInstance KernelBuilder::compile(
     const Config& config,
     const std::vector<TypeInfo>& param_types,
-    const CompilerBase& compiler,
+    const ICompiler& compiler,
     CudaContextHandle ctx) const {
     CudaModule module = compiler.compile(ctx, build(config, param_types));
 

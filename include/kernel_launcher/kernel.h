@@ -134,7 +134,7 @@ struct KernelBuilder: ConfigSpace {
     KernelInstance compile(
         const Config& config,
         const std::vector<TypeInfo>& param_types,
-        const CompilerBase& compiler = default_compiler(),
+        const ICompiler& compiler = default_compiler(),
         CudaContextHandle ctx = CudaContextHandle::current()) const;
 
   private:
@@ -186,7 +186,7 @@ struct Kernel {
     void compile(
         const KernelBuilder& builder,
         const Config& config,
-        const CompilerBase& compiler = default_compiler(),
+        const ICompiler& compiler = default_compiler(),
         CudaContextHandle ctx = CudaContextHandle::current()) {
         instance_ = builder.compile(
             config,

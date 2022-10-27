@@ -60,8 +60,8 @@ struct KernelDef {
     std::vector<std::string> options;
 };
 
-struct CompilerBase {
-    virtual ~CompilerBase() {}
+struct ICompiler {
+    virtual ~ICompiler() {}
     virtual void compile_ptx(
         KernelDef def,
         CudaArch arch_version,
@@ -71,7 +71,7 @@ struct CompilerBase {
     virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const;
 };
 
-struct Compiler: CompilerBase {
+struct Compiler: ICompiler {
     Compiler() = default;
     Compiler(Compiler&) = default;
     Compiler(const Compiler&) = default;
@@ -97,14 +97,14 @@ struct Compiler: CompilerBase {
     CudaModule compile(CudaContextHandle ctx, KernelDef def) const override;
 
   private:
-    std::shared_ptr<CompilerBase> inner_;
+    std::shared_ptr<ICompiler> inner_;
 };
 
 struct NvrtcException: std::runtime_error {
     NvrtcException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
-struct NvrtcCompiler: CompilerBase {
+struct NvrtcCompiler: ICompiler {
     NvrtcCompiler(
         std::vector<std::string> options = {},
         std::shared_ptr<FileLoader> fs = {});

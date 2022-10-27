@@ -41,7 +41,7 @@ void KernelDef::add_compiler_option(std::string option) {
     options.push_back(std::move(option));
 }
 
-CudaModule CompilerBase::compile(CudaContextHandle ctx, KernelDef def) const {
+CudaModule ICompiler::compile(CudaContextHandle ctx, KernelDef def) const {
     std::string lowered_name;
     std::string ptx;
     compile_ptx(std::move(def), ctx.device().arch(), ptx, lowered_name);
