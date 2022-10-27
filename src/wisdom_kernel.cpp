@@ -242,6 +242,40 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
     std::swap(this->scalar_, that.scalar_);
 }
 
+TunableValue KernelArg::to_value() const {
+    TypeInfo ty = type_.remove_const();
+    void *ptr = as_void_ptr();
+
+#define IMPL_FOR_VALUE(T)                       \
+    if (ty == type_of<T>()) {                   \
+        T x;                                    \
+        ::memcpy(&x, ptr, sizeof(T)); \
+        return x;                               \
+    }
+
+    IMPL_FOR_VALUE(char);
+    IMPL_FOR_VALUE(signed char);
+    IMPL_FOR_VALUE(unsigned char);
+
+    IMPL_FOR_VALUE(signed short);
+    IMPL_FOR_VALUE(signed int);
+    IMPL_FOR_VALUE(signed long);
+    IMPL_FOR_VALUE(signed long long);
+
+    IMPL_FOR_VALUE(unsigned short);
+    IMPL_FOR_VALUE(unsigned int);
+    IMPL_FOR_VALUE(unsigned long);
+    IMPL_FOR_VALUE(unsigned long long);
+
+    IMPL_FOR_VALUE(bool);
+    IMPL_FOR_VALUE(float);
+    IMPL_FOR_VALUE(double);
+
+    throw std::runtime_error(
+        "cannot convert of type " + ty.name()
+        + " instance of kernel_launcher::Value");
+}
+
 void KernelArg::assert_type_matches(TypeInfo t) const {
     bool valid;
 
@@ -318,4 +352,5 @@ void* KernelArg::as_void_ptr() const {
         return data_.large_scalar;
     }
 }
+
 }  // namespace kernel_launcher

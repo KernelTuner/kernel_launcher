@@ -164,6 +164,7 @@ TEST_CASE("test KernelArg") {
         CHECK(result == 5);
 
         CHECK(v.to<int>() == 5);
+        CHECK(v.to_value() == TunableValue(5));
         CHECK_THROWS(v.to<double>());
     }
 
@@ -220,6 +221,21 @@ TEST_CASE("test KernelArg") {
         CHECK_THROWS(v.to<int*>() == input.data());
         CHECK(v.to<const int*>() == input.data());
         CHECK_THROWS(v.to<double>());
+    }
+
+    SECTION("to_value") {
+        CHECK(KernelArg::for_scalar<signed char>(13).to_value() == 13);
+        CHECK(KernelArg::for_scalar<unsigned char>(14).to_value() == 14);
+        CHECK(KernelArg::for_scalar<char>(15).to_value() == 15);
+        CHECK(KernelArg::for_scalar<int>(16).to_value() == 16);
+        CHECK(KernelArg::for_scalar<double>(17).to_value() == 17.0);
+
+        // `const` should not matter
+        CHECK(KernelArg::for_scalar<const int>(18).to_value() == 18);
+
+        // These should fail
+        CHECK_THROWS(KernelArg::for_scalar<point3>({1, 2, 3}).to_value());
+        CHECK_THROWS(KernelArg::for_array<int>(nullptr, 2).to_value());
     }
 }
 

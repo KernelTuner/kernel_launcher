@@ -44,6 +44,7 @@ struct KernelArg {
         return result;
     }
 
+    TunableValue to_value() const;
     void assert_type_matches(TypeInfo t) const;
     bool is_scalar() const;
     bool is_array() const;

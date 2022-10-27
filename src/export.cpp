@@ -465,8 +465,9 @@ void export_tuning_file(
         std::string content = content_json.dump(4);
         write_file(file_name, content);
     } catch (const std::exception& e) {
-        log_warning() << "error occurred while writing capture of kernel " <<  tuning_key << " to file " << file_name
-                      << ": " << e.what() << std::endl;
+        log_warning() << "error occurred while writing capture of kernel "
+                      << tuning_key << " to file " << file_name << ": "
+                      << e.what() << std::endl;
     }
 }
 
