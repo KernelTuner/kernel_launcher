@@ -382,7 +382,7 @@ static json kernel_args_to_json(
     return result;
 }
 
-static json wisdom_to_json(
+static json kernel_to_json(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& data_dir,
@@ -391,7 +391,7 @@ static json wisdom_to_json(
     const std::vector<std::vector<uint8_t>>& inputs,
     const std::vector<std::vector<uint8_t>>& outputs) {
     json result;
-    result["key"] = sanitize_tuning_key(tuning_key);
+    result["key"] = tuning_key;
     result["environment"] = environment_json();
     result["config_space"] =
         KernelBuilderSerializerHack::config_space_to_json(builder);
@@ -450,7 +450,7 @@ void export_tuning_file(
         tuning_key_to_file_name(directory, tuning_key, problem_size);
 
     try {
-        json content_json = wisdom_to_json(
+        json content_json = kernel_to_json(
             tuning_key,
             builder,
             directory,
@@ -459,13 +459,13 @@ void export_tuning_file(
             inputs,
             outputs);
 
-        log_info() << "writing wisdom file to " << file_name << " for kernel "
+        log_info() << "writing capture to " << file_name << " for kernel "
                    << tuning_key << std::endl;
 
         std::string content = content_json.dump(4);
         write_file(file_name, content);
     } catch (const std::exception& e) {
-        log_warning() << "error occurred while write wisdom file " << file_name
+        log_warning() << "error occurred while writing capture of kernel " <<  tuning_key << " to file " << file_name
                       << ": " << e.what() << std::endl;
     }
 }
