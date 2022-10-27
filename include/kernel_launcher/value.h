@@ -271,7 +271,7 @@ struct Variable {
     Variable();
 
     bool operator==(const Variable& that) const {
-        return this->id_ >= that.id_;
+        return this->id_ == that.id_;
     }
 
     bool operator!=(const Variable& that) const {
