@@ -14,6 +14,7 @@ struct IKernelDescriptor {
     virtual std::string tuning_key() const = 0;
     virtual KernelBuilder build() const = 0;
     virtual bool equals(const IKernelDescriptor& that) const = 0;
+    virtual ProblemSize problem_size(const std::vector<KernelArg>&) const = 0;
     virtual hash_t hash() const {
         return 0;
     }
