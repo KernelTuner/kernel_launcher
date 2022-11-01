@@ -31,30 +31,41 @@ Notice how this example is similar to the previous example, with some minor diff
 We now highlight the important lines of this code example.
 
 .. literalinclude:: wisdom.cpp
-   :lines: 6-20
+   :lines: 6-22
    :lineno-start: 6
 
-This function creates the ``KernelBuilder`` object and returns it.
-The purpose and usage of ``KernelBuilder`` was explained on the previous page.
+This function creates the ``WisdomKernelBuilder`` object and returns it.
+The purpose and usage of this object is similar to the ``WisdomKernelBuilder`` as explained on the previous page.
 
 .. literalinclude:: wisdom.cpp
-   :lines: 23-24
-   :lineno-start: 23
+   :lines: 13-15
+   :lineno-start: 13
+
+The addition of a ``WisdomKernelBuilder`` is a that is allows setting the `tuning key` and the `problem size`.
+The ``tuning_key`` is a string that uniquely identifies this kernel and is used to search for the kernel's wisdom file.
+If no wisdom file can be been found, the default configuration is chosen (in this case, that will be ``block_size=32,elements_per_thread=1``).
+The ``problem_size`` indicates how to derive the problem size of the kernel from its argument.
+In this example, ``arg0`` indicates that the problem size is the first argument (index 0) provided to the kernel.
+
+.. literalinclude:: wisdom.cpp
+   :lines: 25-26
+   :lineno-start: 25
 
 These two lines set global settings for the application.
+
 The function ``set_global_wisdom_directory`` sets the directory containing the wisdom files.
 When a kernel is compiled, this is where ``kernel_launcher`` will search for the associated wisdom file.
+In this example, ``kernel_launcher`` will search for the file ``wisdom/vector_add.wisdom`` since ``wisdim/`` is the
+wisdom directory and ``vector_add`` is the tuning key.
+
 The function ``set_global_tuning_directory`` sets the directory for tuning files.
-When exporting a kernel, this is where ``kernel_launcher`` will store the resulting files.
+When capturing a kernel launch, this is where ``kernel_launcher`` will store the resulting files.
 
 .. literalinclude:: wisdom.cpp
-   :lines: 27-29
-   :lineno-start: 27
+   :lines: 28-30
+   :lineno-start: 28
 
-The ``tuning_key`` is a string that uniquely identifies this kernel and is used to search for the kernel's wisdom file.
-In this example, ``kernel_launcher`` will search for the file ``wisdom/vector_add.wisdom``.
-If no wisdom file can be been found, the default configuration is chosen (in this case, that will be ``block_size=32,elements_per_thread=1``).
-
+These lines construct the ``WisdomKernelBuilder`` and passes it on to the ``WisdomKernel``.
 
 Export the kernel
 -----------------
