@@ -28,17 +28,17 @@ int main() {
     config.insert(elements_per_thread, 2);
 
     // Compile kernel
-    kl::Kernel<int, int*, const int*, const int*> vector_add_kernel;
+    kl::Kernel<int, float*, const float*, const float*> vector_add_kernel;
     vector_add_kernel.compile(builder, config);
     
     // Initialize CUDA memory. This is outside the scope of kernel_launcher.
-    unsigned int n = 1000000;
+    int n = 1000000;
     float *dev_A, *dev_B, *dev_C;
     /* cudaMalloc, cudaMemcpy, ... */
         
     // Launch the kernel!
     unsigned int problem_size = n;
     vector_add_kernel
-    	.instantiate(problem_size)
+    	.instantiate(cudaStream_t(nullptr), problem_size)
     	.launch(n, dev_C, dev_A, dev_B);
 }

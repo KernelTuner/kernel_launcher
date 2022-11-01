@@ -165,7 +165,9 @@ struct SharedExpr: BaseExpr {
 
 template<typename T>
 struct TypedExpr: SharedExpr {
-    template<typename R>
+    template<
+        typename R,
+        typename = typename detail::into_expr_helper<R, T>::type>
     TypedExpr(R&& value) :
         SharedExpr(
             std::make_shared<typename detail::into_expr_helper<R, T>::type>(

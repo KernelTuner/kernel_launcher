@@ -49,11 +49,6 @@ struct KernelBuilder: ConfigSpace {
         block_size(1, 1, 1);
     }
 
-    KernelBuilder(std::string kernel_name, std::string kernel_file) :
-        KernelBuilder(
-            std::move(kernel_name),
-            KernelSource(std::move(kernel_file))) {}
-
     const std::string& kernel_name() const {
         return kernel_name_;
     }

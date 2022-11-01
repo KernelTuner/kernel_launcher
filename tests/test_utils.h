@@ -1,7 +1,7 @@
 #ifndef KERNEL_LAUNCHER_TEST_UTILS_H
 #define KERNEL_LAUNCHER_TEST_UTILS_H
 
-#include "kernel_launcher/kernel.h"
+#include "kernel_launcher/wisdom_kernel.h"
 
 #include <string>
 
@@ -12,7 +12,7 @@ inline std::string assets_directory() {
     return assets_dir;
 }
 
-inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
+inline kernel_launcher::WisdomKernelBuilder build_vector_add_kernel() {
     using namespace kernel_launcher;
 
     static constexpr const char* kernel_source = R"(
@@ -29,16 +29,20 @@ inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     }
     )";
 
-    KernelBuilder builder(
+    WisdomKernelBuilder builder(
         "vector_add",
         KernelSource("vector_add.cu", kernel_source));
     auto tb = builder.tune("threads_per_block", {1, 32, 128, 256}, 256);
     auto et = builder.tune("elements_per_thread", {1, 2, 4});
     auto eb = et * tb;
 
+
     builder.restriction(eb >= 32 && eb <= 1024);
 
-    builder.define("ELEMENTS_PER_THREAD", et)
+    builder
+        .problem_size(arg0)
+        .tuning_key("vector_add")
+        .define("ELEMENTS_PER_THREAD", et)
         .template_args(type_of<int>())
         .block_size(tb)
         .grid_divisors(eb);

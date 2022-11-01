@@ -6,11 +6,7 @@
 using namespace kernel_launcher;
 
 struct VectorAddDescriptor: IKernelDescriptor {
-    std::string tuning_key() const override {
-        return "vector_add";
-    }
-
-    KernelBuilder build() const override {
+    WisdomKernelBuilder build() const override {
         return build_vector_add_kernel();
     }
 
@@ -45,7 +41,6 @@ TEST_CASE("KernelRegistry", "[CUDA]") {
 
     REQUIRE_NOTHROW(
         registry.lookup(VectorAddDescriptor {})
-            .instantiate(nullptr, n)
             .launch(int(n), (int*)dev_c, (const int*)dev_a, (const int*)dev_b));
 
     cudaDeviceSynchronize();

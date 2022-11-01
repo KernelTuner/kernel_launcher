@@ -11,14 +11,14 @@ void cuda_check(cudaError_t code) {
     }
 }
 
-kl::KernelBuilder build_vector_add() {
+kl::WisdomKernelBuilder build_vector_add() {
     // Find kernel file
     std::string this_file = __FILE__;
     std::string this_directory = this_file.substr(0, this_file.rfind('/'));
     std::string kernel_file = this_directory + "/kernel.cu";
 
     // Tunable parameters
-    kl::KernelBuilder builder("vector_add", kernel_file);
+    kl::WisdomKernelBuilder builder("vector_add", kernel_file);
     auto block_size =
         builder.tune("threads_per_block", {32, 64, 128, 256, 512, 1024});
     auto granularity =
@@ -26,7 +26,8 @@ kl::KernelBuilder build_vector_add() {
     auto strategy = builder.tune("tiling_strategy", {0, 1, 2});
 
     // Set options
-    builder.template_args(block_size, granularity, strategy)
+    builder.problem_size(kl::arg0)
+        .template_args(block_size, granularity, strategy)
         .block_size(block_size)
         .grid_divisors(block_size * granularity);
 
@@ -67,10 +68,10 @@ int main(int argc, char* argv[]) {
         cudaMemcpy(B_dev, B.data(), sizeof(float) * n, cudaMemcpyDefault));
 
     // Create wisdom kernel
-    kl::WisdomKernel vector_add("vector_add", build_vector_add());
+    kl::WisdomKernel vector_add(build_vector_add());
 
     // Call kernel
-    vector_add(n)(
+    vector_add(
         n,
         kl::CudaSpan<float>(C_dev, n),
         kl::CudaSpan<const float>(A_dev, n),

@@ -19,11 +19,7 @@ WisdomKernel& KernelRegistry::lookup_internal(KernelDescriptor key) const {
         return *it->second;
     }
 
-    WisdomKernel kernel(
-        key.get().tuning_key(),
-        key.get().build(),
-        compiler_,
-        settings_);
+    WisdomKernel kernel(key.get().build(), compiler_, settings_);
 
     auto entry = cache_.emplace(
         std::move(key),

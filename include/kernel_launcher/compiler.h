@@ -18,16 +18,14 @@ namespace kernel_launcher {
 struct KernelSource {
     KernelSource(std::string filename) :
         filename_(std::move(filename)),
-        has_content_(false) {
-        //
-    }
+        has_content_(false) {}
+
+    KernelSource(const char* filename) : KernelSource(std::string(filename)) {}
 
     KernelSource(std::string filename, std::string content) :
         filename_(std::move(filename)),
         content_(std::move(content)),
-        has_content_(true) {
-        //
-    }
+        has_content_(true) {}
 
     std::string file_name() const {
         return filename_;

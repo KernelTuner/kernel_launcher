@@ -11,10 +11,8 @@ namespace kernel_launcher {
 
 struct IKernelDescriptor {
     virtual ~IKernelDescriptor() = default;
-    virtual std::string tuning_key() const = 0;
-    virtual KernelBuilder build() const = 0;
+    virtual WisdomKernelBuilder build() const = 0;
     virtual bool equals(const IKernelDescriptor& that) const = 0;
-    virtual ProblemSize problem_size(const std::vector<KernelArg>&) const = 0;
     virtual hash_t hash() const {
         return 0;
     }
@@ -78,23 +76,10 @@ struct KernelRegistry {
         return lookup_internal(std::move(descriptor));
     }
 
-    WisdomKernelLaunch instantiate(
-        KernelDescriptor descriptor,
-        cudaStream_t stream,
-        ProblemSize problem_size) const {
-        return lookup(std::move(descriptor)).instantiate(stream, problem_size);
-    }
-
-    WisdomKernelLaunch operator()(
-        KernelDescriptor descriptor,
-        cudaStream_t stream,
-        ProblemSize problem_size) const {
-        return instantiate(std::move(descriptor), stream, problem_size);
-    }
-
-    WisdomKernelLaunch
-    operator()(KernelDescriptor descriptor, ProblemSize problem_size) const {
-        return instantiate(std::move(descriptor), nullptr, problem_size);
+    template<typename... Args>
+    void launch(KernelDescriptor descriptor, Args&&... args) const {
+        return lookup(std::move(descriptor))
+            .launch(std::forward<Args>(args)...);
     }
 
   private:
@@ -103,21 +88,18 @@ struct KernelRegistry {
     Compiler compiler_;
     WisdomSettings settings_;
     mutable std::mutex mutex_;
-    mutable std::
-        unordered_map<KernelDescriptor, std::unique_ptr<WisdomKernel>>
-            cache_ = {};
+    mutable std::unordered_map<KernelDescriptor, std::unique_ptr<WisdomKernel>>
+        cache_ = {};
 };
 
 const KernelRegistry& default_registry();
 
-inline WisdomKernelLaunch
-launch(KernelDescriptor descriptor, cudaStream_t stream, ProblemSize size) {
-    return default_registry().instantiate(descriptor, stream, size);
-}
-
-inline WisdomKernelLaunch
-launch(KernelDescriptor descriptor, ProblemSize size) {
-    return launch(descriptor, (cudaStream_t) nullptr, size);
+template<typename... Args>
+void launch(KernelDescriptor descriptor, Args&&... args) {
+    return default_registry().launch(
+        descriptor,
+        (cudaStream_t) nullptr,
+        std::forward<Args>(args)...);
 }
 
 }  // namespace kernel_launcher

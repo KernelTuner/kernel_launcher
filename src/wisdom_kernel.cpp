@@ -6,11 +6,104 @@
 
 namespace kernel_launcher {
 
+ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5, arg6 = 6,
+        arg7 = 7, arg8 = 8;
+
+std::string ArgExpr::to_string() const {
+    return "$arg" + std::to_string(index_);
+}
+
+Variable argument_variable(size_t index) {
+    static std::array<Variable, 64> vars;
+    return vars[index];
+}
+
+TunableValue ArgExpr::eval(const Eval& eval) const {
+    Variable v = argument_variable(index_);
+    TunableValue out;
+
+    if (eval.lookup(v, out)) {
+        return out;
+    } else {
+        throw std::runtime_error(
+            "cannot find argument " + std::to_string(index_));
+    }
+}
+
+Expr ArgExpr::resolve(const Eval& eval) const {
+    Variable v = argument_variable(index_);
+    TunableValue out;
+
+    if (eval.lookup(v, out)) {
+        return out;
+    } else {
+        return *this;
+    }
+}
+
+struct ArgsEval: Eval {
+    explicit ArgsEval(const std::vector<KernelArg>& args) : args_(args) {}
+
+    bool lookup(const Variable& v, TunableValue& out) const override {
+        for (size_t i = 0; i < args_.size(); i++) {
+            if (argument_variable(i) == v) {
+                out = args_[i].to_value_or_empty();
+                return !out.is_empty();
+            }
+        }
+
+        return false;
+    }
+
+  private:
+    const std::vector<KernelArg>& args_;
+};
+
+WisdomKernelBuilder::WisdomKernelBuilder(
+    std::string kernel_name,
+    KernelSource source) :
+    KernelBuilder(kernel_name, std::move(source)),
+    tuning_key_(kernel_name) {
+    problem_size(0, 0, 0);
+}
+
+WisdomKernelBuilder& WisdomKernelBuilder::tuning_key(std::string key) {
+    tuning_key_ = std::move(key);
+    return *this;
+}
+
+WisdomKernelBuilder& WisdomKernelBuilder::problem_size(ProblemExtractor f) {
+    if (!f) {
+        throw std::runtime_error(
+            "provided function cannot be uninitialized in "
+            "WisdomKernelBuilder::problem_size");
+    }
+
+    problem_extractor_ = std::move(f);
+    return *this;
+}
+
+WisdomKernelBuilder& WisdomKernelBuilder::problem_size(ProblemSize p) {
+    problem_extractor_ = [=](const std::vector<KernelArg>&) { return p; };
+    return *this;
+}
+
+WisdomKernelBuilder& WisdomKernelBuilder::problem_size(
+    TypedExpr<uint32_t> x,
+    TypedExpr<uint32_t> y,
+    TypedExpr<uint32_t> z) {
+    problem_extractor_ = [=](const std::vector<KernelArg>& args) {
+        ArgsEval eval(args);
+        return ProblemSize {eval(x), eval(y), eval(z)};
+    };
+
+    return *this;
+}
+
 struct WisdomKernelImpl {
     std::mutex mutex_;
     bool compiled_;
-    std::string tuning_key_;
-    KernelBuilder builder_;
+    WisdomKernelBuilder builder_;
     KernelInstance instance_;
     Compiler compiler_;
     std::vector<TypeInfo> param_types_;
@@ -22,14 +115,12 @@ WisdomKernel::WisdomKernel(WisdomKernel&&) noexcept = default;
 WisdomKernel::~WisdomKernel() = default;
 
 void WisdomKernel::initialize(
-    std::string tuning_key,
-    KernelBuilder builder,
+    WisdomKernelBuilder builder,
     Compiler compiler,
     WisdomSettings settings) {
     impl_ = std::unique_ptr<WisdomKernelImpl>(new WisdomKernelImpl {
         {},
         false,
-        std::move(tuning_key),
         std::move(builder),
         KernelInstance {},
         std::move(compiler),
@@ -46,12 +137,13 @@ void WisdomKernel::clear() {
 
 void compile_impl(
     WisdomKernelImpl* impl,
+    const std::string& tuning_key,
     ProblemSize problem_size,
     CudaDevice device,
     std::vector<TypeInfo> param_types,
     bool* should_capture = nullptr) {
     Config config = impl->settings_.load_config(
-        impl->tuning_key_,
+        tuning_key,
         impl->builder_,
         problem_size,
         device,
@@ -75,9 +167,12 @@ void WisdomKernel::compile(
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
+    const std::string& tuning_key = impl_->builder_.tuning_key_;
+
     std::lock_guard<std::mutex> guard(impl_->mutex_);
     compile_impl(
         impl_.get(),
+        tuning_key,
         problem_size,
         device,
         std::move(param_types),
@@ -125,7 +220,6 @@ static void assert_types_equal(
 
 void WisdomKernel::launch(
     cudaStream_t stream,
-    ProblemSize problem_size,
     const std::vector<KernelArg>& args) {
     if (!impl_) {
         throw std::runtime_error("WisdomKernel has not been initialized");
@@ -135,6 +229,9 @@ void WisdomKernel::launch(
     for (const KernelArg& arg : args) {
         ptrs.push_back(arg.as_void_ptr());
     }
+
+    const std::string& tuning_key = impl_->builder_.tuning_key_;
+    ProblemSize problem_size = impl_->builder_.problem_extractor_(args);
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
     if (!impl_->compiled_) {
@@ -146,6 +243,7 @@ void WisdomKernel::launch(
         bool should_capture = false;
         compile_impl(
             impl_.get(),
+            tuning_key,
             problem_size,
             CudaDevice::current(),
             param_types,
@@ -173,7 +271,7 @@ void WisdomKernel::launch(
 
             try {
                 impl_->settings_.capture_kernel(
-                    impl_->tuning_key_,
+                    tuning_key,
                     impl_->builder_,
                     problem_size,
                     param_types,
@@ -182,7 +280,7 @@ void WisdomKernel::launch(
             } catch (const std::exception& err) {
                 log_warning()
                     << "error ignored while writing tuning file for \""
-                    << impl_->tuning_key_ << "\": " << err.what();
+                    << tuning_key << "\": " << err.what();
             }
 
             return;
@@ -244,13 +342,13 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
 
 TunableValue KernelArg::to_value_or_empty() const {
     TypeInfo ty = type_.remove_const();
-    void *ptr = as_void_ptr();
+    void* ptr = as_void_ptr();
 
-#define IMPL_FOR_VALUE(T)                       \
-    if (ty == type_of<T>()) {                   \
-        T x;                                    \
+#define IMPL_FOR_VALUE(T)             \
+    if (ty == type_of<T>()) {         \
+        T x;                          \
         ::memcpy(&x, ptr, sizeof(T)); \
-        return x;                               \
+        return x;                     \
     }
 
     IMPL_FOR_VALUE(char);

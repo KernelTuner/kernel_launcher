@@ -245,14 +245,10 @@ TEST_CASE("WisdomKernel", "[CUDA]") {
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
 
     std::string assets_dir = assets_directory();
-    KernelBuilder builder = build_vector_add_kernel();
+    WisdomKernelBuilder builder = build_vector_add_kernel();
 
     WisdomSettings wisdom_settings(assets_dir, assets_dir);
-    WisdomKernel kernel(
-        "vector_add",
-        builder,
-        default_compiler(),
-        wisdom_settings);
+    WisdomKernel kernel(builder, default_compiler(), wisdom_settings);
 
     uint n = 10;
     std::vector<int> a(n), b(n), c(n), c_ref(n);
@@ -270,7 +266,7 @@ TEST_CASE("WisdomKernel", "[CUDA]") {
     cuda_copy(c.data(), (int*)dev_c, n);
 
     REQUIRE_NOTHROW(
-        kernel(n)(int(n), (int*)dev_c, (const int*)dev_a, (const int*)dev_b));
+        kernel(int(n), (int*)dev_c, (const int*)dev_a, (const int*)dev_b));
 
     // Copy C out
     cuda_copy((int*)dev_c, c.data(), n);

@@ -100,56 +100,64 @@ KernelArg into_kernel_arg(T&& value) {
 }
 
 struct WisdomKernel;
-
-struct WisdomKernelLaunch {
-    WisdomKernelLaunch(
-        cudaStream_t stream,
-        ProblemSize problem_size,
-        WisdomKernel& kernel) :
-        stream_(stream),
-        problem_size_(problem_size),
-        kernel_ref_(kernel) {
-        //
-    }
-
-    template<typename... Args>
-    void launch(Args&&... args) const;
-
-    template<typename... Args>
-    void operator()(Args&&... args) const {
-        return launch(std::forward<Args>(args)...);
-    }
-
-  private:
-    cudaStream_t stream_;
-    ProblemSize problem_size_;
-    WisdomKernel& kernel_ref_;
-};
-
 struct WisdomKernelImpl;
 
+struct ArgExpr: BaseExpr {
+    constexpr ArgExpr(uint8_t i) : index_(i) {};
+    std::string to_string() const override;
+    TunableValue eval(const Eval& eval) const override;
+    Expr resolve(const Eval& eval) const override;
+
+  private:
+    uint8_t index_;
+};
+
+extern ArgExpr arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8;
+
+inline ArgExpr arg(uint8_t i) {
+    return i;
+}
+
+using ProblemExtractor =
+    std::function<ProblemSize(const std::vector<KernelArg>&)>;
+
+struct WisdomKernelBuilder: KernelBuilder {
+    friend WisdomKernel;
+
+    WisdomKernelBuilder(std::string kernel_name, KernelSource source);
+
+    WisdomKernelBuilder& tuning_key(std::string);
+
+    WisdomKernelBuilder& problem_size(
+        TypedExpr<uint32_t> x,
+        TypedExpr<uint32_t> y = 1,
+        TypedExpr<uint32_t> z = 1);
+    WisdomKernelBuilder& problem_size(ProblemSize p);
+    WisdomKernelBuilder& problem_size(ProblemExtractor);
+
+  private:
+    std::string tuning_key_;
+    ProblemExtractor problem_extractor_;
+};
+
 struct WisdomKernel {
-    using launch_type = WisdomKernelLaunch;
     WisdomKernel();
     WisdomKernel(WisdomKernel&&) noexcept;
     ~WisdomKernel();
 
     WisdomKernel(
-        std::string tuning_key,
-        KernelBuilder builder,
+        WisdomKernelBuilder builder,
         Compiler compiler = default_compiler(),
         WisdomSettings settings = default_wisdom_settings()) :
         WisdomKernel() {
         initialize(
-            std::move(tuning_key),
             std::move(builder),
             std::move(compiler),
             std::move(settings));
     }
 
     void initialize(
-        std::string tuning_key,
-        KernelBuilder builder,
+        WisdomKernelBuilder builder,
         Compiler compiler = default_compiler(),
         WisdomSettings settings = default_wisdom_settings());
 
@@ -158,50 +166,41 @@ struct WisdomKernel {
         CudaDevice device,
         std::vector<TypeInfo> param_types);
 
-    void launch(
-        cudaStream_t stream,
-        ProblemSize problem_size,
-        const std::vector<KernelArg>& args);
+    void launch(cudaStream_t stream, const std::vector<KernelArg>& args);
+
+    void launch(cudaStream_t stream, std::vector<KernelArg>& args) {
+        launch(stream, (const std::vector<KernelArg>&)args);
+    }
+
     void clear();
 
-    launch_type instantiate(cudaStream_t stream, ProblemSize problem_size) {
-        return launch_type(stream, problem_size, *this);
+    template<typename... Args>
+    void launch(cudaStream_t stream, Args&&... args) {
+        return launch(stream, {into_kernel_arg(std::forward<Args>(args))...});
     }
 
-    launch_type operator()(cudaStream_t stream, ProblemSize problem_size) {
-        return instantiate(stream, problem_size);
+    template<typename... Args>
+    void launch(nullptr_t, Args&&... args) {
+        return launch(
+            cudaStream_t(nullptr),
+            {into_kernel_arg(std::forward<Args>(args))...});
     }
 
-    launch_type operator()(ProblemSize problem_size) {
-        return instantiate(nullptr, problem_size);
+    template<typename... Args>
+    void launch(Args&&... args) {
+        return launch(
+            cudaStream_t(nullptr),
+            {into_kernel_arg(std::forward<Args>(args))...});
     }
 
-    launch_type operator()(
-        cudaStream_t stream,
-        uint32_t problem_x,
-        uint32_t problem_y,
-        uint32_t problem_z = 1) {
-        return instantiate(
-            stream,
-            ProblemSize(problem_x, problem_y, problem_z));
-    }
-
-    launch_type
-    operator()(uint32_t problem_x, uint32_t problem_y, uint32_t problem_z = 1) {
-        return instantiate(
-            nullptr,
-            ProblemSize(problem_x, problem_y, problem_z));
+    template<typename... Args>
+    void operator()(Args&&... args) {
+        return launch(std::forward<Args>(args)...);
     }
 
   private:
     std::unique_ptr<WisdomKernelImpl> impl_;
 };
-
-template<typename... Args>
-void WisdomKernelLaunch::launch(Args&&... args) const {
-    std::vector<KernelArg> kargs {into_kernel_arg(std::forward<Args>(args))...};
-    kernel_ref_.launch(stream_, problem_size_, kargs);
-}
 
 }  // namespace kernel_launcher
 
