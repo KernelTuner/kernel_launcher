@@ -363,9 +363,6 @@ TunableValue operator!(const TunableValue& v) {
     return !v.to_bool();
 }
 
-static std::atomic<uint64_t> global_var_counter;
-Variable::Variable() : id_(global_var_counter += 1) {}
-
 TunableParam::TunableParam(
     std::string name,
     std::vector<TunableValue> values,

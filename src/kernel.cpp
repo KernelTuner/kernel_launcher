@@ -8,12 +8,15 @@ struct ArgsEval: Eval {
     ArgsEval(const std::vector<KernelArg>& args) : args_(args) {}
 
     bool lookup(const Variable& v, TunableValue& out) const override {
-        uint8_t n = uint8_t(std::min(args_.size(), size_t(64)));
+        if (auto that = dynamic_cast<const ArgExpr*>(&v)) {
+            size_t i = that->get();
 
-        for (uint8_t i = 0; i < n; i++) {
-            if (ArgExpr(i).variable() == v) {
+            if (i < args_.size()) {
                 out = args_[i].to_value_or_empty();
-                return !out.is_empty();
+
+                if (!out.is_empty()) {
+                    return true;
+                }
             }
         }
 
@@ -31,13 +34,13 @@ struct ProblemSizeEval: Eval {
         fallback_(fallback) {}
 
     bool lookup(const Variable& v, TunableValue& value) const override {
-        if (v == problem_size_x.variable()) {
+        if (v == problem_size_x) {
             value = problem_[0];
             return true;
-        } else if (v == problem_size_y.variable()) {
+        } else if (v == problem_size_y) {
             value = problem_[1];
             return true;
-        } else if (v == problem_size_z.variable()) {
+        } else if (v == problem_size_z) {
             value = problem_[2];
             return true;
         }

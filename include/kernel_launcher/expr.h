@@ -204,7 +204,7 @@ Expr into_expr(E&& value) {
     return {std::forward<E>(value)};
 }
 
-struct ProblemExpr: BaseExpr {
+struct ProblemExpr: BaseExpr, Variable {
     ProblemExpr(size_t axis) : axis_(axis) {
         if (axis_ >= 3) {
             throw std::runtime_error("axis out of bounds");
@@ -215,9 +215,19 @@ struct ProblemExpr: BaseExpr {
     TunableValue eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
 
-    Variable variable() const;
-
     size_t axis() const {
+        return axis_;
+    }
+
+    bool equals(const Variable& v) const override {
+        if (auto that = dynamic_cast<const ProblemExpr*>(&v)) {
+            return this->axis_ == that->axis_;
+        } else {
+            return false;
+        }
+    }
+
+    size_t hash() const override {
         return axis_;
     }
 
@@ -231,12 +241,27 @@ inline ProblemExpr problem_size(size_t axis = 0) {
     return axis;
 }
 
-struct ArgExpr: BaseExpr {
+struct ArgExpr: BaseExpr, Variable {
     constexpr ArgExpr(uint8_t i) : index_(i) {};
     std::string to_string() const override;
     TunableValue eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
-    Variable variable() const;
+
+    bool equals(const Variable& v) const override {
+        if (auto that = dynamic_cast<const ArgExpr*>(&v)) {
+            return this->index_ == that->index_;
+        } else {
+            return false;
+        }
+    }
+
+    size_t hash() const override {
+        return index_;
+    }
+
+    size_t get() const {
+        return index_;
+    }
 
   private:
     uint8_t index_;

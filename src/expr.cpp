@@ -20,7 +20,7 @@ std::string ParamExpr::to_string() const {
 
 TunableValue ParamExpr::eval(const Eval& ctx) const {
     TunableValue value;
-    if (!ctx.lookup(param_.variable(), value)) {
+    if (!ctx.lookup(param_, value)) {
         throw std::runtime_error(
             "parameter $" + param_.name() + "is undefined");
     }
@@ -31,7 +31,7 @@ TunableValue ParamExpr::eval(const Eval& ctx) const {
 Expr ParamExpr::resolve(const Eval& eval) const {
     TunableValue value;
 
-    if (eval.lookup(param_.variable(), value)) {
+    if (eval.lookup(param_, value)) {
         return ScalarExpr(value);
     } else {
         return ParamExpr(param_);
@@ -47,10 +47,9 @@ std::string ProblemExpr::to_string() const {
 }
 
 TunableValue ProblemExpr::eval(const Eval& eval) const {
-    auto var = variable();
     TunableValue value;
 
-    if (!eval.lookup(var, value)) {
+    if (!eval.lookup(*this, value)) {
         throw std::runtime_error(
             "attempted to evaluate expression that "
             "cannot be problem dependent");
@@ -60,19 +59,13 @@ TunableValue ProblemExpr::eval(const Eval& eval) const {
 }
 
 Expr ProblemExpr::resolve(const Eval& eval) const {
-    auto var = variable();
     TunableValue value;
 
-    if (eval.lookup(var, value)) {
+    if (eval.lookup(*this, value)) {
         return ScalarExpr(value);
     } else {
         return ProblemExpr(axis_);
     }
-}
-
-Variable ProblemExpr::variable() const {
-    static Variable vars[3] = {Variable(), Variable(), Variable()};
-    return vars[axis_];
 }
 
 ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5, arg6 = 6,
@@ -82,16 +75,10 @@ std::string ArgExpr::to_string() const {
     return "$argument_" + std::to_string(index_);
 }
 
-Variable ArgExpr::variable() const {
-    static std::array<Variable, 64> vars;
-    return vars[index_];
-}
-
 TunableValue ArgExpr::eval(const Eval& eval) const {
-    Variable v = variable();
     TunableValue out;
 
-    if (eval.lookup(v, out)) {
+    if (eval.lookup(*this, out)) {
         return out;
     } else {
         throw std::runtime_error(
@@ -100,10 +87,9 @@ TunableValue ArgExpr::eval(const Eval& eval) const {
 }
 
 Expr ArgExpr::resolve(const Eval& eval) const {
-    Variable v = variable();
     TunableValue out;
 
-    if (eval.lookup(v, out)) {
+    if (eval.lookup(*this, out)) {
         return out;
     } else {
         return *this;

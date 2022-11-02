@@ -8,7 +8,7 @@
 
 namespace kernel_launcher {
 
-using TunableMap = std::unordered_map<Variable, TunableValue>;
+using TunableMap = std::unordered_map<TunableParam, TunableValue>;
 
 struct ConfigSpace;
 struct Config: Eval {
@@ -58,8 +58,7 @@ struct Config: Eval {
     friend std::ostream& operator<<(std::ostream&, const Config& c);
 
   private:
-    std::unordered_map<Variable, TunableValue> inner_;
-    std::vector<TunableParam> keys_;
+    std::unordered_map<TunableParam, TunableValue> inner_;
 };
 
 struct KernelBuilderSerializerHack;

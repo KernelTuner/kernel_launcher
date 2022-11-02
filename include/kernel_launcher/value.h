@@ -268,25 +268,20 @@ TunableValue operator||(const TunableValue& lhs, const TunableValue& rhs);
 TunableValue operator!(const TunableValue& v);
 
 struct Variable {
-    Variable();
+    virtual ~Variable() = default;
+    virtual bool equals(const Variable& that) const = 0;
+    virtual size_t hash() const = 0;
 
     bool operator==(const Variable& that) const {
-        return this->id_ == that.id_;
+        return equals(that);
     }
 
     bool operator!=(const Variable& that) const {
-        return this->id_ != that.id_;
+        return !equals(that);
     }
-
-    uint64_t get() const {
-        return id_;
-    }
-
-  private:
-    uint64_t id_;
 };
 
-struct TunableParam {
+struct TunableParam: Variable {
   private:
     struct Impl {
         friend ::kernel_launcher::TunableParam;
@@ -306,7 +301,6 @@ struct TunableParam {
         std::vector<TunableValue> values_;
         std::vector<double> priors_;
         TunableValue default_value_;
-        Variable var_;
     };
 
   public:
@@ -367,10 +361,6 @@ struct TunableParam {
         return values().size();
     }
 
-    size_t hash() const {
-        return (size_t)inner_.get();
-    }
-
     bool operator==(const TunableParam& that) const {
         return inner_.get() == that.inner_.get();
     }
@@ -379,8 +369,16 @@ struct TunableParam {
         return !(*this == that);
     }
 
-    Variable variable() const {
-        return inner_->var_;
+    size_t hash() const override {
+        return (size_t)inner_.get();
+    }
+
+    bool equals(const Variable& v) const {
+        if (auto that = dynamic_cast<const TunableParam*>(&v)) {
+            return *that == *this;
+        } else {
+            return false;
+        }
     }
 
   private:
@@ -407,7 +405,7 @@ struct hash<kernel_launcher::TunableParam> {
 template<>
 struct hash<kernel_launcher::Variable> {
     std::size_t operator()(const kernel_launcher::Variable& v) const {
-        return size_t {v.get()};
+        return size_t {v.hash()};
     }
 };
 }  // namespace std

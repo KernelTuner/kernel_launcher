@@ -3,36 +3,37 @@
 namespace kernel_launcher {
 
 bool Config::lookup(const Variable& v, TunableValue& out) const {
-    auto it = inner_.find(v);
-    if (it != inner_.end()) {
-        out = it->second;
-        return true;
-    } else {
-        return false;
+    if (const auto ptr = dynamic_cast<const TunableParam*>(&v)) {
+        auto it = inner_.find(*ptr);
+        if (it != inner_.end()) {
+            out = it->second;
+            return true;
+        }
     }
+
+    return false;
 }
 
 void Config::insert(TunableParam k, TunableValue v) {
     const std::string& name = k.name();
 
-    for (const auto& it : keys_) {
-        if (it == k) {
-            inner_[k.variable()] = v;
+    for (auto& it : inner_) {
+        if (it.first == k) {
+            it.second = v;
             return;
-        } else if (it.name() == name) {
+        } else if (it.first.name() == name) {
             throw std::runtime_error(
                 "duplicate parameter: key " + name + " already exists");
         }
     }
 
-    keys_.push_back(k);
-    inner_.emplace(k.variable(), std::move(v));
+    inner_.emplace(std::move(k), std::move(v));
 }
 
 const TunableValue& Config::at(const std::string& param) const {
-    for (const auto& it : keys_) {
-        if (it.name() == param) {
-            return inner_.at(it.variable());
+    for (const auto& it : inner_) {
+        if (it.first.name() == param) {
+            return it.second;
         }
     }
 
@@ -40,7 +41,7 @@ const TunableValue& Config::at(const std::string& param) const {
 }
 
 const TunableValue& Config::at(const TunableParam& param) const {
-    auto it = inner_.find(param.variable());
+    auto it = inner_.find(param);
     if (it == inner_.end()) {
         throw std::invalid_argument("unknown parameter: " + param.name());
     }
@@ -51,14 +52,14 @@ const TunableValue& Config::at(const TunableParam& param) const {
 std::ostream& operator<<(std::ostream& s, const Config& c) {
     s << "{";
     bool is_first = true;
-    for (const auto& p : c.keys_) {
+    for (const auto& p : c.inner_) {
         if (is_first) {
             is_first = false;
         } else {
             s << ", ";
         }
 
-        s << "\"" << p.name() << "\": " << c.inner_.at(p.variable());
+        s << "\"" << p.first.name() << "\": " << p.second;
     }
     return s << "}";
 }
@@ -120,7 +121,7 @@ bool ConfigSpace::is_valid(const Config& config) const {
     }
 
     for (const auto& p : params_) {
-        auto it = m.find(p.variable());
+        auto it = m.find(p);
         if (it == m.end()) {
             return false;
         }
