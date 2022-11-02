@@ -46,6 +46,7 @@ static const char* data_type_name(TunableValue::DataType dtype) {
 }
 
 const std::string& intern_string(const char* input) {
+    static constexpr size_t initial_capacity = 64;
     auto equal = [](const char* a, const char* b) { return strcmp(a, b) == 0; };
     auto hash = [](const char* v) { return hash_string(v, ::strlen(v)); };
 
@@ -55,14 +56,14 @@ const std::string& intern_string(const char* input) {
         std::unique_ptr<std::string>,
         decltype(hash),
         decltype(equal)>
-        table(32, hash, equal);
+        table(initial_capacity, hash, equal);
 
     std::lock_guard<std::mutex> guard(lock);
 
     auto it = table.find(input);
     if (it == table.end()) {
         auto value = std::make_unique<std::string>(input);
-        auto key = value->c_str();
+        const auto* key = value->c_str();
 
         auto result = table.insert(std::make_pair(key, std::move(value)));
         it = result.first;
@@ -103,7 +104,7 @@ size_t TunableValue::hash() const {
         case type_int:
             return std::hash<integer_type> {}(int_val_);
         case type_bool:
-            return std::hash<integer_type> {}(bool_val_);
+            return std::hash<integer_type> {}(bool_val_ ? 1 : 0);
         case type_double:
             if (safe_double_to_int64(double_val_, v)) {
                 return std::hash<integer_type> {}(v);
@@ -202,10 +203,14 @@ bool TunableValue::to_bool() const {
 
 TunableValue::integer_type TunableValue::to_integer() const {
     if (dtype_ == type_bool) {
-        return bool_val_;
-    } else if (dtype_ == type_int) {
+        return bool_val_ ? 1 : 0;
+    }
+
+    if (dtype_ == type_int) {
         return int_val_;
-    } else if (dtype_ == type_double) {
+    }
+
+    if (dtype_ == type_double) {
         int64_t result;
 
         if (safe_double_to_int64(double_val_, result)) {
@@ -264,11 +269,17 @@ TemplateArg TunableValue::to_template_arg() const {
 TunableValue operator+(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_bool() && rhs.is_bool()) {
         return lhs.to_bool() || rhs.to_bool();
-    } else if (lhs.is_double() || rhs.is_double()) {
+    }
+
+    if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() + rhs.to_double();
-    } else if (lhs.is_string() && rhs.is_string()) {
+    }
+
+    if (lhs.is_string() && rhs.is_string()) {
         return lhs.to_string() + rhs.to_string();
-    } else if (lhs.is_integer() || rhs.is_integer()) {
+    }
+
+    if (lhs.is_integer() || rhs.is_integer()) {
         TunableValue::integer_type out;
         if (safe_int64_add(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
@@ -289,7 +300,9 @@ TunableValue operator+(const TunableValue& v) {
 TunableValue operator-(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() - rhs.to_double();
-    } else if (lhs.is_integer() || rhs.is_integer()) {
+    }
+
+    if (lhs.is_integer() || rhs.is_integer()) {
         TunableValue::integer_type out;
         if (safe_int64_sub(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
@@ -302,7 +315,9 @@ TunableValue operator-(const TunableValue& lhs, const TunableValue& rhs) {
 TunableValue operator-(const TunableValue& v) {
     if (v.is_double()) {
         return -v.to_double();
-    } else if (v.is_integer()) {
+    }
+
+    if (v.is_integer()) {
         TunableValue::integer_type out;
         if (safe_int64_sub(0, v.to_integer(), out)) {
             return out;
@@ -315,9 +330,13 @@ TunableValue operator-(const TunableValue& v) {
 TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_bool() && rhs.is_bool()) {
         return lhs.to_bool() && rhs.to_bool();
-    } else if (lhs.is_double() || rhs.is_double()) {
+    }
+
+    if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() * rhs.to_double();
-    } else if (lhs.is_integer() || rhs.is_integer()) {
+    }
+
+    if (lhs.is_integer() || rhs.is_integer()) {
         TunableValue::integer_type out;
         if (safe_int64_mul(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
@@ -330,7 +349,9 @@ TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
 TunableValue operator/(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() / rhs.to_double();
-    } else if (lhs.is_integer() || rhs.is_integer()) {
+    }
+
+    if (lhs.is_integer() || rhs.is_integer()) {
         TunableValue::integer_type out;
         if (safe_int64_div(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
@@ -343,8 +364,9 @@ TunableValue operator/(const TunableValue& lhs, const TunableValue& rhs) {
 TunableValue operator%(const TunableValue& lhs, const TunableValue& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return std::fmod(lhs.to_double(), rhs.to_double());
-    } else if (
-        (lhs.is_integer() || rhs.is_integer()) && rhs.to_integer() != 0) {
+    }
+
+    if ((lhs.is_integer() || rhs.is_integer()) && rhs.to_integer() != 0) {
         return lhs.to_integer() % rhs.to_integer();
     }
 

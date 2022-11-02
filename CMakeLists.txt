@@ -7,12 +7,15 @@ if(NOT CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "Please specify CMAKE_BUILD_TYPE for kernel_launcher")
 endif()
 
+
 file(GLOB sources "${PROJECT_SOURCE_DIR}/src/*.cpp")
 add_library(${PROJECT_NAME} STATIC ${sources})
+set(KERNEL_LAUNCHER_CLANG_TIDY clang-tidy -checks=-*,readability-*,bugprone-*,-readability-magic-numbers,-readability-use-anyofallof,-readability-else-after-return)
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/thirdparty")
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Wconversion -Werror -Wno-unused-parameter)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_CLANG_TIDY "${KERNEL_LAUNCHER_CLANG_TIDY}")
 
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)

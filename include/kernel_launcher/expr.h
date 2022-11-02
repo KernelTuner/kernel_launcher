@@ -115,7 +115,7 @@ namespace detail {
         using type = typename std::decay<E>::type;
 
         static type call(E&& expr) {
-            return expr;
+            return std::move(expr);
         }
     };
 

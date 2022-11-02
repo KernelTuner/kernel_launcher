@@ -104,8 +104,10 @@ static std::vector<json> expr_list_to_json(C collection) {
 }
 
 static json environment_json() {
-    int driver_version = -1, runtime_version = -1;
+    int driver_version = -1;
     cuDriverGetVersion(&driver_version);  // ignore errors
+
+    int runtime_version = -1;
     cudaRuntimeGetVersion(&runtime_version);
 
     int nvrtc_version = NvrtcCompiler::version();

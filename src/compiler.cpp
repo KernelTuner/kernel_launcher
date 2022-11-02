@@ -13,9 +13,9 @@ extern const std::unordered_map<std::string, std::string>& jitsafe_headers();
 std::string KernelSource::read(const FileLoader& fs) const {
     if (!has_content_) {
         return fs.load(filename_);
-    } else {
-        return content_;
     }
+
+    return content_;
 }
 
 KernelDef::KernelDef(std::string name, KernelSource source) :
@@ -87,7 +87,7 @@ NvrtcCompiler::NvrtcCompiler(
 // RAII wrapper to ensure nvrtcDestroy is always called
 struct NvrtcProgramDestroyer {
     ~NvrtcProgramDestroyer() {
-        if (program_) {
+        if (program_ != nullptr) {
             nvrtcDestroyProgram(&program_);
             program_ = nullptr;
         }
@@ -154,21 +154,21 @@ static bool nvrtc_compile(
     log.resize(log_size + 1);
     nvrtc_check(nvrtcGetProgramLog(program, &log[0]));
 
-    if (result == NVRTC_SUCCESS) {
-        const char* ptr = nullptr;
-        nvrtc_check(nvrtcGetLoweredName(program, symbol_name.data(), &ptr));
-        lowered_name = ptr;
-
-        size_t ptx_size = 0;
-        nvrtc_check(nvrtcGetPTXSize(program, &ptx_size));
-
-        ptx.resize(ptx_size + 1);
-        nvrtc_check(nvrtcGetPTX(program, &ptx[0]));
-
-        return true;
-    } else {
+    if (result != NVRTC_SUCCESS) {
         return false;
     }
+
+    const char* ptr = nullptr;
+    nvrtc_check(nvrtcGetLoweredName(program, symbol_name.data(), &ptr));
+    lowered_name = ptr;
+
+    size_t ptx_size = 0;
+    nvrtc_check(nvrtcGetPTXSize(program, &ptx_size));
+
+    ptx.resize(ptx_size + 1);
+    nvrtc_check(nvrtcGetPTX(program, &ptx[0]));
+
+    return true;
 }
 
 static std::string generate_expression(
@@ -323,8 +323,8 @@ struct TempFile {
 void NvrtcCompiler::compile_ptx(
     KernelDef def,
     CudaArch arch,
-    std::string& ptx,
-    std::string& symbol_name) const {
+    std::string& ptx_out,
+    std::string& symbol_out) const {
     constexpr size_t max_attempts = 25;
 
     std::string expression =
@@ -366,8 +366,8 @@ void NvrtcCompiler::compile_ptx(
             expression,
             options,
             headers,
-            symbol_name,
-            ptx,
+            symbol_out,
+            ptx_out,
             log);
 
         log_debug() << "NVRTC compilation of " << def.source.file_name() << ": "
@@ -404,12 +404,14 @@ void NvrtcCompiler::compile_ptx(
 }
 
 int NvrtcCompiler::version() {
-    int major, minor;
-    if (nvrtcVersion(&major, &minor) == NVRTC_SUCCESS) {
-        return 1000 * major + 10 * minor;
-    } else {
+    int major;
+    int minor;
+
+    if (nvrtcVersion(&major, &minor) != NVRTC_SUCCESS) {
         return 0;
     }
+
+    return 1000 * major + 10 * minor;
 }
 
 Compiler global_compiler;

@@ -200,21 +200,27 @@ struct TunableValue {
         } else if (dtype_ == type_int && in_range<type_name>(int_val_)) { \
             return (type_name)int_val_;                                   \
         } else {                                                          \
-            throw std::runtime_error("");                                 \
+            throw std::runtime_error("failed to convert type");           \
         }                                                                 \
     }
 
-#define KERNEL_LAUNCHER_INTEGER_IMPL(type_name, human_name)      \
-    KERNEL_LAUNCHER_INTEGER_FUNS(type_name, human_name)          \
-                                                                 \
-    TunableValue(type_name i) : dtype_(type_int), int_val_(i) {} \
-                                                                 \
-  private:                                                       \
-    bool is(TypeIndicator<type_name>) const {                    \
-        return this->is_##human_name();                          \
-    }                                                            \
-    type_name to(TypeIndicator<type_name>) const {               \
-        return this->to_##human_name();                          \
+#define KERNEL_LAUNCHER_INTEGER_IMPL(type_name, human_name)     \
+    KERNEL_LAUNCHER_INTEGER_FUNS(type_name, human_name)         \
+                                                                \
+    TunableValue(type_name i) :                                 \
+        dtype_(type_int),                                       \
+        int_val_(static_cast<integer_type>(i)) {                \
+        if (!in_range<integer_type>(i)) {                       \
+            throw std::runtime_error("failed to convert type"); \
+        }                                                       \
+    }                                                           \
+                                                                \
+  private:                                                      \
+    bool is(TypeIndicator<type_name>) const {                   \
+        return this->is_##human_name();                         \
+    }                                                           \
+    type_name to(TypeIndicator<type_name>) const {              \
+        return this->to_##human_name();                         \
     }
 
     // char is the only type were `char`, `signed char`, and `unsigned char` are different types
@@ -373,7 +379,7 @@ struct TunableParam: Variable {
         return (size_t)inner_.get();
     }
 
-    bool equals(const Variable& v) const {
+    bool equals(const Variable& v) const override {
         if (auto that = dynamic_cast<const TunableParam*>(&v)) {
             return *that == *this;
         } else {

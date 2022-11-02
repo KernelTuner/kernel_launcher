@@ -113,7 +113,7 @@ struct NvrtcCompiler: ICompiler {
         KernelDef def,
         CudaArch arch,
         std::string& ptx_out,
-        std::string& name_out) const override;
+        std::string& symbol_out) const override;
 
   private:
     std::shared_ptr<FileLoader> fs_;

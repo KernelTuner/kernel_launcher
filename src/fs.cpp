@@ -105,7 +105,7 @@ static void add_env_directories(std::vector<std::string>& result) {
     const char* paths = getenv(ENV_KEY);
 
     // Environment value is not set. Exit now.
-    if (!paths) {
+    if (paths == nullptr) {
         return;
     }
 
@@ -201,7 +201,7 @@ DefaultLoader::DefaultLoader(
     // working directory
     if (include_cwd) {
         char cwd[PATH_MAX + 1];
-        if (getcwd(cwd, sizeof cwd)) {
+        if (getcwd(cwd, sizeof cwd) != nullptr) {
             search_dirs_.emplace_back(cwd);
         }
     }

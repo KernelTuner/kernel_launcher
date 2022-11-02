@@ -145,14 +145,13 @@ static void parse_line(
     }
 
     ProblemSize problem_size;
-    if (problem_json.size() > 0)
-        problem_size.x = problem_json[0];
-    if (problem_json.size() > 1)
-        problem_size.y = problem_json[1];
-    if (problem_json.size() > 2)
-        problem_size.z = problem_json[2];
+    for (size_t i = 0; i < 3; i++) {
+        if (problem_json.size() > i) {
+            problem_size[i] = problem_json[i];
+        }
+    }
 
-    const auto device_name =
+    const auto* const device_name =
         env_json["device_name"].get_ptr<const std::string*>();
     double objective = record[objective_key];
 
@@ -372,7 +371,7 @@ DefaultOracle DefaultOracle::from_env() {
     std::vector<std::string> capture_patterns = {};
     const char* value;
 
-    if ((value = getenv("KERNEL_LAUNCHER_WISDOM"))) {
+    if ((value = getenv("KERNEL_LAUNCHER_WISDOM")) != nullptr) {
         for (std::string dir : string_split(value, ':')) {
             if (!dir.empty()) {
                 wisdom_dirs.emplace_back(std::move(dir));
@@ -384,11 +383,11 @@ DefaultOracle DefaultOracle::from_env() {
         }
     }
 
-    if ((value = getenv("KERNEL_LAUNCHER_DIR"))) {
+    if ((value = getenv("KERNEL_LAUNCHER_DIR")) != nullptr) {
         capture_dir = value;
     }
 
-    std::string patterns = "";
+    std::string patterns;
     bool force = false;
 
     // Try the following environment keys in order
@@ -460,7 +459,7 @@ Config DefaultOracle::load_config(
         problem_size,
         &result);
 
-    if (should_capture_out) {
+    if (should_capture_out != nullptr) {
         *should_capture_out =
             this->should_capture_kernel(tuning_key, problem_size, result);
     }

@@ -105,15 +105,17 @@ std::string CudaDevice::uuid() const {
     std::stringstream result;
     result << std::hex << std::setfill('0') << std::setw(2);
     for (size_t i = 0; i < 16; i++) {
-        if (i % 2 == 0 && i >= 4 && i <= 10)
+        if (i % 2 == 0 && i >= 4 && i <= 10) {
             result << "-";
+        }
+
         result << (unsigned int)(unsigned char)uuid.bytes[i];
     }
 
     return result.str();
 }
 
-CudaArch CudaDevice::arch() {
+CudaArch CudaDevice::arch() const {
     int minor = attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
     int major = attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
     return CudaArch(major, minor);

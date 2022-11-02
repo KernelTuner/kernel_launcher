@@ -124,7 +124,7 @@ struct KernelInstance {
     void launch(
         cudaStream_t stream,
         const std::vector<KernelArg>& args,
-        const Eval& eval) const;
+        const Eval& fallback) const;
 
     void launch(cudaStream_t stream, const std::vector<KernelArg>& args) const;
 

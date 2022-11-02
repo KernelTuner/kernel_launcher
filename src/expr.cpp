@@ -33,9 +33,9 @@ Expr ParamExpr::resolve(const Eval& eval) const {
 
     if (eval.lookup(param_, value)) {
         return ScalarExpr(value);
-    } else {
-        return ParamExpr(param_);
     }
+
+    return ParamExpr(param_);
 }
 
 ProblemExpr problem_size_x = 0, problem_size_y = 1, problem_size_z = 2;
@@ -63,9 +63,9 @@ Expr ProblemExpr::resolve(const Eval& eval) const {
 
     if (eval.lookup(*this, value)) {
         return ScalarExpr(value);
-    } else {
-        return ProblemExpr(axis_);
     }
+
+    return ProblemExpr(axis_);
 }
 
 ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5, arg6 = 6,
@@ -78,12 +78,12 @@ std::string ArgExpr::to_string() const {
 TunableValue ArgExpr::eval(const Eval& eval) const {
     TunableValue out;
 
-    if (eval.lookup(*this, out)) {
-        return out;
-    } else {
+    if (!eval.lookup(*this, out)) {
         throw std::runtime_error(
             "cannot find argument " + std::to_string(index_));
     }
+
+    return out;
 }
 
 Expr ArgExpr::resolve(const Eval& eval) const {
@@ -91,9 +91,9 @@ Expr ArgExpr::resolve(const Eval& eval) const {
 
     if (eval.lookup(*this, out)) {
         return out;
-    } else {
-        return *this;
     }
+
+    return *this;
 }
 
 TunableValue SelectExpr::eval(const Eval& ctx) const {
@@ -153,15 +153,15 @@ Expr UnaryExpr::resolve(const Eval& eval) const {
 
     if (result.operand_.is_constant()) {
         return ScalarExpr(result.eval(eval));
-    } else {
-        return result;
     }
+
+    return result;
 }
 
 std::string UnaryExpr::op_name() const {
     switch (operator_) {
         case Op::Plus:
-            return "-";
+            return "+";
         case Op::Minus:
             return "-";
         case Op::LogicNot:
@@ -252,8 +252,8 @@ Expr BinaryExpr::resolve(const Eval& eval) const {
 
     if (result.lhs_.is_constant() && result.lhs_.is_constant()) {
         return ScalarExpr(result.eval(eval));
-    } else {
-        return result;
     }
+
+    return result;
 }
 }  // namespace kernel_launcher

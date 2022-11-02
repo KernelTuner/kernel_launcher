@@ -119,7 +119,7 @@ bool safe_double_to_int64(double input, int64_t& output) {
 }
 
 static constexpr int64_t I64_MIN = std::numeric_limits<int64_t>::min();
-static constexpr int64_t I64_MAX = std::numeric_limits<int64_t>::max();
+//static constexpr int64_t I64_MAX = std::numeric_limits<int64_t>::max();
 
 bool safe_int64_add(int64_t lhs, int64_t rhs, int64_t& output) {
     // TODO: Check how portable these `__builtin_*_overflow` functions are
@@ -188,7 +188,7 @@ bool string_match(const char* pattern, const char* input) {
         return true;
     }
 
-    while (*input) {
+    while (*input != '\0') {
         if (next == *input) {
             if (string_match(pattern + 1, input + 1)) {
                 return true;
@@ -205,19 +205,19 @@ std::vector<std::string> string_split(const char* input, char delim) {
     size_t start = 0;
     std::vector<std::string> result;
 
-    while (input[start]) {
+    while (input[start] != '\0') {
         size_t end = start;
 
-        while (input[end] && input[end] != delim) {
+        while (input[end] != '\0' && input[end] != delim) {
             end++;
         }
 
-        if (!input[end]) {
+        if (input[end] == '\0') {
             break;
         }
 
         result.emplace_back(input + start, end - start);
-        start = end += 1;
+        start = end + 1;
     }
 
     result.emplace_back(input + start);
@@ -226,8 +226,10 @@ std::vector<std::string> string_split(const char* input, char delim) {
 
 hash_t hash_string(const char* buffer, size_t num_bytes) {
     // Simple FNV1a hash
-    hash_t hash = 0xcbf29ce484222325;
-    hash_t prime = 0x100000001b3;
+    static constexpr hash_t prime = 0x100000001b3;
+    static constexpr hash_t hash_init = 0xcbf29ce484222325;
+
+    hash_t hash = hash_init;
 
     for (size_t i = 0; i < num_bytes; i++) {
         hash = (hash ^ (hash_t)(unsigned char)buffer[i]) * prime;

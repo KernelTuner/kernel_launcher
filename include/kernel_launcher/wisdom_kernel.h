@@ -51,17 +51,15 @@ struct WisdomKernel {
     }
 
     template<typename... Args>
-    void launch(nullptr_t, Args&&... args) {
+    void launch(Args&&... args) {
         return launch(
             cudaStream_t(nullptr),
             {into_kernel_arg(std::forward<Args>(args))...});
     }
 
     template<typename... Args>
-    void launch(Args&&... args) {
-        return launch(
-            cudaStream_t(nullptr),
-            {into_kernel_arg(std::forward<Args>(args))...});
+    void operator()(cudaStream_t stream, Args&&... args) {
+        return launch(stream, std::forward<Args>(args)...);
     }
 
     template<typename... Args>

@@ -108,16 +108,18 @@ static void assert_types_equal(
         "invalid argument types: kernel compiled for parameter types (";
 
     for (size_t i = 0; i < params.size(); i++) {
-        if (i != 0)
+        if (i != 0) {
             msg += ", ";
+        }
         msg += params[i].name();
     }
 
     msg += "), but was called with argument types (";
 
     for (size_t i = 0; i < args.size(); i++) {
-        if (i != 0)
+        if (i != 0) {
             msg += ", ";
+        }
         msg += args[i].type().name();
     }
 

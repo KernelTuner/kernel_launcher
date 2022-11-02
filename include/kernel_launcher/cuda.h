@@ -25,7 +25,7 @@ struct CudaException: std::runtime_error {
     CUresult err_;
 };
 
-void cuda_check(CUresult expr, const char* msg);
+void cuda_check(CUresult result, const char* msg);
 
 struct CudaModule {
     CudaModule(const char* image, const char* fun_name);
@@ -96,7 +96,7 @@ struct CudaDevice {
     int attribute(CUdevice_attribute key) const;
     int ordinal() const;
     std::string uuid() const;
-    CudaArch arch();
+    CudaArch arch() const;
 
     CUdevice get() const {
         return device_;

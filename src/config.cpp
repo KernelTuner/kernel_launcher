@@ -3,7 +3,7 @@
 namespace kernel_launcher {
 
 bool Config::lookup(const Variable& v, TunableValue& out) const {
-    if (const auto ptr = dynamic_cast<const TunableParam*>(&v)) {
+    if (const auto* ptr = dynamic_cast<const TunableParam*>(&v)) {
         auto it = inner_.find(*ptr);
         if (it != inner_.end()) {
             out = it->second;
@@ -21,7 +21,9 @@ void Config::insert(TunableParam k, TunableValue v) {
         if (it.first == k) {
             it.second = v;
             return;
-        } else if (it.first.name() == name) {
+        }
+
+        if (it.first.name() == name) {
             throw std::runtime_error(
                 "duplicate parameter: key " + name + " already exists");
         }

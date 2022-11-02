@@ -8,7 +8,7 @@ struct ArgsEval: Eval {
     ArgsEval(const std::vector<KernelArg>& args) : args_(args) {}
 
     bool lookup(const Variable& v, TunableValue& out) const override {
-        if (auto that = dynamic_cast<const ArgExpr*>(&v)) {
+        if (const auto* that = dynamic_cast<const ArgExpr*>(&v)) {
             size_t i = that->get();
 
             if (i < args_.size()) {
@@ -34,15 +34,11 @@ struct ProblemSizeEval: Eval {
         fallback_(fallback) {}
 
     bool lookup(const Variable& v, TunableValue& value) const override {
-        if (v == problem_size_x) {
-            value = problem_[0];
-            return true;
-        } else if (v == problem_size_y) {
-            value = problem_[1];
-            return true;
-        } else if (v == problem_size_z) {
-            value = problem_[2];
-            return true;
+        for (size_t i = 0; i < 3; i++) {
+            if (ProblemExpr(i) == v) {
+                value = problem_[i];
+                return true;
+            }
         }
 
         if (args_.lookup(v, value)) {
@@ -340,7 +336,9 @@ KernelBuilder& KernelBuilder::problem_size(ProblemExtractor f) {
 }
 
 KernelBuilder& KernelBuilder::problem_size(ProblemSize p) {
-    problem_extractor_ = [=](const std::vector<KernelArg>&) { return p; };
+    problem_extractor_ = [=](const std::vector<KernelArg>& /*unused*/) {
+        return p;
+    };
     return *this;
 }
 
