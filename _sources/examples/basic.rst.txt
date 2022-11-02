@@ -46,13 +46,15 @@ Note that ``elements_per_block`` here does not contain an actual value.
 Instead, it is an abstract expression that, when the kernel is instantiated, evaluates to the product of ``threads_per_block`` and ``elements_per_thread``.
 
 .. literalinclude:: basic.cpp
-   :lines: 18-23
+   :lines: 18-24
    :lineno-start: 18
 
 Next, we define properties of the kernel such as the block size and template arguments
 The value for these properties can be expressions as shown above.
 The following properties are supported:
 
+* ``problem_size``: The problem size is a N-D vector that represents the size of the problem. Here, the problem size is
+                    1D and ``kl::arg0`` indicates that the size follows for the first kernel argument.
 * ``block_size``: The block size as an `(x, y, z)` triplet.
 * ``grid_divsor``: Used to calculate the size of the grid (i.e., number of blocks along each axis).
   For each kernel launch, the `problem size` is divided by the `divisors` to calculate the grid size.
@@ -63,36 +65,36 @@ The following properties are supported:
 
 
 .. literalinclude:: basic.cpp
-   :lines: 25-28
-   :lineno-start: 25
+   :lines: 26-29
+   :lineno-start: 26
 
 The configuration defines the values of the tunable parameters to be used for compilation.
 Here, the `Config` instance is constructed manually, but it could also be loaded from file or a tuning database.
 
 .. literalinclude:: basic.cpp
-   :lines: 30-32
-   :lineno-start: 30
+   :lines: 31-33
+   :lineno-start: 31
 
-Compiling a `Kernel` requires a `KernelBuilder` together with a `Config`.
-The `Kernel` instance should be stored, for example, in a class and only compiled once during initialization.
+Compiling a ``Kernel`` requires a ``KernelBuilder`` together with a ```Config``.
+The ``Kernel`` instance should be stored, for example, in a class and only compiled once during initialization.
 
 .. literalinclude:: basic.cpp
    :lines: 39-43
    :lineno-start: 39
 
-To launch the kernel, we first prepare a kernel launch for a specific problem size using `instantiate` and then call the kernel using `launch`.
+To launch the kernel, we simply call ``launch``.
 
 Alternatively, it is also possible to use the short-hand form::
 
         // Launch the kernel!
-        vector_add_kernel(problem_size)(n, dev_C, dev_A, dev_B);
+        vector_add_kernel(n, dev_C, dev_A, dev_B);
 
 To pass a CUDA stream use::
 
         // Launch the kernel!
-        vector_add_kernel(stream, problem_size)(n, dev_C, dev_A, dev_B);
+        vector_add_kernel(stream, n, dev_C, dev_A, dev_B);
 
-For 2D or 3D problems, pass additional problem sizes::
+For 2D or 3D problems, we must configure the ``KernelBuilder`` with additional dimensions::
 
-        // Launch the kernel!
-        vector_add_kernel(stream, problem_size_x, problem_size_y)(n, dev_C, dev_A, dev_B);
+        // Define kernel properties
+        builder.problem_size(kl::arg0, kl::arg1, 100);
