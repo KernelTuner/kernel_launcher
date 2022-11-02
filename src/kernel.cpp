@@ -34,11 +34,14 @@ struct ProblemSizeEval: Eval {
         fallback_(fallback) {}
 
     bool lookup(const Variable& v, TunableValue& value) const override {
-        for (size_t i = 0; i < 3; i++) {
-            if (ProblemExpr(i) == v) {
-                value = problem_[i];
-                return true;
-            }
+        if (const auto* that = dynamic_cast<const ProblemExpr*>(&v)) {
+            value = problem_[that->axis()];
+            return true;
+        }
+
+        if (const auto* that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
+            value = CudaDevice::current().attribute(that->get());
+            return true;
         }
 
         if (args_.lookup(v, value)) {

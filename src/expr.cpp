@@ -1,5 +1,7 @@
 #include "kernel_launcher/expr.h"
 
+#include "kernel_launcher/cuda.h"
+
 namespace kernel_launcher {
 
 std::string ScalarExpr::to_string() const {
@@ -93,6 +95,54 @@ Expr ArgExpr::resolve(const Eval& eval) const {
         return out;
     }
 
+    return *this;
+}
+
+std::string DeviceAttributeExpr::to_string() const {
+    const char* name = "";
+
+#define IMPL_CASE(key)              \
+    case CU_DEVICE_ATTRIBUTE_##key: \
+        name = #key;                \
+        break;
+
+    switch (attribute_) {
+        IMPL_CASE(MAX_THREADS_PER_BLOCK)
+        IMPL_CASE(MAX_BLOCK_DIM_X)
+        IMPL_CASE(MAX_BLOCK_DIM_Y)
+        IMPL_CASE(MAX_BLOCK_DIM_Z)
+        IMPL_CASE(MAX_GRID_DIM_X)
+        IMPL_CASE(MAX_GRID_DIM_Y)
+        IMPL_CASE(MAX_GRID_DIM_Z)
+        IMPL_CASE(MAX_SHARED_MEMORY_PER_BLOCK)
+        IMPL_CASE(WARP_SIZE)
+        IMPL_CASE(MAX_REGISTERS_PER_BLOCK)
+        IMPL_CASE(MULTIPROCESSOR_COUNT)
+        IMPL_CASE(MAX_THREADS_PER_MULTIPROCESSOR)
+        IMPL_CASE(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)
+        IMPL_CASE(MAX_REGISTERS_PER_MULTIPROCESSOR)
+        IMPL_CASE(COMPUTE_CAPABILITY_MAJOR)
+        IMPL_CASE(COMPUTE_CAPABILITY_MINOR)
+        default:
+            throw std::runtime_error(
+                "unknown device attribute: " + std::to_string(attribute_));
+    }
+#undef IMPL_CASE
+
+    return name;
+}
+
+TunableValue DeviceAttributeExpr::eval(const Eval& eval) const {
+    TunableValue out;
+    if (!eval.lookup(*this, out)) {
+        throw std::runtime_error(
+            "error while reading device attribute: " + to_string());
+    }
+
+    return out;
+}
+
+Expr DeviceAttributeExpr::resolve(const Eval& eval) const {
     return *this;
 }
 

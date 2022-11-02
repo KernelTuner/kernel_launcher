@@ -63,17 +63,17 @@ static json expr_to_json(const BaseExpr& expr) {
     std::string op;
     std::vector<json> operands;
 
-    if (const ParamExpr* pe = dynamic_cast<const ParamExpr*>(&expr)) {
+    if (const auto* pe = dynamic_cast<const ParamExpr*>(&expr)) {
         op = "parameter";
         operands.emplace_back(pe->parameter().name());
-    } else if (const UnaryExpr* ue = dynamic_cast<const UnaryExpr*>(&expr)) {
+    } else if (const auto* ue = dynamic_cast<const UnaryExpr*>(&expr)) {
         op = ue->op_name();
         operands.emplace_back(expr_to_json(ue->operand()));
-    } else if (const BinaryExpr* be = dynamic_cast<const BinaryExpr*>(&expr)) {
+    } else if (const auto* be = dynamic_cast<const BinaryExpr*>(&expr)) {
         op = be->op_name();
         operands.emplace_back(expr_to_json(be->left_operand()));
         operands.emplace_back(expr_to_json(be->right_operand()));
-    } else if (const SelectExpr* se = dynamic_cast<const SelectExpr*>(&expr)) {
+    } else if (const auto* se = dynamic_cast<const SelectExpr*>(&expr)) {
         op = "select";
         operands.emplace_back(expr_to_json(se->condition()));
 
@@ -81,7 +81,10 @@ static json expr_to_json(const BaseExpr& expr) {
             operands.push_back(expr_to_json(p));
         }
     } else if (
-        const ProblemExpr* pse = dynamic_cast<const ProblemExpr*>(&expr)) {
+        const auto* de = dynamic_cast<const DeviceAttributeExpr*>(&expr)) {
+        op = "device_attribute";
+        operands.emplace_back(de->to_string());
+    } else if (const auto* pse = dynamic_cast<const ProblemExpr*>(&expr)) {
         op = "problem_size";
         operands.emplace_back(pse->axis());
     } else {

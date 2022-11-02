@@ -1,11 +1,12 @@
+import cupy
 import gzip
 import hashlib
 import json
+import kernel_tuner
 import logging
 import numpy as np
 import os.path
 import re
-import kernel_tuner
 
 from typing import List
 from collections import OrderedDict
@@ -229,15 +230,16 @@ class TuningProblem:
             self.args.append(arg)
             self.answers.append(answer)
 
-    def _tune_options(self, working_dir=None, lang="cupy", compiler_options=None, defines=None, **kwargs):
+    def _tune_options(self, working_dir=None, lang="cupy", compiler_options=None, defines=None, device=0, **kwargs):
         if working_dir is None:
             working_dir = os.getcwd()
 
         extra_params = dict()
         block_size_names = []
+        context = dict(problem_size=self.problem_size, device=cupy.cuda.Device(device))
 
         for axis, expr in zip("XYZ", self.kernel.block_size):
-            expr = expr.resolve_problem(self.problem_size)
+            expr = expr.resolve(**context)
 
             if isinstance(expr, ParamExpr):
                 block_size_names.append(expr.name)
@@ -248,7 +250,7 @@ class TuningProblem:
             else:
                 raise ValueError(f"invalid block size expression: {expr!r}")
 
-        grid_exprs = [e.resolve_problem(self.problem_size) for e in self.kernel.grid_size]
+        grid_exprs = [e.resolve(**context) for e in self.kernel.grid_size]
 
         def grid_size(config):
             return [e(config) for e in grid_exprs]
@@ -272,12 +274,14 @@ class TuningProblem:
             for key, value in defines.items():
                 all_defines[key] = value
 
+        restrictions = [e.resolve(**context) for e in self.space.restrictions]
+
         options = dict(
                 kernel_name=self.kernel.generate_name(),
                 kernel_source=self.kernel.generate_source(working_dir),
                 arguments=self.args,
                 problem_size=grid_size,
-                restrictions=self.space.is_valid,
+                restrictions=restrictions,
                 defines=all_defines,
                 compiler_options=compiler_options,
                 block_size_names=block_size_names,
@@ -285,6 +289,7 @@ class TuningProblem:
                 grid_div_y=[],
                 grid_div_z=[],
                 lang=lang,
+                device=device,
                 **kwargs)
 
         os.chdir(working_dir)
@@ -421,14 +426,14 @@ class Expr:
     def visit_children(self, fun):
         raise NotImplementedError
 
-    def resolve_problem(self, problem_size):
-        return self.visit_children(lambda e: e.resolve_problem(problem_size))
+    def resolve(self, **kwargs):
+        return self.visit_children(lambda e: e.resolve(**kwargs))
 
     def free_variables(self):
         result = set()
 
         def f(expr):
-            result |= expr.free_variables()
+            result.update(expr.free_variables())
 
         self.visit_children(f)
         return result
@@ -572,8 +577,45 @@ class ProblemExpr(Expr):
     def visit_children(self, fun):
         return self
 
-    def resolve_problem(self, problem_size):
+    def resolve(self, problem_size, **kwargs):
         return ValueExpr(problem_size[self.axis])
+
+
+class DeviceAttributeExpr(Expr):
+    # Map cuda.h names to cupy names
+    NAME_MAPPING = dict([
+        ('MAX_THREADS_PER_BLOCK', 'MaxThreadsPerBlock'),
+        ('MAX_BLOCK_DIM_X', 'MaxBlockDimX'),
+        ('MAX_BLOCK_DIM_Y', 'MaxBlockDimY'),
+        ('MAX_BLOCK_DIM_Z', 'MaxBlockDimZ'),
+        ('MAX_GRID_DIM_X', 'MaxGridDimX'),
+        ('MAX_GRID_DIM_Y', 'MaxGridDimY'),
+        ('MAX_GRID_DIM_Z', 'MaxGridDimZ'),
+        ('MAX_SHARED_MEMORY_PER_BLOCK', 'MaxSharedMemoryPerBlock'),
+        ('WARP_SIZE', 'WarpSize'),
+        ('MAX_REGISTERS_PER_BLOCK', 'MaxRegistersPerBlock'),
+        ('MULTIPROCESSOR_COUNT', 'MultiProcessorCount'),
+        ('MAX_THREADS_PER_MULTIPROCESSOR', 'MaxThreadsPerMultiProcessor'),
+        ('MAX_SHARED_MEMORY_PER_MULTIPROCESSOR', 'MaxSharedMemoryPerMultiprocessor'),
+        ('MAX_REGISTERS_PER_MULTIPROCESSOR', 'MaxRegistersPerMultiprocessor'),
+    ])
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"device_attribute({self.name!r})"
+
+    def evaluate(self, config):
+        raise ValueError("expression cannot be device dependent")
+
+    def visit_children(self, fun):
+        return self
+
+    def resolve(self, device, **kwargs):
+        internal_name = DeviceAttributeExpr.NAME_MAPPING[self.name]
+        value = device.attributes[internal_name]
+        return ValueExpr(value)
 
 
 class SelectExpr(Expr):

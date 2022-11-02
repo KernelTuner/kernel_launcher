@@ -1,6 +1,8 @@
 #ifndef KERNEL_LAUNCHER_EXPR_H
 #define KERNEL_LAUNCHER_EXPR_H
 
+#include <cuda.h>
+
 #include <sstream>
 #include <stdexcept>
 #include <unordered_map>
@@ -272,6 +274,33 @@ extern ArgExpr arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8;
 inline ArgExpr arg(uint8_t i) {
     return i;
 }
+
+struct DeviceAttributeExpr: BaseExpr, Variable {
+    DeviceAttributeExpr(CUdevice_attribute attribute) : attribute_(attribute) {}
+
+    CUdevice_attribute get() const {
+        return attribute_;
+    }
+
+    std::string to_string() const override;
+    TunableValue eval(const Eval& eval) const override;
+    Expr resolve(const Eval& eval) const override;
+
+    bool equals(const Variable& v) const override {
+        if (auto that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
+            return this->attribute_ == that->attribute_;
+        }
+
+        return false;
+    }
+
+    size_t hash() const override {
+        return attribute_;
+    }
+
+  private:
+    CUdevice_attribute attribute_;
+};
 
 struct SelectExpr: BaseExpr {
     SelectExpr(Expr index, std::vector<Expr> options) :
