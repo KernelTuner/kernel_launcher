@@ -58,11 +58,7 @@ TEST_CASE("KernelBuilder", "[CUDA]") {
 
         Kernel<int, int*, const int*, const int*> kernel;
         REQUIRE_NOTHROW(kernel.compile(builder, config));
-        REQUIRE_NOTHROW(
-            kernel(n)(int(n), (int*)dev_c, (int*)dev_a, (int*)dev_b));
-
-        REQUIRE_NOTHROW(
-            kernel(n)(int(n), (int*)dev_c, (int*)dev_a, (int*)dev_b));
+        REQUIRE_NOTHROW(kernel(int(n), (int*)dev_c, (int*)dev_a, (int*)dev_b));
 
         // Copy C out
         cuda_copy((int*)dev_c, c.data(), n);

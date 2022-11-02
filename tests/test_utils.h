@@ -12,7 +12,7 @@ inline std::string assets_directory() {
     return assets_dir;
 }
 
-inline kernel_launcher::WisdomKernelBuilder build_vector_add_kernel() {
+inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     using namespace kernel_launcher;
 
     static constexpr const char* kernel_source = R"(
@@ -29,7 +29,7 @@ inline kernel_launcher::WisdomKernelBuilder build_vector_add_kernel() {
     }
     )";
 
-    WisdomKernelBuilder builder(
+    KernelBuilder builder(
         "vector_add",
         KernelSource("vector_add.cu", kernel_source));
     auto tb = builder.tune("threads_per_block", {1, 32, 128, 256}, 256);
@@ -41,7 +41,6 @@ inline kernel_launcher::WisdomKernelBuilder build_vector_add_kernel() {
 
     builder
         .problem_size(arg0)
-        .tuning_key("vector_add")
         .define("ELEMENTS_PER_THREAD", et)
         .template_args(type_of<int>())
         .block_size(tb)

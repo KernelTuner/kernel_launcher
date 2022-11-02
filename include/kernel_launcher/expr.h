@@ -225,20 +225,27 @@ struct ProblemExpr: BaseExpr {
     size_t axis_;
 };
 
+extern ProblemExpr problem_size_x, problem_size_y, problem_size_z;
+
 inline ProblemExpr problem_size(size_t axis = 0) {
     return axis;
 }
 
-inline ProblemExpr problem_size_x() {
-    return problem_size(0);
-}
+struct ArgExpr: BaseExpr {
+    constexpr ArgExpr(uint8_t i) : index_(i) {};
+    std::string to_string() const override;
+    TunableValue eval(const Eval& eval) const override;
+    Expr resolve(const Eval& eval) const override;
+    Variable variable() const;
 
-inline ProblemExpr problem_size_y() {
-    return problem_size(1);
-}
+  private:
+    uint8_t index_;
+};
 
-inline ProblemExpr problem_size_z() {
-    return problem_size(2);
+extern ArgExpr arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8;
+
+inline ArgExpr arg(uint8_t i) {
+    return i;
 }
 
 struct SelectExpr: BaseExpr {

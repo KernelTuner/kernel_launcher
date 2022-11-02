@@ -189,7 +189,7 @@ struct WisdomSettings {
 void append_global_wisdom_directory(std::string);
 
 void set_global_wisdom_directory(std::string);
-void set_global_tuning_directory(std::string);
+void set_global_capture_directory(std::string);
 void add_global_capture_pattern(std::string);
 WisdomSettings default_wisdom_settings();
 

@@ -245,7 +245,7 @@ TEST_CASE("WisdomKernel", "[CUDA]") {
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
 
     std::string assets_dir = assets_directory();
-    WisdomKernelBuilder builder = build_vector_add_kernel();
+    KernelBuilder builder = build_vector_add_kernel();
 
     WisdomSettings wisdom_settings(assets_dir, assets_dir);
     WisdomKernel kernel(builder, default_compiler(), wisdom_settings);

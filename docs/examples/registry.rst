@@ -40,7 +40,7 @@ This part of the code defines a ``IKernelDescriptor``:
 a class that encapsulate the information required to compile a kernel.
 This class should override two methods:
 
-- ``build`` to instantiate a ``WisdomKernelBuilder``,
+- ``build`` to instantiate a ``KernelBuilder``,
 -  ``equals`` to check for equality with another ``IKernelDescriptor``.
 
 The last method is required since a kernel registry is essentially a hash table that maps ``IKernelDescriptor`` objects to kernel objects.
@@ -66,11 +66,11 @@ kernel is only compiled once and stored in the registry.
 Alternatively, it is possible to use the above short-hand syntax.
 This syntax also make it is easy to replace the element type ``float`` to some other type such as ``int``::
 
-    kl::launch(VectorAddDescriptor::for_type<int>())(n, dev_C, dev_A, dev_B);
+    kl::launch(VectorAddDescriptor::for_type<int>(), n, dev_C, dev_A, dev_B);
 
 It is even possible to define a templated function that passes type ``T`` on to ``VectorAddDescriptor``, for some extra template magic::
 
     template <typename T>
     void launch_vector_add(T* C, const T* A, const T* B) {
-        kl::launch(VectorAddDescriptor::for_type<T>())(n, C, A, B);
+        kl::launch(VectorAddDescriptor::for_type<T>(), n, C, A, B);
     }

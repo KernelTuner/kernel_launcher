@@ -17,6 +17,7 @@ int main() {
     
     // Define kernel properties
     builder
+        .problem_size(kl::arg0)
         .block_size(threads_per_block)
         .grid_divisors(threads_per_block * elements_per_thread)
         .template_args(kl::type_of<float>())
@@ -37,8 +38,5 @@ int main() {
     /* cudaMalloc, cudaMemcpy, ... */
         
     // Launch the kernel!
-    unsigned int problem_size = n;
-    vector_add_kernel
-    	.instantiate(cudaStream_t(nullptr), problem_size)
-    	.launch(n, dev_C, dev_A, dev_B);
+    vector_add_kernel.launch(n, dev_C, dev_A, dev_B);
 }

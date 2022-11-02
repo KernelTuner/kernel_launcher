@@ -6,7 +6,7 @@
 using namespace kernel_launcher;
 
 struct VectorAddDescriptor: IKernelDescriptor {
-    WisdomKernelBuilder build() const override {
+    KernelBuilder build() const override {
         return build_vector_add_kernel();
     }
 

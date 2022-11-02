@@ -538,7 +538,7 @@ void set_global_wisdom_directory(std::string dir) {
         wisdom->is_capture_forced()));
 }
 
-void set_global_tuning_directory(std::string dir) {
+void set_global_capture_directory(std::string dir) {
     auto wisdom = get_global_wisdom();
 
     set_global_wisdom(DefaultOracle(

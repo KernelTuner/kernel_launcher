@@ -38,6 +38,8 @@ Expr ParamExpr::resolve(const Eval& eval) const {
     }
 }
 
+ProblemExpr problem_size_x = 0, problem_size_y = 1, problem_size_z = 2;
+
 std::string ProblemExpr::to_string() const {
     std::stringstream ss;
     ss << "$problem_size_" << axis_;
@@ -71,6 +73,41 @@ Expr ProblemExpr::resolve(const Eval& eval) const {
 Variable ProblemExpr::variable() const {
     static Variable vars[3] = {Variable(), Variable(), Variable()};
     return vars[axis_];
+}
+
+ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5, arg6 = 6,
+        arg7 = 7, arg8 = 8;
+
+std::string ArgExpr::to_string() const {
+    return "$argument_" + std::to_string(index_);
+}
+
+Variable ArgExpr::variable() const {
+    static std::array<Variable, 64> vars;
+    return vars[index_];
+}
+
+TunableValue ArgExpr::eval(const Eval& eval) const {
+    Variable v = variable();
+    TunableValue out;
+
+    if (eval.lookup(v, out)) {
+        return out;
+    } else {
+        throw std::runtime_error(
+            "cannot find argument " + std::to_string(index_));
+    }
+}
+
+Expr ArgExpr::resolve(const Eval& eval) const {
+    Variable v = variable();
+    TunableValue out;
+
+    if (eval.lookup(v, out)) {
+        return out;
+    } else {
+        return *this;
+    }
 }
 
 TunableValue SelectExpr::eval(const Eval& ctx) const {

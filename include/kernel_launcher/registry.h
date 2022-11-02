@@ -11,7 +11,7 @@ namespace kernel_launcher {
 
 struct IKernelDescriptor {
     virtual ~IKernelDescriptor() = default;
-    virtual WisdomKernelBuilder build() const = 0;
+    virtual KernelBuilder build() const = 0;
     virtual bool equals(const IKernelDescriptor& that) const = 0;
     virtual hash_t hash() const {
         return 0;

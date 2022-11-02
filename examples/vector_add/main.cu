@@ -11,14 +11,14 @@ void cuda_check(cudaError_t code) {
     }
 }
 
-kl::WisdomKernelBuilder build_vector_add() {
+kl::KernelBuilder build_vector_add() {
     // Find kernel file
     std::string this_file = __FILE__;
     std::string this_directory = this_file.substr(0, this_file.rfind('/'));
     std::string kernel_file = this_directory + "/kernel.cu";
 
     // Tunable parameters
-    kl::WisdomKernelBuilder builder("vector_add", kernel_file);
+    kl::KernelBuilder builder("vector_add", kernel_file);
     auto block_size =
         builder.tune("threads_per_block", {32, 64, 128, 256, 512, 1024});
     auto granularity =

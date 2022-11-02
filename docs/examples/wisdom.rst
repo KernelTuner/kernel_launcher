@@ -4,7 +4,7 @@
 Wisdom Files
 ============
 
-In the previous example, we saw how it is possible to compile a kernel by providing both a ``KernelBuilder`` instance (describing `blueprint` for the kernel) and a ``Config`` instance (describing the configuration of the tunable parameters).
+In the previous example, we saw how it was possible to compile a kernel by providing both a ``KernelBuilder`` instance (describing `blueprint` for the kernel) and a ``Config`` instance (describing the configuration of the tunable parameters).
 
 However, determining the optimal configuration is often difficult since it highly depends both on the `problem size` and the type of `GPU` being used.
 `Kernel Launcher` offers a solution this problem in form of `wisdom` files (terminology borrowed from `FFTW <http://www.fftw.org/>`_).
@@ -34,18 +34,16 @@ We now highlight the important lines of this code example.
    :lines: 6-22
    :lineno-start: 6
 
-This function creates the ``WisdomKernelBuilder`` object and returns it.
-The purpose and usage of this object is similar to the ``WisdomKernelBuilder`` as explained on the previous page.
+This function creates a ``KernelBuilder`` object.
 
 .. literalinclude:: wisdom.cpp
-   :lines: 13-15
+   :lines: 13-14
    :lineno-start: 13
 
-The addition of a ``WisdomKernelBuilder`` is a that is allows setting the `tuning key` and the `problem size`.
-The ``tuning_key`` is a string that uniquely identifies this kernel and is used to search for the kernel's wisdom file.
+Using a ``WisdomKernel`` requires the `tuning key` to be set.
+If no tuning key is specified, then the kernel name is taken by default (which, in this example, happens to be ``vector_add``).
+The `tuning key` is a string that uniquely identifies this kernel and is used to search for the kernel's wisdom file.
 If no wisdom file can be been found, the default configuration is chosen (in this case, that will be ``block_size=32,elements_per_thread=1``).
-The ``problem_size`` indicates how to derive the problem size of the kernel from its argument.
-In this example, ``arg0`` indicates that the problem size is the first argument (index 0) provided to the kernel.
 
 .. literalinclude:: wisdom.cpp
    :lines: 25-26
@@ -58,25 +56,26 @@ When a kernel is compiled, this is where ``kernel_launcher`` will search for the
 In this example, ``kernel_launcher`` will search for the file ``wisdom/vector_add.wisdom`` since ``wisdim/`` is the
 wisdom directory and ``vector_add`` is the tuning key.
 
-The function ``set_global_tuning_directory`` sets the directory for tuning files.
+The function ``set_global_capture_directory`` sets the directory for capture files.
 When capturing a kernel launch, this is where ``kernel_launcher`` will store the resulting files.
 
 .. literalinclude:: wisdom.cpp
    :lines: 28-30
    :lineno-start: 28
 
-These lines construct the ``WisdomKernelBuilder`` and passes it on to the ``WisdomKernel``.
+These lines construct the ``KernelBuilder`` and pass it on to the ``WisdomKernel``.
 
 Export the kernel
 -----------------
 .. highlight:: bash
    :linenothreshold: 1000
 
-To tune the kernel, we first need to export the tuning specifications. To do this, we run the program with the environment variable ``KERNEL_LAUNCHER_CAPTURE``::
+To tune the kernel, we first need to capture the kernel launch.
+To do this, we run the program with the environment variable ``KERNEL_LAUNCHER_CAPTURE``::
 
     KERNEL_LAUNCHER_CAPTURE=vector_add ./main
 
-This generates a file ``vector_add_1000000.json`` in the directory set by ``set_global_tuning_directory``.
+This generates a file ``vector_add_1000000.json`` in the directory set by ``set_global_capture_directory``.
 
 Alternatively, it is possible to export several kernels at once by using the wildcard ``*``.
 For example, the following command export all kernels that are start with ``vector_``::
