@@ -16,6 +16,11 @@ int main() {
     std::vector<TF> A(N * N);
     std::vector<TF> B(N * N);
 
+    for (size_t i = 0; i < N * N; i++) {
+        A[i] = TF(i % 7);
+        B[i] = TF(i % 13);
+    }
+
     std::string this_file = __FILE__;
     std::string this_directory = this_file.substr(0, this_file.rfind('/'));
 
