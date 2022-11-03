@@ -103,7 +103,7 @@ namespace detail {
             type> {
         using type = ParamExpr;
 
-        static type call(TunableParam p) {
+        static type call(const TunableParam& p) {
             return ParamExpr(std::move(p));
         }
     };
@@ -117,7 +117,7 @@ namespace detail {
         using type = typename std::decay<E>::type;
 
         static type call(E&& expr) {
-            return std::move(expr);
+            return std::forward<E>(expr);
         }
     };
 
