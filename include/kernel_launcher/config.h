@@ -175,7 +175,7 @@ struct ConfigSpace {
     ParamExpr at(const std::string& name) const;
     void restriction(TypedExpr<bool> e);
     Config default_config() const;
-    bool is_valid(const Config& config) const;
+    bool is_valid(const Eval& config) const;
 
   private:
     std::vector<TunableParam> params_;

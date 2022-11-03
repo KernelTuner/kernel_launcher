@@ -115,9 +115,10 @@ TEST_CASE("ConfigSpace") {
         config.insert(z, 7);
         CHECK(c.is_valid(config) == true);
 
+        // `is_valid` just ignores any additional config variables
         TunableParam w("w", {true, false}, true);
         config.insert(w, true);
-        CHECK(c.is_valid(config) == false);
+        CHECK(c.is_valid(config) == true);
     }
 
     SECTION("restrictions") {

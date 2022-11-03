@@ -27,6 +27,24 @@ struct ArgsEval: Eval {
     const std::vector<KernelArg>& args_;
 };
 
+struct DeviceAttrEval: Eval {
+    DeviceAttrEval(CudaDevice device, const Eval& fallback) :
+        device_(device),
+        fallback_(fallback) {}
+
+    bool lookup(const Variable& v, Value& out) const override {
+        if (const auto* that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
+            out = CudaDevice::current().attribute(that->get());
+            return true;
+        }
+
+        return fallback_.lookup(v, out);
+    }
+
+    CudaDevice device_;
+    const Eval& fallback_;
+};
+
 struct ProblemSizeEval: Eval {
     ProblemSizeEval(ProblemSize p, ArgsEval args, const Eval& fallback) :
         problem_(p),
@@ -39,11 +57,6 @@ struct ProblemSizeEval: Eval {
                 value = problem_[that->axis()];
                 return true;
             }
-        }
-
-        if (const auto* that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
-            value = CudaDevice::current().attribute(that->get());
-            return true;
         }
 
         if (args_.lookup(v, value)) {
@@ -221,15 +234,8 @@ KernelBuilder& KernelBuilder::include_header(KernelSource source) {
 }
 
 KernelDef KernelBuilder::build(
-    const Config& config,
+    const Eval& eval,
     const std::vector<TypeInfo>& param_types) const {
-    if (!is_valid(config)) {
-        std::stringstream ss;
-        ss << "invalid configuration: " << config;
-        throw std::runtime_error(ss.str());
-    }
-
-    const Eval& eval = config;
     KernelDef def(kernel_name_, kernel_source_);
 
     for (TypeInfo param : param_types) {
@@ -265,9 +271,15 @@ KernelInstance KernelBuilder::compile(
     const std::vector<TypeInfo>& param_types,
     const ICompiler& compiler,
     CudaContextHandle ctx) const {
-    CudaModule module = compiler.compile(ctx, build(config, param_types));
+    DeviceAttrEval eval = {ctx.device(), config};
+    CudaModule module = compiler.compile(ctx, build(eval, param_types));
 
-    const Eval& eval = config;
+    if (!is_valid(eval)) {
+        std::stringstream ss;
+        ss << "invalid configuration: " << config;
+        throw std::runtime_error(ss.str());
+    }
+
     std::array<TypedExpr<uint32_t>, 3> block_size = {
         block_size_[0].resolve(eval),
         block_size_[1].resolve(eval),
@@ -278,7 +290,7 @@ KernelInstance KernelBuilder::compile(
         grid_size_[1].resolve(eval),
         grid_size_[2].resolve(eval)};
 
-    uint32_t shared_mem = eval(shared_mem_);
+    TypedExpr<uint32_t> shared_mem = shared_mem_.resolve(eval);
 
     return KernelInstance(
         std::move(module),

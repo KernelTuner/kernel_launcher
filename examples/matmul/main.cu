@@ -27,10 +27,15 @@ int main() {
     kl::KernelBuilder builder("matmul_kernel", this_directory + "/matmul.cu");
 
     auto bx = builder.tune("block_size_x", {16, 32, 48}, 32);
-    auto by = builder.tune("block_size_y", {1, 2, 4, 8, 16, 32}, 4);
+    auto by = builder.tune("block_size_y", {1, 2, 4, 8, 16, 32}, 32);
     auto tx = builder.tune("tile_size_x", {1, 2, 4, 8});
     auto ty = builder.tune("tile_size_y", {1, 2, 4, 8});
+    auto sm = builder.tune("blocks_per_sm", {0, 1, 2, 3, 4, 5, 6, 7, 8});
+
     builder.restriction(bx == by * ty);
+    builder.restriction(bx * by <= kl::DEVICE_MAX_THREADS_PER_BLOCK);
+    builder.restriction(
+        sm * bx * by <= kl::DEVICE_MAX_THREADS_PER_MULTIPROCESSOR);
 
     builder.define(bx)
         .define(by)

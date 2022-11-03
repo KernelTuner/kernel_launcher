@@ -281,7 +281,7 @@ class TuningProblem:
                 kernel_source=self.kernel.generate_source(working_dir),
                 arguments=self.args,
                 problem_size=grid_size,
-                restrictions=restrictions,
+                restrictions=lambda config: all(f(config) for f in restrictions),
                 defines=all_defines,
                 compiler_options=compiler_options,
                 block_size_names=block_size_names,
@@ -669,6 +669,11 @@ def _parse_expr(entry) -> Expr:
         if len(args) != 1 or not isinstance(args[0], ValueExpr):
             raise ValueError(f"invalid expression: {entry!r}")
         return ProblemExpr(args[0].value)
+
+    elif op == "device_attribute":
+        if len(args) != 1 or not isinstance(args[0], ValueExpr):
+            raise ValueError(f"invalid expression: {entry!r}")
+        return DeviceAttributeExpr(args[0].value)
 
     elif len(args) == 1:
         return UnaryExpr(op, args[0])

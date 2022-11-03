@@ -29,7 +29,10 @@
  * The kernel computes C=A*B, where A, B, and C are square
  * matrices with height and width equal to WIDTH
  */
-__global__ void matmul_kernel(float* C, float* A, float* B) {
+#if blocks_per_sm > 0
+__launch_bounds__(block_size_x* block_size_y, blocks_per_sm)
+#endif
+    __global__ void matmul_kernel(float* C, float* A, float* B) {
     __shared__ float sA[block_size_y * tile_size_y][block_size_x];
     __shared__ float sB[block_size_y * tile_size_y][block_size_x * tile_size_x];
 

@@ -108,33 +108,25 @@ Config ConfigSpace::default_config() const {
         config.insert(param, param.default_value());
     }
 
-    if (!is_valid(config)) {
-        throw std::runtime_error("default config does not pass restrictions");
-    }
-
     return config;
 }
 
-bool ConfigSpace::is_valid(const Config& config) const {
-    TunableMap m = config.get();
-
-    if (m.size() != params_.size()) {
-        return false;
-    }
-
+bool ConfigSpace::is_valid(const Eval& config) const {
     for (const auto& p : params_) {
-        auto it = m.find(p);
-        if (it == m.end()) {
+        Value v;
+
+        if (!config.lookup(p, v)) {
             return false;
         }
 
-        if (!p.has_value(it->second)) {
+        if (!p.has_value(v)) {
             return false;
         }
     }
 
     for (const auto& r : restrictions_) {
         if (!config(r)) {
+            std::cout << "failed" << r.to_string() << std::endl;
             return false;
         }
     }

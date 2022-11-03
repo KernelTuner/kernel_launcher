@@ -143,9 +143,6 @@ struct KernelBuilder: ConfigSpace {
         return tune_define(name, std::vector<T>(values));
     }
 
-    KernelDef
-    build(const Config& config, const std::vector<TypeInfo>& param_types) const;
-
     KernelInstance compile(
         const Config& config,
         const std::vector<TypeInfo>& param_types,
@@ -153,6 +150,9 @@ struct KernelBuilder: ConfigSpace {
         CudaContextHandle ctx = CudaContextHandle::current()) const;
 
   private:
+    KernelDef
+    build(const Eval& eval, const std::vector<TypeInfo>& param_types) const;
+
     std::string kernel_name_;
     KernelSource kernel_source_;
     std::string tuning_key_;
