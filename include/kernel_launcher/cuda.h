@@ -137,15 +137,15 @@ void cuda_copy(const T* src, T* dst, size_t num_elements) {
 
 template<typename T>
 struct CudaSpan {
-    CudaSpan(T* ptr, size_t size) : ptr_(ptr), size_(size) {}
-    CudaSpan() : ptr_(nullptr), size_(0) {}
+    CudaSpan(T* ptr, size_t nelements) : ptr_(ptr), nelem_(nelements) {}
+    CudaSpan() : ptr_(nullptr), nelem_(0) {}
 
     T* data() const {
         return ptr_;
     }
 
     size_t size() const {
-        return size_;
+        return nelem_;
     }
 
     operator T*() const {
@@ -158,21 +158,21 @@ struct CudaSpan {
 
   private:
     T* ptr_;
-    size_t size_;
+    size_t nelem_;
 };
 
 template<typename T>
 struct CudaSpan<const T> {
-    CudaSpan(const T* ptr, size_t size) : ptr_(ptr), size_(size) {}
-    CudaSpan(CudaSpan<T> that) : ptr_(that.data()), size_(that.size()) {}
-    CudaSpan() : ptr_(nullptr), size_(0) {}
+    CudaSpan(const T* ptr, size_t nelements) : ptr_(ptr), nelem_(nelements) {}
+    CudaSpan(CudaSpan<T> that) : ptr_(that.data()), nelem_(that.size()) {}
+    CudaSpan() : ptr_(nullptr), nelem_(0) {}
 
     const T* data() const {
         return ptr_;
     }
 
     size_t size() const {
-        return size_;
+        return nelem_;
     }
 
     operator const T*() const {
@@ -181,8 +181,13 @@ struct CudaSpan<const T> {
 
   private:
     const T* ptr_;
-    size_t size_;
+    size_t nelem_;
 };
+
+template<typename T>
+CudaSpan<T> cuda_span(T* ptr, size_t nelements) {
+    return {ptr, nelements};
+}
 
 }  // namespace kernel_launcher
 
