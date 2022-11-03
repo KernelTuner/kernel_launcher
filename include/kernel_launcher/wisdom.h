@@ -7,8 +7,8 @@
 #include <memory>
 #include <string>
 
+#include "kernel_launcher/arg.h"
 #include "kernel_launcher/export.h"
-#include "kernel_launcher/kernel.h"
 
 namespace kernel_launcher {
 

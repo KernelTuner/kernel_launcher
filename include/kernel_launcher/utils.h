@@ -216,25 +216,23 @@ struct ProblemSize {
     }
 
     constexpr uint32_t& operator[](size_t i) {
-        switch (i) {
-            case 0:
-                return x;
-            case 1:
-                return y;
-            default:
-                return z;
-        }
+        return array_[i];
     }
 
     constexpr const uint32_t& operator[](size_t i) const {
-        switch (i) {
-            case 0:
-                return x;
-            case 1:
-                return y;
-            default:
-                return z;
-        }
+        return array_[i];
+    }
+
+    constexpr size_t size() const {
+        return 3;
+    }
+
+    constexpr uint32_t* data() {
+        return array_;
+    }
+
+    constexpr const uint32_t* data() const {
+        return array_;
     }
 
     constexpr bool operator==(const ProblemSize& that) const {
@@ -256,9 +254,14 @@ struct ProblemSize {
     }
 
     // These should be public
-    uint32_t x;
-    uint32_t y;
-    uint32_t z;
+    union {
+        struct {
+            uint32_t x;
+            uint32_t y;
+            uint32_t z;
+        };
+        uint32_t array_[3];
+    };
 };
 
 template<

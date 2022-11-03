@@ -5,7 +5,7 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "kernel_launcher/wisdom_kernel.h"
+#include "kernel_launcher/kernel.h"
 
 namespace kernel_launcher {
 

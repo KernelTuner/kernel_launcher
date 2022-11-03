@@ -1,8 +1,7 @@
-#include "kernel_launcher/kernel.h"
-
 #include <cuda.h>
 
 #include "catch.hpp"
+#include "kernel_launcher/arg.h"
 #include "test_utils.h"
 
 using namespace kernel_launcher;

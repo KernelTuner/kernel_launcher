@@ -6,7 +6,7 @@
 #include <cstring>
 #include <string>
 
-#include "kernel_launcher/kernel.h"
+#include "kernel_launcher/builder.h"
 
 namespace kernel_launcher {
 

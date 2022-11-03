@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "catch.hpp"
-#include "kernel_launcher/wisdom_kernel.h"
+#include "kernel_launcher/kernel.h"
 #include "nlohmann/json.hpp"
 #include "test_utils.h"
 

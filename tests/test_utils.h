@@ -1,9 +1,9 @@
 #ifndef KERNEL_LAUNCHER_TEST_UTILS_H
 #define KERNEL_LAUNCHER_TEST_UTILS_H
 
-#include "kernel_launcher/wisdom_kernel.h"
-
 #include <string>
+
+#include "kernel_launcher/kernel.h"
 
 inline std::string assets_directory() {
     std::string assets_dir = __FILE__;
