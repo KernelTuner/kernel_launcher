@@ -216,11 +216,11 @@ struct ProblemSize {
     }
 
     constexpr uint32_t& operator[](size_t i) {
-        return array_[i];
+        return data()[i];
     }
 
     constexpr const uint32_t& operator[](size_t i) const {
-        return array_[i];
+        return data()[i];
     }
 
     constexpr size_t size() const {
@@ -228,11 +228,11 @@ struct ProblemSize {
     }
 
     constexpr uint32_t* data() {
-        return array_;
+        return &x;
     }
 
     constexpr const uint32_t* data() const {
-        return array_;
+        return &x;
     }
 
     constexpr bool operator==(const ProblemSize& that) const {
@@ -254,14 +254,9 @@ struct ProblemSize {
     }
 
     // These should be public
-    union {
-        struct {
-            uint32_t x;
-            uint32_t y;
-            uint32_t z;
-        };
-        uint32_t array_[3];
-    };
+    uint32_t x;
+    uint32_t y;
+    uint32_t z;
 };
 
 template<
