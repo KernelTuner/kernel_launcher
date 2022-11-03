@@ -40,8 +40,6 @@ Expr ParamExpr::resolve(const Eval& eval) const {
     return ParamExpr(param_);
 }
 
-ProblemExpr problem_size_x = 0, problem_size_y = 1, problem_size_z = 2;
-
 std::string ProblemExpr::to_string() const {
     std::stringstream ss;
     ss << "$problem_size_" << axis_;
@@ -69,9 +67,6 @@ Expr ProblemExpr::resolve(const Eval& eval) const {
 
     return ProblemExpr(axis_);
 }
-
-ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5, arg6 = 6,
-        arg7 = 7, arg8 = 8;
 
 std::string ArgExpr::to_string() const {
     return "$argument_" + std::to_string(index_);
@@ -107,22 +102,7 @@ std::string DeviceAttributeExpr::to_string() const {
         break;
 
     switch (attribute_) {
-        IMPL_CASE(MAX_THREADS_PER_BLOCK)
-        IMPL_CASE(MAX_BLOCK_DIM_X)
-        IMPL_CASE(MAX_BLOCK_DIM_Y)
-        IMPL_CASE(MAX_BLOCK_DIM_Z)
-        IMPL_CASE(MAX_GRID_DIM_X)
-        IMPL_CASE(MAX_GRID_DIM_Y)
-        IMPL_CASE(MAX_GRID_DIM_Z)
-        IMPL_CASE(MAX_SHARED_MEMORY_PER_BLOCK)
-        IMPL_CASE(WARP_SIZE)
-        IMPL_CASE(MAX_REGISTERS_PER_BLOCK)
-        IMPL_CASE(MULTIPROCESSOR_COUNT)
-        IMPL_CASE(MAX_THREADS_PER_MULTIPROCESSOR)
-        IMPL_CASE(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)
-        IMPL_CASE(MAX_REGISTERS_PER_MULTIPROCESSOR)
-        IMPL_CASE(COMPUTE_CAPABILITY_MAJOR)
-        IMPL_CASE(COMPUTE_CAPABILITY_MINOR)
+        KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(IMPL_CASE)
         default:
             throw std::runtime_error(
                 "unknown device attribute: " + std::to_string(attribute_));

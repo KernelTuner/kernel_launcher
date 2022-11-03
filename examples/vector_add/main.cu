@@ -19,17 +19,26 @@ kl::KernelBuilder build_vector_add() {
 
     // Tunable parameters
     kl::KernelBuilder builder("vector_add", kernel_file);
-    auto block_size =
+    auto threads_per_block =
         builder.tune("threads_per_block", {32, 64, 128, 256, 512, 1024});
-    auto granularity =
+    auto blocks_per_sm =
+        builder.tune("blocks_per_sm", {1, 2, 3, 4, 5, 6, 7, 8});
+    auto items_per_thread =
         builder.tune("elements_per_thread", {1, 2, 3, 4, 5, 6, 7, 8});
     auto strategy = builder.tune("tiling_strategy", {0, 1, 2});
+    auto threads_per_sm = threads_per_block * blocks_per_sm;
+    auto items_per_block = threads_per_block * items_per_thread;
+
+    builder.restriction(threads_per_block <= kl::DEVICE_MAX_THREADS_PER_BLOCK);
+    builder.restriction(
+        threads_per_block * blocks_per_sm
+        <= kl::DEVICE_MAX_THREADS_PER_MULTIPROCESSOR);
 
     // Set options
     builder.problem_size(kl::arg0)
-        .template_args(block_size, granularity, strategy)
-        .block_size(block_size)
-        .grid_divisors(block_size * granularity);
+        .template_args(threads_per_block, items_per_thread, strategy)
+        .block_size(threads_per_block)
+        .grid_divisors(items_per_block);
 
     return builder;
 }

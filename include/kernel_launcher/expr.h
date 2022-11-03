@@ -207,11 +207,7 @@ Expr into_expr(E&& value) {
 }
 
 struct ProblemExpr: BaseExpr, Variable {
-    ProblemExpr(size_t axis) : axis_(axis) {
-        if (axis_ >= 3) {
-            throw std::runtime_error("axis out of bounds");
-        }
-    }
+    constexpr ProblemExpr(size_t axis) noexcept : axis_(axis) {}
 
     std::string to_string() const override;
     TunableValue eval(const Eval& eval) const override;
@@ -237,14 +233,14 @@ struct ProblemExpr: BaseExpr, Variable {
     size_t axis_;
 };
 
-extern ProblemExpr problem_size_x, problem_size_y, problem_size_z;
+static ProblemExpr problem_size_x = 0, problem_size_y = 1, problem_size_z = 2;
 
 inline ProblemExpr problem_size(size_t axis = 0) {
     return axis;
 }
 
 struct ArgExpr: BaseExpr, Variable {
-    constexpr ArgExpr(uint8_t i) : index_(i) {};
+    constexpr ArgExpr(uint8_t i) noexcept : index_(i) {};
     std::string to_string() const override;
     TunableValue eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
@@ -269,14 +265,16 @@ struct ArgExpr: BaseExpr, Variable {
     uint8_t index_;
 };
 
-extern ArgExpr arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8;
+static ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5,
+               arg6 = 6, arg7 = 7, arg8 = 8;
 
 inline ArgExpr arg(uint8_t i) {
     return i;
 }
 
 struct DeviceAttributeExpr: BaseExpr, Variable {
-    DeviceAttributeExpr(CUdevice_attribute attribute) : attribute_(attribute) {}
+    constexpr DeviceAttributeExpr(CUdevice_attribute attribute) noexcept :
+        attribute_(attribute) {}
 
     CUdevice_attribute get() const {
         return attribute_;
@@ -301,6 +299,30 @@ struct DeviceAttributeExpr: BaseExpr, Variable {
   private:
     CUdevice_attribute attribute_;
 };
+
+#define KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(F) \
+    F(MAX_THREADS_PER_BLOCK)                        \
+    F(MAX_BLOCK_DIM_X)                              \
+    F(MAX_BLOCK_DIM_Y)                              \
+    F(MAX_BLOCK_DIM_Z)                              \
+    F(MAX_GRID_DIM_X)                               \
+    F(MAX_GRID_DIM_Y)                               \
+    F(MAX_GRID_DIM_Z)                               \
+    F(MAX_SHARED_MEMORY_PER_BLOCK)                  \
+    F(WARP_SIZE)                                    \
+    F(MAX_REGISTERS_PER_BLOCK)                      \
+    F(MULTIPROCESSOR_COUNT)                         \
+    F(MAX_THREADS_PER_MULTIPROCESSOR)               \
+    F(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)         \
+    F(MAX_REGISTERS_PER_MULTIPROCESSOR)             \
+    F(COMPUTE_CAPABILITY_MAJOR)                     \
+    F(COMPUTE_CAPABILITY_MINOR)
+
+#define KERNEL_LAUNCHER_DEFINE_DEVICE_ATTRIBUTE(name) \
+    static DeviceAttributeExpr DEVICE_##name = CU_DEVICE_ATTRIBUTE_##name;
+
+KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(
+    KERNEL_LAUNCHER_DEFINE_DEVICE_ATTRIBUTE)
 
 struct SelectExpr: BaseExpr {
     SelectExpr(Expr index, std::vector<Expr> options) :

@@ -35,8 +35,10 @@ struct ProblemSizeEval: Eval {
 
     bool lookup(const Variable& v, TunableValue& value) const override {
         if (const auto* that = dynamic_cast<const ProblemExpr*>(&v)) {
-            value = problem_[that->axis()];
-            return true;
+            if (that->axis() < problem_.size()) {
+                value = problem_[that->axis()];
+                return true;
+            }
         }
 
         if (const auto* that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
