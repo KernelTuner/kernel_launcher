@@ -28,7 +28,7 @@ Wisdom
 
 Utilities
 ---------
-.. doxygenstruct:: kernel_launcher::TunableValue
+.. doxygenstruct:: kernel_launcher::Value
 .. doxygenstruct:: kernel_launcher::TunableParam
 
 CUDA
