@@ -7,7 +7,7 @@ namespace kernel_launcher {
 struct ArgsEval: Eval {
     ArgsEval(const std::vector<KernelArg>& args) : args_(args) {}
 
-    bool lookup(const Variable& v, TunableValue& out) const override {
+    bool lookup(const Variable& v, Value& out) const override {
         if (const auto* that = dynamic_cast<const ArgExpr*>(&v)) {
             size_t i = that->get();
 
@@ -33,7 +33,7 @@ struct ProblemSizeEval: Eval {
         args_(std::move(args)),
         fallback_(fallback) {}
 
-    bool lookup(const Variable& v, TunableValue& value) const override {
+    bool lookup(const Variable& v, Value& value) const override {
         if (const auto* that = dynamic_cast<const ProblemExpr*>(&v)) {
             if (that->axis() < problem_.size()) {
                 value = problem_[that->axis()];
@@ -64,7 +64,7 @@ struct ProblemSizeEval: Eval {
 };
 
 struct DummyEval: Eval {
-    bool lookup(const Variable& v, TunableValue& value) const override {
+    bool lookup(const Variable& v, Value& value) const override {
         return false;
     }
 };

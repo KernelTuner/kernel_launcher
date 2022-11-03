@@ -2,7 +2,7 @@
 
 namespace kernel_launcher {
 
-bool Config::lookup(const Variable& v, TunableValue& out) const {
+bool Config::lookup(const Variable& v, Value& out) const {
     if (const auto* ptr = dynamic_cast<const TunableParam*>(&v)) {
         auto it = inner_.find(*ptr);
         if (it != inner_.end()) {
@@ -14,7 +14,7 @@ bool Config::lookup(const Variable& v, TunableValue& out) const {
     return false;
 }
 
-void Config::insert(TunableParam k, TunableValue v) {
+void Config::insert(TunableParam k, Value v) {
     const std::string& name = k.name();
 
     for (auto& it : inner_) {
@@ -32,7 +32,7 @@ void Config::insert(TunableParam k, TunableValue v) {
     inner_.emplace(std::move(k), std::move(v));
 }
 
-const TunableValue& Config::at(const std::string& param) const {
+const Value& Config::at(const std::string& param) const {
     for (const auto& it : inner_) {
         if (it.first.name() == param) {
             return it.second;
@@ -42,7 +42,7 @@ const TunableValue& Config::at(const std::string& param) const {
     throw std::invalid_argument("unknown parameter: " + param);
 }
 
-const TunableValue& Config::at(const TunableParam& param) const {
+const Value& Config::at(const TunableParam& param) const {
     auto it = inner_.find(param);
     if (it == inner_.end()) {
         throw std::invalid_argument("unknown parameter: " + param.name());
@@ -68,9 +68,9 @@ std::ostream& operator<<(std::ostream& s, const Config& c) {
 
 TunableParam ConfigSpace::add(
     std::string name,
-    std::vector<TunableValue> values,
+    std::vector<Value> values,
     std::vector<double> priors,
-    TunableValue default_value) {
+    Value default_value) {
     for (const auto& p : params_) {
         if (p.name() == name) {
             throw std::runtime_error(

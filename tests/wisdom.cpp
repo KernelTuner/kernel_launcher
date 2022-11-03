@@ -164,7 +164,7 @@ TEST_CASE("test KernelArg") {
         CHECK(result == 5);
 
         CHECK(v.to<int>() == 5);
-        CHECK(v.to_value() == TunableValue(5));
+        CHECK(v.to_value() == Value(5));
         CHECK_THROWS(v.to<double>());
     }
 

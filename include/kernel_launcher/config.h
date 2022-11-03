@@ -8,7 +8,7 @@
 
 namespace kernel_launcher {
 
-using TunableMap = std::unordered_map<TunableParam, TunableValue>;
+using TunableMap = std::unordered_map<TunableParam, Value>;
 
 struct ConfigSpace;
 struct Config: Eval {
@@ -18,25 +18,25 @@ struct Config: Eval {
     Config& operator=(Config&&) = default;
     Config& operator=(const Config&) = delete;
 
-    bool lookup(const Variable& v, TunableValue& out) const override;
+    bool lookup(const Variable& v, Value& out) const override;
 
-    const TunableValue& at(const std::string& param) const;
-    const TunableValue& at(const TunableParam& param) const;
-    void insert(TunableParam k, TunableValue v);
+    const Value& at(const std::string& param) const;
+    const Value& at(const TunableParam& param) const;
+    void insert(TunableParam k, Value v);
 
-    const TunableValue& operator[](const std::string& name) const {
+    const Value& operator[](const std::string& name) const {
         return at(name);
     }
 
-    const TunableValue& operator[](const TunableParam& param) const {
+    const Value& operator[](const TunableParam& param) const {
         return at(param);
     }
 
-    const TunableValue& operator[](const ParamExpr& param) const {
+    const Value& operator[](const ParamExpr& param) const {
         return at(param.parameter());
     }
 
-    void insert(const ParamExpr& k, TunableValue v) {
+    void insert(const ParamExpr& k, Value v) {
         insert(k.parameter(), std::move(v));
     }
 
@@ -58,7 +58,7 @@ struct Config: Eval {
     friend std::ostream& operator<<(std::ostream&, const Config& c);
 
   private:
-    std::unordered_map<TunableParam, TunableValue> inner_;
+    std::unordered_map<TunableParam, Value> inner_;
 };
 
 struct KernelBuilderSerializerHack;
@@ -78,7 +78,7 @@ struct ConfigSpace {
         std::vector<T> values,
         std::vector<P> priors,
         T default_value) {
-        std::vector<TunableValue> tvalues;
+        std::vector<Value> tvalues;
         for (const T& v : values) {
             tvalues.push_back(v);
         }
@@ -97,12 +97,12 @@ struct ConfigSpace {
 
     ParamExpr tune(
         std::string name,
-        std::initializer_list<TunableValue> values,
+        std::initializer_list<Value> values,
         std::initializer_list<double> priors,
-        TunableValue default_value) {
+        Value default_value) {
         return tune(
             std::move(name),
-            std::vector<TunableValue>(values),
+            std::vector<Value>(values),
             std::vector<double>(priors),
             std::move(default_value));
     }
@@ -120,11 +120,11 @@ struct ConfigSpace {
 
     ParamExpr tune(
         std::string name,
-        std::initializer_list<TunableValue> values,
+        std::initializer_list<Value> values,
         std::initializer_list<double> priors) {
         return tune(
             std::move(name),
-            std::vector<TunableValue>(values),
+            std::vector<Value>(values),
             std::vector<double>(priors));
     }
 
@@ -141,8 +141,8 @@ struct ConfigSpace {
     template<typename T>
     ParamExpr tune(
         std::string name,
-        std::initializer_list<TunableValue> values,
-        TunableValue default_value) {
+        std::initializer_list<Value> values,
+        Value default_value) {
         return tune(
             std::move(name),
             std::vector<T> {values},
@@ -155,9 +155,8 @@ struct ConfigSpace {
         return tune(std::move(name), std::move(values), std::move(priors));
     }
 
-    ParamExpr
-    tune(std::string name, std::initializer_list<TunableValue> values) {
-        return tune(std::move(name), std::vector<TunableValue> {values});
+    ParamExpr tune(std::string name, std::initializer_list<Value> values) {
+        return tune(std::move(name), std::vector<Value> {values});
     }
 
     ParamExpr operator[](const std::string& name) const {
@@ -170,9 +169,9 @@ struct ConfigSpace {
 
     TunableParam
     add(std::string name,
-        std::vector<TunableValue> values,
+        std::vector<Value> values,
         std::vector<double> priors,
-        TunableValue default_value);
+        Value default_value);
     ParamExpr at(const std::string& name) const;
     void restriction(TypedExpr<bool> e);
     Config default_config() const;
@@ -195,7 +194,7 @@ struct hash<kernel_launcher::Config> {
             size_t k = std::hash<kernel_launcher::Variable> {}(it.first);
             result = kernel_launcher::hash_combine(result, k);
 
-            size_t v = std::hash<kernel_launcher::TunableValue> {}(it.second);
+            size_t v = std::hash<kernel_launcher::Value> {}(it.second);
             result = kernel_launcher::hash_combine(result, v);
         }
 

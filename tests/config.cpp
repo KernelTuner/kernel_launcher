@@ -59,7 +59,7 @@ TEST_CASE("ConfigSpace") {
 
         CHECK(a.name() == "a");
         CHECK(a.default_value() == 1);
-        CHECK(a.values() == std::vector<TunableValue> {1, 2, 3});
+        CHECK(a.values() == std::vector<Value> {1, 2, 3});
         CHECK(c.at("a").parameter() == a);
 
         // cannot add same parameter twice

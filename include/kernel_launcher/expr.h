@@ -15,7 +15,7 @@ struct Eval;
 
 template<typename T>
 struct TypedExpr;
-using Expr = TypedExpr<TunableValue>;
+using Expr = TypedExpr<Value>;
 struct ScalarExpr;
 
 struct ParamExpr;
@@ -23,7 +23,7 @@ struct ParamExpr;
 struct BaseExpr {
     virtual ~BaseExpr() = default;
     virtual std::string to_string() const = 0;
-    virtual TunableValue eval(const Eval& eval) const = 0;
+    virtual Value eval(const Eval& eval) const = 0;
     virtual Expr resolve(const Eval& eval) const = 0;
 };
 
@@ -31,7 +31,7 @@ struct Eval {
     Eval() = default;
     virtual ~Eval() = default;
 
-    virtual bool lookup(const Variable& v, TunableValue& out) const = 0;
+    virtual bool lookup(const Variable& v, Value& out) const = 0;
 
     template<typename T>
     T operator()(const TypedExpr<T>& expr) const {
@@ -46,18 +46,18 @@ struct Eval {
 };
 
 struct ScalarExpr: BaseExpr {
-    ScalarExpr(TunableValue v) : value_(std::move(v)) {}
+    ScalarExpr(Value v) : value_(std::move(v)) {}
 
     std::string to_string() const override;
-    TunableValue eval(const Eval& ctx) const override;
+    Value eval(const Eval& ctx) const override;
     Expr resolve(const Eval& eval) const override;
 
-    const TunableValue& value() const {
+    const Value& value() const {
         return value_;
     }
 
   private:
-    TunableValue value_;
+    Value value_;
 };
 
 template<typename T>
@@ -71,7 +71,7 @@ struct ParamExpr: BaseExpr {
     }
 
     std::string to_string() const override;
-    TunableValue eval(const Eval& ctx) const override;
+    Value eval(const Eval& ctx) const override;
     Expr resolve(const Eval& eval) const override;
 
     const TunableParam& parameter() const {
@@ -153,7 +153,7 @@ struct SharedExpr: BaseExpr {
         return inner().to_string();
     }
 
-    TunableValue eval(const Eval& ctx) const override {
+    Value eval(const Eval& ctx) const override {
         return inner().eval(ctx);
     }
 
@@ -210,7 +210,7 @@ struct ProblemExpr: BaseExpr, Variable {
     constexpr ProblemExpr(size_t axis) noexcept : axis_(axis) {}
 
     std::string to_string() const override;
-    TunableValue eval(const Eval& eval) const override;
+    Value eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
 
     size_t axis() const {
@@ -242,7 +242,7 @@ inline ProblemExpr problem_size(size_t axis = 0) {
 struct ArgExpr: BaseExpr, Variable {
     constexpr ArgExpr(uint8_t i) noexcept : index_(i) {};
     std::string to_string() const override;
-    TunableValue eval(const Eval& eval) const override;
+    Value eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
 
     bool equals(const Variable& v) const override {
@@ -281,7 +281,7 @@ struct DeviceAttributeExpr: BaseExpr, Variable {
     }
 
     std::string to_string() const override;
-    TunableValue eval(const Eval& eval) const override;
+    Value eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
 
     bool equals(const Variable& v) const override {
@@ -329,7 +329,7 @@ struct SelectExpr: BaseExpr {
         cond_(std::move(index)),
         options_(std::move(options)) {}
 
-    TunableValue eval(const Eval& ctx) const override;
+    Value eval(const Eval& ctx) const override;
     std::string to_string() const override;
     Expr resolve(const Eval& eval) const override;
 
@@ -408,7 +408,7 @@ struct UnaryExpr: BaseExpr {
         operator_(op),
         operand_(std::move(operand)) {}
 
-    TunableValue eval(const Eval& ctx) const override;
+    Value eval(const Eval& ctx) const override;
     std::string to_string() const override;
     Expr resolve(const Eval& eval) const override;
     std::string op_name() const;
@@ -454,7 +454,7 @@ struct BinaryExpr: BaseExpr {
         lhs_(std::move(left)),
         rhs_(std::move(right)) {}
 
-    TunableValue eval(const Eval& ctx) const override;
+    Value eval(const Eval& ctx) const override;
     std::string to_string() const override;
     Expr resolve(const Eval& eval) const override;
 

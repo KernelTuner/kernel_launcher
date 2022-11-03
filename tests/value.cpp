@@ -5,7 +5,7 @@
 using namespace kernel_launcher;
 
 TEST_CASE("test T") {
-    using T = TunableValue;
+    using T = Value;
 
     T empty;
     T intval(300);

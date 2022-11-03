@@ -9,22 +9,22 @@
 
 namespace kernel_launcher {
 
-static const char* data_type_name(TunableValue::DataType dtype) {
+static const char* data_type_name(Value::DataType dtype) {
     switch (dtype) {
-        case TunableValue::DataType::int_:
+        case Value::DataType::int_:
             return "int";
-        case TunableValue::DataType::double_:
+        case Value::DataType::double_:
             return "double";
-        case TunableValue::DataType::string_:
+        case Value::DataType::string_:
             return "string";
-        case TunableValue::DataType::bool_:
+        case Value::DataType::bool_:
             return "bool";
         default:
             return "empty";
     }
 }
 
-[[noreturn]] void throw_cast_exception(const TunableValue& v, TypeInfo type) {
+[[noreturn]] void throw_cast_exception(const Value& v, TypeInfo type) {
     std::stringstream ss;
     ss << "cannot cast value \"" << v.to_string()
        << "\" (data type: " << data_type_name(v.data_type()) << ") to type "
@@ -34,8 +34,8 @@ static const char* data_type_name(TunableValue::DataType dtype) {
 
 [[noreturn]] void throw_invalid_operation_exception(
     const std::string& op,
-    const TunableValue& lhs,
-    const TunableValue& rhs) {
+    const Value& lhs,
+    const Value& rhs) {
     std::stringstream ss;
     ss << "cannot apply operator \"" << op << "\" to values \""
        << lhs.to_string()
@@ -72,7 +72,7 @@ const std::string& intern_string(const char* input) {
     return *(it->second);
 }
 
-TunableValue& TunableValue::operator=(const TunableValue& that) {
+Value& Value::operator=(const Value& that) {
     dtype_ = that.dtype_;
     switch (dtype_) {
         case type_int:
@@ -93,11 +93,11 @@ TunableValue& TunableValue::operator=(const TunableValue& that) {
     return *this;
 }
 
-std::ostream& operator<<(std::ostream& s, const TunableValue& point) {
+std::ostream& operator<<(std::ostream& s, const Value& point) {
     return s << point.to_string();
 }
 
-size_t TunableValue::hash() const {
+size_t Value::hash() const {
     int64_t v = 0;
 
     switch (dtype_) {
@@ -118,7 +118,7 @@ size_t TunableValue::hash() const {
     }
 }
 
-bool TunableValue::operator==(const TunableValue& that) const {
+bool Value::operator==(const Value& that) const {
     DataType l = this->dtype_;
     DataType r = that.dtype_;
 
@@ -161,7 +161,7 @@ bool TunableValue::operator==(const TunableValue& that) const {
     return false;
 }
 
-bool TunableValue::operator<(const TunableValue& that) const {
+bool Value::operator<(const Value& that) const {
     DataType l = this->dtype_;
     DataType r = that.dtype_;
 
@@ -186,7 +186,7 @@ bool TunableValue::operator<(const TunableValue& that) const {
     return l < r;
 }
 
-bool TunableValue::to_bool() const {
+bool Value::to_bool() const {
     switch (dtype_) {
         case type_int:
             return int_val_ != 0;
@@ -201,7 +201,7 @@ bool TunableValue::to_bool() const {
     }
 }
 
-TunableValue::integer_type TunableValue::to_integer() const {
+Value::integer_type Value::to_integer() const {
     if (dtype_ == type_bool) {
         return bool_val_ ? 1 : 0;
     }
@@ -221,7 +221,7 @@ TunableValue::integer_type TunableValue::to_integer() const {
     throw_cast_exception(*this, type_of<integer_type>());
 }
 
-std::string TunableValue::to_string() const {
+std::string Value::to_string() const {
     switch (dtype_) {
         case type_int:
             return std::to_string(int_val_);
@@ -236,7 +236,7 @@ std::string TunableValue::to_string() const {
     }
 }
 
-double TunableValue::to_double() const {
+double Value::to_double() const {
     switch (dtype_) {
         case type_int:
             return (double)int_val_;
@@ -249,11 +249,11 @@ double TunableValue::to_double() const {
     }
 }
 
-float TunableValue::to_float() const {
+float Value::to_float() const {
     return (float)to_double();
 }
 
-TemplateArg TunableValue::to_template_arg() const {
+TemplateArg Value::to_template_arg() const {
     switch (dtype_) {
         case DataType::string_:
             return TemplateArg::from_string(*string_val_);
@@ -266,7 +266,7 @@ TemplateArg TunableValue::to_template_arg() const {
     }
 }
 
-TunableValue operator+(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator+(const Value& lhs, const Value& rhs) {
     if (lhs.is_bool() && rhs.is_bool()) {
         return lhs.to_bool() || rhs.to_bool();
     }
@@ -280,7 +280,7 @@ TunableValue operator+(const TunableValue& lhs, const TunableValue& rhs) {
     }
 
     if (lhs.is_integer() || rhs.is_integer()) {
-        TunableValue::integer_type out;
+        Value::integer_type out;
         if (safe_int64_add(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
         }
@@ -289,7 +289,7 @@ TunableValue operator+(const TunableValue& lhs, const TunableValue& rhs) {
     throw_invalid_operation_exception("+", lhs, rhs);
 }
 
-TunableValue operator+(const TunableValue& v) {
+Value operator+(const Value& v) {
     if (v.is_bool() || v.is_integer() || v.is_double()) {
         return v;
     }
@@ -297,13 +297,13 @@ TunableValue operator+(const TunableValue& v) {
     throw_invalid_operation_exception("+", 0, v);
 }
 
-TunableValue operator-(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator-(const Value& lhs, const Value& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() - rhs.to_double();
     }
 
     if (lhs.is_integer() || rhs.is_integer()) {
-        TunableValue::integer_type out;
+        Value::integer_type out;
         if (safe_int64_sub(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
         }
@@ -312,13 +312,13 @@ TunableValue operator-(const TunableValue& lhs, const TunableValue& rhs) {
     throw_invalid_operation_exception("-", lhs, rhs);
 }
 
-TunableValue operator-(const TunableValue& v) {
+Value operator-(const Value& v) {
     if (v.is_double()) {
         return -v.to_double();
     }
 
     if (v.is_integer()) {
-        TunableValue::integer_type out;
+        Value::integer_type out;
         if (safe_int64_sub(0, v.to_integer(), out)) {
             return out;
         }
@@ -327,7 +327,7 @@ TunableValue operator-(const TunableValue& v) {
     throw_invalid_operation_exception("-", 0, v);
 }
 
-TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator*(const Value& lhs, const Value& rhs) {
     if (lhs.is_bool() && rhs.is_bool()) {
         return lhs.to_bool() && rhs.to_bool();
     }
@@ -337,7 +337,7 @@ TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
     }
 
     if (lhs.is_integer() || rhs.is_integer()) {
-        TunableValue::integer_type out;
+        Value::integer_type out;
         if (safe_int64_mul(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
         }
@@ -346,13 +346,13 @@ TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs) {
     throw_invalid_operation_exception("*", lhs, rhs);
 }
 
-TunableValue operator/(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator/(const Value& lhs, const Value& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return lhs.to_double() / rhs.to_double();
     }
 
     if (lhs.is_integer() || rhs.is_integer()) {
-        TunableValue::integer_type out;
+        Value::integer_type out;
         if (safe_int64_div(lhs.to_integer(), rhs.to_integer(), out)) {
             return out;
         }
@@ -361,7 +361,7 @@ TunableValue operator/(const TunableValue& lhs, const TunableValue& rhs) {
     throw_invalid_operation_exception("/", lhs, rhs);
 }
 
-TunableValue operator%(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator%(const Value& lhs, const Value& rhs) {
     if (lhs.is_double() || rhs.is_double()) {
         return std::fmod(lhs.to_double(), rhs.to_double());
     }
@@ -373,23 +373,23 @@ TunableValue operator%(const TunableValue& lhs, const TunableValue& rhs) {
     throw_invalid_operation_exception("%", lhs, rhs);
 }
 
-TunableValue operator&&(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator&&(const Value& lhs, const Value& rhs) {
     return lhs.to_bool() && rhs.to_bool();
 }
 
-TunableValue operator||(const TunableValue& lhs, const TunableValue& rhs) {
+Value operator||(const Value& lhs, const Value& rhs) {
     return lhs.to_bool() || rhs.to_bool();
 }
 
-TunableValue operator!(const TunableValue& v) {
+Value operator!(const Value& v) {
     return !v.to_bool();
 }
 
 TunableParam::TunableParam(
     std::string name,
-    std::vector<TunableValue> values,
+    std::vector<Value> values,
     std::vector<double> priors,
-    TunableValue default_value) {
+    Value default_value) {
     if (name.empty()) {
         throw std::runtime_error("name cannot be empty");
     }

@@ -12,7 +12,7 @@
 
 namespace kernel_launcher {
 
-struct TunableValue;
+struct Value;
 struct CastException: std::runtime_error {
     CastException(std::string msg) : std::runtime_error(std::move(msg)) {}
 };
@@ -20,7 +20,7 @@ struct CastException: std::runtime_error {
 using int64_t = std::int64_t;
 const std::string& intern_string(const char* input);
 
-struct TunableValue {
+struct Value {
     template<typename T>
     struct TypeIndicator {};
     using integer_type = int64_t;
@@ -39,45 +39,45 @@ struct TunableValue {
     static constexpr DataType type_string = DataType::string_;
     static constexpr DataType type_bool = DataType::bool_;
 
-    TunableValue() = default;
+    Value() = default;
 
-    TunableValue(const TunableValue& val) {
+    Value(const Value& val) {
         *this = val;
     }
 
-    TunableValue(TunableValue&& val) noexcept {
+    Value(Value&& val) noexcept {
         *this = std::move(val);
     }
 
-    TunableValue(const char* value) :
+    Value(const char* value) :
         dtype_(type_string),
         string_val_(&intern_string(value)) {}
 
-    TunableValue(const std::string& v) : TunableValue(v.c_str()) {}
-    TunableValue(const TemplateArg& arg) : TunableValue(arg.to_string()) {}
-    TunableValue(double v) : dtype_(type_double), double_val_(v) {}
-    TunableValue(bool v) : dtype_(type_bool), bool_val_(v) {}
+    Value(const std::string& v) : Value(v.c_str()) {}
+    Value(const TemplateArg& arg) : Value(arg.to_string()) {}
+    Value(double v) : dtype_(type_double), double_val_(v) {}
+    Value(bool v) : dtype_(type_bool), bool_val_(v) {}
 
-    TunableValue& operator=(const TunableValue& that);
-    bool operator==(const TunableValue& that) const;
-    bool operator<(const TunableValue& that) const;
-    bool operator!=(const TunableValue& that) const {
+    Value& operator=(const Value& that);
+    bool operator==(const Value& that) const;
+    bool operator<(const Value& that) const;
+    bool operator!=(const Value& that) const {
         return !(*this == that);
     }
 
-    bool operator>(const TunableValue& that) const {
+    bool operator>(const Value& that) const {
         return that < *this;
     }
 
-    bool operator<=(const TunableValue& that) const {
+    bool operator<=(const Value& that) const {
         return *this == that || *this < that;
     }
 
-    bool operator>=(const TunableValue& that) const {
+    bool operator>=(const Value& that) const {
         return that <= *this;
     }
 
-    friend std::ostream& operator<<(std::ostream& s, const TunableValue& point);
+    friend std::ostream& operator<<(std::ostream& s, const Value& point);
 
     size_t hash() const;
 
@@ -139,11 +139,11 @@ struct TunableValue {
     }
 
   private:
-    bool is(TypeIndicator<TunableValue>) const {
+    bool is(TypeIndicator<Value>) const {
         return true;
     }
 
-    TunableValue to(TypeIndicator<TunableValue>) const {
+    Value to(TypeIndicator<Value>) const {
         return *this;
     }
 
@@ -207,7 +207,7 @@ struct TunableValue {
 #define KERNEL_LAUNCHER_INTEGER_IMPL(type_name, human_name)     \
     KERNEL_LAUNCHER_INTEGER_FUNS(type_name, human_name)         \
                                                                 \
-    TunableValue(type_name i) :                                 \
+    Value(type_name i) :                                        \
         dtype_(type_int),                                       \
         int_val_(static_cast<integer_type>(i)) {                \
         if (!in_range<integer_type>(i)) {                       \
@@ -262,16 +262,16 @@ struct TunableValue {
     };
 };
 
-TunableValue operator+(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator+(const TunableValue& v);
-TunableValue operator-(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator-(const TunableValue& v);
-TunableValue operator*(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator/(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator%(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator&&(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator||(const TunableValue& lhs, const TunableValue& rhs);
-TunableValue operator!(const TunableValue& v);
+Value operator+(const Value& lhs, const Value& rhs);
+Value operator+(const Value& v);
+Value operator-(const Value& lhs, const Value& rhs);
+Value operator-(const Value& v);
+Value operator*(const Value& lhs, const Value& rhs);
+Value operator/(const Value& lhs, const Value& rhs);
+Value operator%(const Value& lhs, const Value& rhs);
+Value operator&&(const Value& lhs, const Value& rhs);
+Value operator||(const Value& lhs, const Value& rhs);
+Value operator!(const Value& v);
 
 struct Variable {
     virtual ~Variable() = default;
@@ -294,9 +294,9 @@ struct TunableParam: Variable {
 
         Impl(
             std::string name,
-            std::vector<TunableValue> values,
+            std::vector<Value> values,
             std::vector<double> priors,
-            TunableValue default_value) :
+            Value default_value) :
             name_(std::move(name)),
             values_(std::move(values)),
             priors_(std::move(priors)),
@@ -304,22 +304,22 @@ struct TunableParam: Variable {
 
       private:
         std::string name_;
-        std::vector<TunableValue> values_;
+        std::vector<Value> values_;
         std::vector<double> priors_;
-        TunableValue default_value_;
+        Value default_value_;
     };
 
   public:
     TunableParam(
         std::string name,
-        std::vector<TunableValue> values,
+        std::vector<Value> values,
         std::vector<double> priors,
-        TunableValue default_value);
+        Value default_value);
 
     TunableParam(
         std::string name,
-        std::vector<TunableValue> values,
-        TunableValue default_value) :
+        std::vector<Value> values,
+        Value default_value) :
         TunableParam(
             std::move(name),
             std::move(values),
@@ -330,15 +330,15 @@ struct TunableParam: Variable {
         return inner_->name_;
     }
 
-    const TunableValue& default_value() const {
+    const Value& default_value() const {
         return inner_->default_value_;
     }
 
-    const std::vector<TunableValue>& values() const {
+    const std::vector<Value>& values() const {
         return inner_->values_;
     }
 
-    bool has_value(const TunableValue& needle) const {
+    bool has_value(const Value& needle) const {
         bool found = false;
 
         // Maybe binary search?
@@ -355,11 +355,11 @@ struct TunableParam: Variable {
         return inner_->priors_;
     }
 
-    const TunableValue& at(size_t i) const {
+    const Value& at(size_t i) const {
         return values().at(i);
     }
 
-    const TunableValue& operator[](size_t i) const {
+    const Value& operator[](size_t i) const {
         return at(i);
     }
 
@@ -395,8 +395,8 @@ struct TunableParam: Variable {
 
 namespace std {
 template<>
-struct hash<kernel_launcher::TunableValue> {
-    std::size_t operator()(const kernel_launcher::TunableValue& v) const {
+struct hash<kernel_launcher::Value> {
+    std::size_t operator()(const kernel_launcher::Value& v) const {
         return v.hash();
     }
 };

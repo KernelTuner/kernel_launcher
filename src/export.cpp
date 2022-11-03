@@ -34,15 +34,15 @@ static std::string sanitize_tuning_key(const std::string& key) {
     return output;
 }
 
-static json value_to_json(const TunableValue& expr) {
+static json value_to_json(const Value& expr) {
     switch (expr.data_type()) {
-        case TunableValue::type_int:
+        case Value::type_int:
             return expr.to_integer();
-        case TunableValue::type_double:
+        case Value::type_double:
             return expr.to_double();
-        case TunableValue::type_string:
+        case Value::type_string:
             return expr.to_string();
-        case TunableValue::type_bool:
+        case Value::type_bool:
             return expr.to_bool();
         default:
             return nullptr;
@@ -141,7 +141,7 @@ static json tunable_param_to_json(const TunableParam& param) {
     size_t n = param.values().size();
 
     for (size_t i = 0; i < n; i++) {
-        const TunableValue& v = param.values()[i];
+        const Value& v = param.values()[i];
         double prior = param.priors()[i];
 
         values.emplace_back(value_to_json(v));

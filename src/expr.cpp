@@ -8,7 +8,7 @@ std::string ScalarExpr::to_string() const {
     return value_.to_string();
 }
 
-TunableValue ScalarExpr::eval(const Eval& ctx) const {
+Value ScalarExpr::eval(const Eval& ctx) const {
     return value_;
 }
 
@@ -20,8 +20,8 @@ std::string ParamExpr::to_string() const {
     return "$" + param_.name();
 }
 
-TunableValue ParamExpr::eval(const Eval& ctx) const {
-    TunableValue value;
+Value ParamExpr::eval(const Eval& ctx) const {
+    Value value;
     if (!ctx.lookup(param_, value)) {
         throw std::runtime_error(
             "parameter $" + param_.name() + "is undefined");
@@ -31,7 +31,7 @@ TunableValue ParamExpr::eval(const Eval& ctx) const {
 }
 
 Expr ParamExpr::resolve(const Eval& eval) const {
-    TunableValue value;
+    Value value;
 
     if (eval.lookup(param_, value)) {
         return ScalarExpr(value);
@@ -46,8 +46,8 @@ std::string ProblemExpr::to_string() const {
     return ss.str();
 }
 
-TunableValue ProblemExpr::eval(const Eval& eval) const {
-    TunableValue value;
+Value ProblemExpr::eval(const Eval& eval) const {
+    Value value;
 
     if (!eval.lookup(*this, value)) {
         throw std::runtime_error(
@@ -59,7 +59,7 @@ TunableValue ProblemExpr::eval(const Eval& eval) const {
 }
 
 Expr ProblemExpr::resolve(const Eval& eval) const {
-    TunableValue value;
+    Value value;
 
     if (eval.lookup(*this, value)) {
         return ScalarExpr(value);
@@ -72,8 +72,8 @@ std::string ArgExpr::to_string() const {
     return "$argument_" + std::to_string(index_);
 }
 
-TunableValue ArgExpr::eval(const Eval& eval) const {
-    TunableValue out;
+Value ArgExpr::eval(const Eval& eval) const {
+    Value out;
 
     if (!eval.lookup(*this, out)) {
         throw std::runtime_error(
@@ -84,7 +84,7 @@ TunableValue ArgExpr::eval(const Eval& eval) const {
 }
 
 Expr ArgExpr::resolve(const Eval& eval) const {
-    TunableValue out;
+    Value out;
 
     if (eval.lookup(*this, out)) {
         return out;
@@ -112,8 +112,8 @@ std::string DeviceAttributeExpr::to_string() const {
     return name;
 }
 
-TunableValue DeviceAttributeExpr::eval(const Eval& eval) const {
-    TunableValue out;
+Value DeviceAttributeExpr::eval(const Eval& eval) const {
+    Value out;
     if (!eval.lookup(*this, out)) {
         throw std::runtime_error(
             "error while reading device attribute: " + to_string());
@@ -126,7 +126,7 @@ Expr DeviceAttributeExpr::resolve(const Eval& eval) const {
     return *this;
 }
 
-TunableValue SelectExpr::eval(const Eval& ctx) const {
+Value SelectExpr::eval(const Eval& ctx) const {
     auto index = cond_.eval(ctx).to<int64_t>();
     if (index < 0 || size_t(index) >= options_.size()) {
         throw std::invalid_argument("index out of bounds");
@@ -157,8 +157,8 @@ Expr SelectExpr::resolve(const Eval& eval) const {
     return SelectExpr(cond_.resolve(eval), options);
 }
 
-TunableValue UnaryExpr::eval(const Eval& ctx) const {
-    TunableValue operand = operand_.eval(ctx);
+Value UnaryExpr::eval(const Eval& ctx) const {
+    Value operand = operand_.eval(ctx);
 
     switch (operator_) {
         case Op::Plus:
@@ -201,9 +201,9 @@ std::string UnaryExpr::op_name() const {
     }
 }
 
-TunableValue BinaryExpr::eval(const Eval& ctx) const {
-    TunableValue lhs = lhs_.eval(ctx);
-    TunableValue rhs = rhs_.eval(ctx);
+Value BinaryExpr::eval(const Eval& ctx) const {
+    Value lhs = lhs_.eval(ctx);
+    Value rhs = rhs_.eval(ctx);
 
     switch (operator_) {
         case Op::Add:

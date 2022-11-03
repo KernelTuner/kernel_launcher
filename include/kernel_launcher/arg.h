@@ -49,8 +49,8 @@ struct KernelArg {
         return result;
     }
 
-    TunableValue to_value() const;
-    TunableValue to_value_or_empty() const;
+    Value to_value() const;
+    Value to_value_or_empty() const;
     void assert_type_matches(TypeInfo t) const;
     bool is_scalar() const;
     bool is_array() const;

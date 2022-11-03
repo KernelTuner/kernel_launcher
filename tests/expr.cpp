@@ -4,12 +4,12 @@
 
 using namespace kernel_launcher;
 
-using TunableMap = std::unordered_map<TunableParam, TunableValue>;
+using TunableMap = std::unordered_map<TunableParam, Value>;
 
 struct MyEval: Eval {
     MyEval(TunableMap m) : map(m) {}
 
-    bool lookup(const Variable& v, TunableValue& value) const override {
+    bool lookup(const Variable& v, Value& value) const override {
         if (auto that = dynamic_cast<const TunableParam*>(&v)) {
             auto it = map.find(*that);
 
@@ -128,21 +128,21 @@ TEST_CASE("test Expr") {
         cast<int, const int&>(4);
         cast<int, double>(4);
 
-        cast<TunableValue, int>(4);
-        cast<TunableValue, double>(4);
-        cast<TunableValue, bool>(4);
-        cast<TunableValue, std::string>("abc");
+        cast<Value, int>(4);
+        cast<Value, double>(4);
+        cast<Value, bool>(4);
+        cast<Value, std::string>("abc");
 
         cast<int>(xe);
         cast<double>(xe);
         cast<bool>(xe);
         cast<std::string>(xe);
-        cast<TunableValue>(xe);
+        cast<Value>(xe);
 
         cast<int>(xe.parameter());
         cast<double>(xe.parameter());
         cast<bool>(xe.parameter());
         cast<std::string>(xe.parameter());
-        cast<TunableValue>(xe.parameter());
+        cast<Value>(xe.parameter());
     }
 }

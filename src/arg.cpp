@@ -53,7 +53,7 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
     std::swap(this->scalar_, that.scalar_);
 }
 
-TunableValue KernelArg::to_value_or_empty() const {
+Value KernelArg::to_value_or_empty() const {
     TypeInfo ty = type_.remove_const();
     void* ptr = as_void_ptr();
 
@@ -85,8 +85,8 @@ TunableValue KernelArg::to_value_or_empty() const {
     return {};
 }
 
-TunableValue KernelArg::to_value() const {
-    TunableValue v = to_value_or_empty();
+Value KernelArg::to_value() const {
+    Value v = to_value_or_empty();
 
     if (v.is_empty()) {
         throw std::runtime_error(

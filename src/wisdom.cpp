@@ -108,7 +108,7 @@ static void parse_header(
     }
 }
 
-static TunableValue json_to_tunable_value(const nlohmann::json& value) {
+static Value json_to_tunable_value(const nlohmann::json& value) {
     switch (value.type()) {
         case nlohmann::json::value_t::number_integer:
             return (int64_t)value;
