@@ -310,6 +310,20 @@ struct TunableParam: Variable {
     };
 
   public:
+    TunableParam() = delete;
+    TunableParam(const TunableParam&) = default;
+    TunableParam& operator=(const TunableParam&) = default;
+
+    // We want TunableParam to be copyable but not movable. These two
+    // statements cause compile errors. Instead, simply forward the move
+    // operations to the copy operations.
+    // TunableParam(TunableParam&&) = delete;
+    // TunableParam& operator=(TunableParam&&) = delete;
+    TunableParam(TunableParam&& v) : TunableParam(v) {}
+    TunableParam& operator=(TunableParam&& v) noexcept {
+        return *this = v;
+    }
+
     TunableParam(
         std::string name,
         std::vector<Value> values,

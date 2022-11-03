@@ -66,7 +66,7 @@ ScalarExpr scalar(T value = {}) {
 }
 
 struct ParamExpr: BaseExpr {
-    ParamExpr(TunableParam p) : param_(std::move(p)) {
+    ParamExpr(const TunableParam& p) : param_(p) {
         //
     }
 
