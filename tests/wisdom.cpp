@@ -24,10 +24,7 @@ struct IntoKernelArg<point3> {
 }  // namespace kernel_launcher
 
 TEST_CASE("test load_best_config") {
-    std::string wisdom_dir = __FILE__;
-    wisdom_dir = wisdom_dir.substr(0, wisdom_dir.rfind('/'));
-    wisdom_dir += "/assets";
-
+    std::string wisdom_dir = assets_directory();
     ConfigSpace space;
     space.tune("block_size_x", {1, 2, 3, 4, 5, 6, 7, 8});
     space.tune("block_size_y", {1, 2});
@@ -85,6 +82,36 @@ TEST_CASE("test load_best_config") {
         CHECK(config["block_size_y"] == 1);
     }
 
+    SECTION("test wrong device name") {
+        Config config = load_best_config(
+            wisdom_dir,
+            tuning_key,
+            space,
+            "unknown device",
+            device_arch,
+            {200, 199},
+            &result);
+
+        CHECK(result == WisdomResult::DeviceMismatch);
+        CHECK(config["block_size_x"] == 4);
+        CHECK(config["block_size_y"] == 1);
+    }
+
+    SECTION("test wrong problem size") {
+        Config config = load_best_config(
+            wisdom_dir,
+            tuning_key,
+            space,
+            device_name,
+            device_arch,
+            {200, 200},
+            &result);
+
+        CHECK(result == WisdomResult::ProblemSizeMismatch);
+        CHECK(config["block_size_x"] == 6);
+        CHECK(config["block_size_y"] == 1);
+    }
+
     SECTION("test wisdom file missing parameters") {
         // Expand parameter space. This will not be in the wisdom file.
         space.tune("block_size_z", {1024});
@@ -118,35 +145,47 @@ TEST_CASE("test load_best_config") {
         CHECK(config["block_size_x"] == 3);
         CHECK(config["block_size_y"] == 1);
     }
+}
 
-    SECTION("test valid configuration") {
-        Config config = load_best_config(
-            wisdom_dir,
-            tuning_key,
-            space,
-            "unknown device",
-            device_arch,
-            {200, 199},
-            &result);
+TEST_CASE("test process_wisdom_file") {
+    std::string wisdom_dir = assets_directory();
+    ConfigSpace space;
+    auto block_size_x = space.tune("block_size_x", {1, 2, 3, 4, 5, 6, 7, 8});
+    auto block_size_y = space.tune("block_size_y", {1, 2});
 
-        CHECK(result == WisdomResult::DeviceMismatch);
-        CHECK(config["block_size_x"] == 4);
-        CHECK(config["block_size_y"] == 1);
+    SECTION("test unknown wisdom file") {
+        std::string tuning_key = "does_not_exist";
+
+        bool success =
+            process_wisdom_file(wisdom_dir, tuning_key, space, [&](auto& r) {
+                FAIL();  // Calling the callback should fail the test
+            });
+
+        CHECK_FALSE(success);
     }
 
-    SECTION("test wrong problem size") {
-        Config config = load_best_config(
-            wisdom_dir,
-            tuning_key,
-            space,
-            device_name,
-            device_arch,
-            {200, 200},
-            &result);
+    SECTION("test existing wisdom file") {
+        std::string tuning_key = "example_kernel";
 
-        CHECK(result == WisdomResult::ProblemSizeMismatch);
-        CHECK(config["block_size_x"] == 6);
-        CHECK(config["block_size_y"] == 1);
+        int lineno = 0;
+        bool success =
+            process_wisdom_file(wisdom_dir, tuning_key, space, [&](auto& r) {
+                if (lineno == 0) {
+                    CHECK(r.device_name() == "K20");
+                    CHECK(r.environment("device_name") == "K20");
+                    CHECK(r.problem_size() == ProblemSize {100, 100});
+                    CHECK(r.objective() == 0.5);
+                }
+
+                auto config = r.config();
+                CHECK(config[block_size_x] == lineno + 2);
+                CHECK(config[block_size_y] == 1);
+
+                lineno++;
+            });
+
+        CHECK(lineno == 5);
+        CHECK(success);
     }
 }
 

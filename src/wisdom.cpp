@@ -103,7 +103,7 @@ static void parse_header(
         log_warning() << "parameter \"" << param.name()
                       << "\" is in configuration space of kernel \""
                       << tuning_key
-                      << "\" but it was not found in wisdom file:" << path
+                      << "\" but it was not found in wisdom file: " << path
                       << "\n";
     }
 }
@@ -126,23 +126,17 @@ static Value json_to_tunable_value(const nlohmann::json& value) {
     }
 }
 
-template<typename F>
-static void parse_line(
-    const std::string& line,
-    const std::vector<TunableParam>& params,
-    const std::string& objective_key,
-    F callback,
-    Config& best_config) {
-    std::string empty_string;
+static const std::string EMPTY_STRING;
 
-    nlohmann::json record = nlohmann::json::parse(line);
-    nlohmann::json& config_json = record["config"];
-    nlohmann::json& problem_json = record["problem_size"];
-    nlohmann::json& env_json = record["environment"];
+struct WisdomRecordImpl {
+    nlohmann::json record;
+    std::vector<TunableParam> params;
+    std::string objective_key;
+    const ConfigSpace& config_space;
+};
 
-    if (config_json.size() != params.size()) {
-        throw std::runtime_error("invalid configuration");
-    }
+ProblemSize WisdomRecord::problem_size() const {
+    const nlohmann::json& problem_json = impl_.record["problem_size"];
 
     ProblemSize problem_size;
     for (size_t i = 0; i < 3; i++) {
@@ -151,30 +145,55 @@ static void parse_line(
         }
     }
 
-    const auto* const device_name =
-        env_json["device_name"].get_ptr<const std::string*>();
-    double objective = record[objective_key];
+    return problem_size;
+}
 
-    bool is_better = callback(
-        problem_size,
-        device_name != nullptr ? *device_name : empty_string,
-        objective);
+double WisdomRecord::objective() const {
+    return impl_.record[impl_.objective_key];
+}
 
-    if (is_better) {
-        for (size_t i = 0; i < params.size(); i++) {
-            best_config.insert(
-                params[i],
-                json_to_tunable_value(config_json[i]));
-        }
+const std::string& WisdomRecord::environment(const char* key) const {
+    if (const auto* value = impl_.record.at("environment")
+                                .at(key)
+                                .get_ptr<const std::string*>()) {
+        return *value;
     }
+
+    log_warning() << "not found " << key << "\n";
+    return EMPTY_STRING;
+}
+
+const std::string& WisdomRecord::device_name() const {
+    return environment("device_name");
+}
+
+Config WisdomRecord::config() const {
+    const nlohmann::json& config_json = impl_.record["config"];
+    if (config_json.size() != impl_.params.size()) {
+        throw std::runtime_error("invalid configuration");
+    }
+
+    Config result = impl_.config_space.default_config();
+
+    for (size_t i = 0; i < impl_.params.size(); i++) {
+        Value value = json_to_tunable_value(config_json[i]);
+        if (!impl_.params[i].has_value(value)) {
+            throw std::runtime_error(
+                "invalid configuration: parameter \"" + impl_.params[i].name()
+                + "\" cannot have \"" + value.to_string() + "\"");
+        }
+
+        result.insert(impl_.params[i], value);
+    }
+
+    return result;
 }
 
 template<typename F>
-static bool process_wisdom_file(
+static bool process_wisdom_file_impl(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
     const ConfigSpace& space,
-    Config& best_config,
     F callback) {
     std::string path =
         path_join(wisdom_dir, sanitize_tuning_key(tuning_key)) + ".wisdom";
@@ -193,7 +212,6 @@ static bool process_wisdom_file(
 
     std::string objective_key;
     std::vector<TunableParam> params;
-    std::string err;
 
     // Parse header
     try {
@@ -201,8 +219,14 @@ static bool process_wisdom_file(
     } catch (const std::exception& e) {
         log_warning() << path << ":1: file is ignored, error while parsing: "
                       << e.what() << "\n";
-        return true;
+        return false;
     }
+
+    WisdomRecordImpl impl {
+        nullptr,
+        std::move(params),
+        std::move(objective_key),
+        space};
 
     // Parse each line
     for (size_t lineno = 2; std::getline(stream, line); lineno++) {
@@ -211,7 +235,8 @@ static bool process_wisdom_file(
         }
 
         try {
-            parse_line(line, params, objective_key, callback, best_config);
+            impl.record = nlohmann::json::parse(line);
+            callback(WisdomRecord {impl});
         } catch (const std::exception& e) {
             log_warning() << path << ":" << lineno
                           << ": line is ignored, error while parsing: "
@@ -220,6 +245,18 @@ static bool process_wisdom_file(
     }
 
     return true;
+}
+
+bool process_wisdom_file(
+    const std::string& wisdom_dir,
+    const std::string& tuning_key,
+    const ConfigSpace& space,
+    std::function<void(const WisdomRecord&)> callback) {
+    return process_wisdom_file_impl(
+        wisdom_dir,
+        tuning_key,
+        space,
+        std::move(callback));
 }
 
 Config load_best_config(
@@ -245,45 +282,43 @@ Config load_best_config(
     ProblemSize best_problem_size;
     uint64_t best_distance = std::numeric_limits<uint64_t>::max();
 
+    log_debug() << "parsing " << tuning_key << "\n";
+    auto callback = [&](const WisdomRecord& record) {
+        double score = record.objective();
+        const std::string& row_device = record.device_name();
+        ProblemSize row_problem = record.problem_size();
+
+        WisdomResult type;
+        if (row_device != device_name) {
+            type = WisdomResult::DeviceMismatch;
+        } else if (row_problem != problem_size) {
+            type = WisdomResult::ProblemSizeMismatch;
+        } else {
+            type = WisdomResult::Ok;
+        }
+
+        uint64_t l = problem_size.x * problem_size.y * problem_size.z;
+        uint64_t r = row_problem.x * row_problem.y * row_problem.z;
+        uint64_t distance = l > r ? l - r : r - l;
+
+        if (type < best_type
+            || (type == best_type
+                && (distance < best_distance
+                    || (distance == best_distance && score < best_score)))) {
+            best_type = type;
+            best_score = score;
+            best_problem_size = row_problem;
+            best_device = row_device;
+            best_distance = distance;
+            best_config = record.config();
+            return true;
+        }
+
+        return false;
+    };
+
     for (const auto& dir : wisdom_dirs) {
-        bool success = process_wisdom_file(
-            dir,
-            tuning_key,
-            space,
-            best_config,
-            [&](ProblemSize row_problem,
-                const std::string& row_device,
-                double score) {
-                WisdomResult type;
-                if (row_device != device_name) {
-                    type = WisdomResult::DeviceMismatch;
-                } else if (row_problem != problem_size) {
-                    type = WisdomResult::ProblemSizeMismatch;
-                } else {
-                    type = WisdomResult::Ok;
-                }
-
-                uint64_t l = problem_size.x * problem_size.y * problem_size.z;
-                uint64_t r = row_problem.x * row_problem.y * row_problem.z;
-                uint64_t distance = l > r ? l - r : r - l;
-
-                if (type > best_type
-                    || (type == best_type
-                        && (distance < best_distance
-                            || (distance == best_distance
-                                && score < best_score)))) {
-                    best_type = type;
-                    best_score = score;
-                    best_problem_size = row_problem;
-                    best_device = row_device;
-                    best_distance = distance;
-                    return true;
-                }
-
-                return false;
-            });
-
-        if (success) {
+        if (process_wisdom_file_impl(dir, tuning_key, space, callback)) {
             break;
         }
     }

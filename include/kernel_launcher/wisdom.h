@@ -12,6 +12,43 @@
 
 namespace kernel_launcher {
 
+struct WisdomRecordImpl;
+
+/**
+ * Represents a record read from a wisdom file. Use methods such as
+ * ``problem_size()`` and ``device_name()`` to retrieve fields of this record.
+ */
+struct WisdomRecord {
+    WisdomRecord(const WisdomRecordImpl& impl) : impl_(impl) {}
+    WisdomRecord(const WisdomRecord&) = delete;
+
+    ProblemSize problem_size() const;
+    double objective() const;
+    const std::string& environment(const char* key) const;
+    const std::string& device_name() const;
+    Config config() const;
+
+  private:
+    const WisdomRecordImpl& impl_;
+};
+
+/***
+ * Processes a wisdom file and calls the provided callback for each record of
+ * the file.
+ *
+ * @param wisdom_dir The directory where files are located.
+ * @param tuning_key The tuning key of the wisdom file.
+ * @param space Configuration space that corresponds to the parameters in the
+ *              wisdom file.
+ * @param callback User-provided function that is called for each record.
+ * @return ``true`` if the file was processed successfully, ``false`` otherwise.
+ */
+bool process_wisdom_file(
+    const std::string& wisdom_dir,
+    const std::string& tuning_key,
+    const ConfigSpace& space,
+    std::function<void(const WisdomRecord&)> callback);
+
 /// Returned by `load_best_config` to indicate the result:
 /// - NotFound: Wisdom file was not found. Default config is returned.
 /// - DeviceMismatch: File was found, but did not contain results for the
@@ -21,10 +58,10 @@ namespace kernel_launcher {
 ///                        was selected instead.
 /// - Ok: Device and problem size was found exactly.
 enum struct WisdomResult {
-    NotFound = 0,
-    DeviceMismatch = 1,
-    ProblemSizeMismatch = 2,
-    Ok = 3
+    Ok = 0,
+    ProblemSizeMismatch = 1,
+    DeviceMismatch = 2,
+    NotFound = 3
 };
 
 Config load_best_config(
