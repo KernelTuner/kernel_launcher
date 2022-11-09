@@ -126,7 +126,6 @@ bool ConfigSpace::is_valid(const Eval& config) const {
 
     for (const auto& r : restrictions_) {
         if (!config(r)) {
-            std::cout << "failed" << r.to_string() << std::endl;
             return false;
         }
     }
