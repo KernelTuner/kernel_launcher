@@ -122,12 +122,13 @@ bool Value::operator==(const Value& that) const {
     DataType l = this->dtype_;
     DataType r = that.dtype_;
 
-    if (l == type_empty && r == type_empty) {
-        return true;
+    if (l == type_empty || r == type_empty) {
+        return l == type_empty && r == type_empty;
     }
 
-    if (l == type_string && r == type_string) {
-        return *this->string_val_ == *that.string_val_;
+    if (l == type_string || r == type_string) {
+        return l == type_string && r == type_string
+            && *this->string_val_ == *that.string_val_;
     }
 
     if ((l == type_bool || l == type_int)

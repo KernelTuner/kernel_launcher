@@ -4,7 +4,37 @@
 
 using namespace kernel_launcher;
 
-TEST_CASE("test T") {
+#define CHECK_LT(a, b)       \
+    CHECK((a) < (b));        \
+    CHECK_FALSE((b) < (a));  \
+    CHECK_FALSE((a) > (b));  \
+    CHECK((b) > (a));        \
+    CHECK((a) <= (b));       \
+    CHECK_FALSE((b) <= (a)); \
+    CHECK_FALSE((a) >= (b)); \
+    CHECK((b) >= (a));       \
+    CHECK_FALSE((a) == (b)); \
+    CHECK_FALSE((b) == (a)); \
+    CHECK((a) != (b));       \
+    CHECK((b) != (a));
+
+#define CHECK_EQ(a, b)       \
+    CHECK_FALSE((a) < (b));  \
+    CHECK_FALSE((b) < (a));  \
+    CHECK_FALSE((a) > (b));  \
+    CHECK_FALSE((b) > (a));  \
+    CHECK((a) <= (b));       \
+    CHECK((b) <= (a));       \
+    CHECK((a) >= (b));       \
+    CHECK((b) >= (a));       \
+    CHECK((a) == (b));       \
+    CHECK((b) == (a));       \
+    CHECK_FALSE((a) != (b)); \
+    CHECK_FALSE((b) != (a));
+
+#define CHECK_GT(a, b) CHECK_LT(b, a);
+
+TEST_CASE("test Value") {
     using T = Value;
 
     T empty;
@@ -155,72 +185,72 @@ TEST_CASE("test T") {
         CHECK(falseval * falseval == falseval);
     }
 
-    SECTION("operator== and operator!=") {
-        CHECK(empty == empty);
-        CHECK(empty != intval);
-        CHECK(empty != floatval);
-        CHECK(empty != boolval);
-        CHECK(empty != strval);
+    SECTION("comparison operator") {
+        CHECK_EQ(empty, empty);
+        CHECK_LT(empty, intval);
+        CHECK_LT(empty, floatval);
+        CHECK_LT(empty, boolval);
+        CHECK_LT(empty, strval);
 
-        CHECK(intval != empty);
-        CHECK(intval == intval);
-        CHECK(intval != floatval);
-        CHECK(intval != boolval);
-        CHECK(intval != strval);
+        CHECK_GT(intval, empty);
+        CHECK_EQ(intval, intval);
+        CHECK_GT(intval, floatval);
+        CHECK_GT(intval, boolval);
+        CHECK_LT(intval, strval);
 
-        CHECK(floatval != empty);
-        CHECK(floatval != intval);
-        CHECK(floatval == floatval);
-        CHECK(floatval != boolval);
-        CHECK(floatval != strval);
+        CHECK_GT(floatval, empty);
+        CHECK_LT(floatval, intval);
+        CHECK_EQ(floatval, floatval);
+        CHECK_GT(floatval, boolval);
+        CHECK_LT(floatval, strval);
 
-        CHECK(boolval != empty);
-        CHECK(boolval != intval);
-        CHECK(boolval != floatval);
-        CHECK(boolval != strval);
-        CHECK(boolval == boolval);
+        CHECK_GT(boolval, empty);
+        CHECK_LT(boolval, intval);
+        CHECK_LT(boolval, floatval);
+        CHECK_LT(boolval, strval);
+        CHECK_EQ(boolval, boolval);
 
-        CHECK(strval != empty);
-        CHECK(strval != intval);
-        CHECK(strval != floatval);
-        CHECK(strval != boolval);
-        CHECK(strval == strval);
+        CHECK_GT(strval, empty);
+        CHECK_GT(strval, intval);
+        CHECK_GT(strval, floatval);
+        CHECK_GT(strval, boolval);
+        CHECK_EQ(strval, strval);
 
-        CHECK(trueval == trueval);
-        CHECK(trueval != falseval);
-        CHECK(falseval != trueval);
-        CHECK(falseval == falseval);
+        CHECK_EQ(trueval, trueval);
+        CHECK_GT(trueval, falseval);
+        CHECK_LT(falseval, trueval);
+        CHECK_EQ(falseval, falseval);
 
         // int vs double vs bool comparisons
-        CHECK(T(0) == T(0.0));
-        CHECK(T(0) == T(false));
-        CHECK(T(0) == T(0));
-        CHECK(T(false) == T(0.0));
-        CHECK(T(false) == T(false));
-        CHECK(T(false) == T(0));
-        CHECK(T(0.0) == T(0.0));
-        CHECK(T(0.0) == T(false));
-        CHECK(T(0.0) == T(0));
+        CHECK_EQ(T(0), T(0.0));
+        CHECK_EQ(T(0), T(false));
+        CHECK_EQ(T(0), T(0));
+        CHECK_EQ(T(false), T(0.0));
+        CHECK_EQ(T(false), T(false));
+        CHECK_EQ(T(false), T(0));
+        CHECK_EQ(T(0.0), T(0.0));
+        CHECK_EQ(T(0.0), T(false));
+        CHECK_EQ(T(0.0), T(0));
 
-        CHECK(T(1) == T(1.0));
-        CHECK(T(1) == T(true));
-        CHECK(T(1) == T(1));
-        CHECK(T(true) == T(1.0));
-        CHECK(T(true) == T(true));
-        CHECK(T(true) == T(1));
-        CHECK(T(1.0) == T(1.0));
-        CHECK(T(1.0) == T(true));
-        CHECK(T(1.0) == T(1));
+        CHECK_EQ(T(1), T(1.0));
+        CHECK_EQ(T(1), T(true));
+        CHECK_EQ(T(1), T(1));
+        CHECK_EQ(T(true), T(1.0));
+        CHECK_EQ(T(true), T(true));
+        CHECK_EQ(T(true), T(1));
+        CHECK_EQ(T(1.0), T(1.0));
+        CHECK_EQ(T(1.0), T(true));
+        CHECK_EQ(T(1.0), T(1));
 
-        CHECK(T(2) != T(3.0));
-        CHECK(T(2) != T(true));
-        CHECK(T(2) != T(3));
-        CHECK(T(true) != T(3.0));
-        CHECK(T(false) != T(true));
-        CHECK(T(true) != T(3));
-        CHECK(T(2.0) != T(3.0));
-        CHECK(T(2.0) != T(false));
-        CHECK(T(2.0) != T(3));
+        CHECK_LT(T(2), T(3.0));
+        CHECK_GT(T(2), T(true));
+        CHECK_LT(T(2), T(3));
+        CHECK_LT(T(true), T(3.0));
+        CHECK_LT(T(false), T(true));
+        CHECK_LT(T(true), T(3));
+        CHECK_LT(T(2.0), T(3.0));
+        CHECK_GT(T(2.0), T(false));
+        CHECK_LT(T(2.0), T(3));
 
         // Some tricky int vs double corner cases
         int64_t x = std::numeric_limits<int64_t>::max();
@@ -228,26 +258,58 @@ TEST_CASE("test T") {
 
         double v = 1.5;
         CHECK_THROWS(T(v).to_integer());
-        CHECK(T(v) == T(v));
+        CHECK_EQ(T(v), T(v));
 
         v = double(std::numeric_limits<uint64_t>::max());
         CHECK_THROWS(T(v).to_integer());
-        CHECK(T(v) == T(v));
+        CHECK_EQ(T(v), T(v));
 
         v = std::numeric_limits<double>::max();
         CHECK_THROWS(T(v).to_integer());
-        CHECK(T(v) == T(v));
+        CHECK_EQ(T(v), T(v));
 
         v = std::numeric_limits<double>::infinity();
         CHECK_THROWS(T(v).to_integer());
-        CHECK(T(v) == T(v));
+        CHECK_EQ(T(v), T(v));
 
         v = std::numeric_limits<double>::quiet_NaN();
         CHECK_THROWS(T(v).to_integer());
         CHECK(T(v) != T(v));
     }
 
-    // TODO: repeat for remaining operators
+    SECTION("test total order") {
+        // Check that there is a total order on `Value`s
+        std::vector<Value> sorted = {
+            empty,
+            -std::numeric_limits<double>::infinity(),
+            std::numeric_limits<int64_t>::min(),
+            -100,
+            -50.0,
+            0.0,
+            0,
+            false,
+            1,
+            true,
+            100,
+            std::numeric_limits<int64_t>::max(),
+            std::numeric_limits<double>::infinity(),
+            "",
+            " ",
+            "0",
+            "false",
+            "string",
+            "true"};
+
+        for (size_t i = 0; i < sorted.size(); i++) {
+            for (size_t j = 0; j < sorted.size(); j++) {
+                if (i < j) {
+                    CHECK(sorted[i] <= sorted[j]);
+                } else if (i > j) {
+                    CHECK(sorted[i] >= sorted[j]);
+                }
+            }
+        }
+    }
 
     SECTION("test TunableParam") {
         TunableParam x {"foo", {1, 2, 3}, 3};

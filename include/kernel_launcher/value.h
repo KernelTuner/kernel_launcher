@@ -25,13 +25,7 @@ struct Value {
     struct TypeIndicator {};
     using integer_type = int64_t;
 
-    enum class DataType {
-        empty_,
-        int_,
-        double_,
-        string_,
-        bool_,
-    };
+    enum class DataType { empty_, int_, double_, bool_, string_ };
 
     static constexpr DataType type_empty = DataType::empty_;
     static constexpr DataType type_int = DataType::int_;
