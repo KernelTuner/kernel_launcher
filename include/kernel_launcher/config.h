@@ -72,21 +72,14 @@ struct ConfigSpace {
     ConfigSpace& operator=(ConfigSpace&&) = default;
     ConfigSpace& operator=(const ConfigSpace&) = delete;
 
-    template<typename T, typename P>
+    template<typename T = Value, typename P = double>
     ParamExpr tune(
         std::string name,
         std::vector<T> values,
         std::vector<P> priors,
-        T default_value) {
-        std::vector<Value> tvalues;
-        for (const T& v : values) {
-            tvalues.push_back(v);
-        }
-
-        std::vector<double> tpriors;
-        for (const P& v : priors) {
-            tpriors.push_back(v);
-        }
+        Value default_value) {
+        std::vector<Value> tvalues {values.begin(), values.end()};
+        std::vector<double> tpriors {priors.begin(), priors.end()};
 
         return add(
             std::move(name),
@@ -95,19 +88,7 @@ struct ConfigSpace {
             std::move(default_value));
     }
 
-    ParamExpr tune(
-        std::string name,
-        std::initializer_list<Value> values,
-        std::initializer_list<double> priors,
-        Value default_value) {
-        return tune(
-            std::move(name),
-            std::vector<Value>(values),
-            std::vector<double>(priors),
-            std::move(default_value));
-    }
-
-    template<typename T, typename P>
+    template<typename T = Value, typename P = double>
     ParamExpr
     tune(std::string name, std::vector<T> values, std::vector<P> priors) {
         T default_value = values.at(0);
@@ -118,18 +99,9 @@ struct ConfigSpace {
             default_value);
     }
 
-    ParamExpr tune(
-        std::string name,
-        std::initializer_list<Value> values,
-        std::initializer_list<double> priors) {
-        return tune(
-            std::move(name),
-            std::vector<Value>(values),
-            std::vector<double>(priors));
-    }
-
-    template<typename T>
-    ParamExpr tune(std::string name, std::vector<T> values, T default_value) {
+    template<typename T = Value>
+    ParamExpr
+    tune(std::string name, std::vector<T> values, Value default_value) {
         std::vector<double> priors(values.size(), 1.0);
         return tune(
             std::move(name),
@@ -138,25 +110,10 @@ struct ConfigSpace {
             std::move(default_value));
     }
 
-    template<typename T>
-    ParamExpr tune(
-        std::string name,
-        std::initializer_list<Value> values,
-        Value default_value) {
-        return tune(
-            std::move(name),
-            std::vector<T> {values},
-            std::move(default_value));
-    }
-
-    template<typename T>
+    template<typename T = Value>
     ParamExpr tune(std::string name, std::vector<T> values) {
         std::vector<double> priors(values.size(), 1.0);
         return tune(std::move(name), std::move(values), std::move(priors));
-    }
-
-    ParamExpr tune(std::string name, std::initializer_list<Value> values) {
-        return tune(std::move(name), std::vector<Value> {values});
     }
 
     ParamExpr operator[](const std::string& name) const {
