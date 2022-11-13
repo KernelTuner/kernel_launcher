@@ -13,7 +13,7 @@ namespace kernel_launcher {
 struct KernelArg;
 
 using ProblemExtractor =
-    std::function<ProblemSize(const std::vector<KernelArg>&)>;
+    std::function<auto(const std::vector<KernelArg>&)->ProblemSize>;
 
 struct KernelInstance {
     KernelInstance() = default;
@@ -103,8 +103,8 @@ struct KernelBuilder: ConfigSpace {
      *
      * @return `this`
      */
-    KernelBuilder& problem_size(
-        std::function<ProblemSize(const std::vector<KernelArg>&)>);
+    KernelBuilder&
+        problem_size(std::function<ProblemSize(const std::vector<KernelArg>&)>);
 
     /**
      * Construct a new `KernelBuilder`.
@@ -252,7 +252,7 @@ struct KernelBuilder: ConfigSpace {
      * builder.define(name, builder.tune(name, values));
      * ```
      */
-    template<typename T=Value>
+    template<typename T = Value>
     TypedExpr<T> tune_define(std::string name, std::vector<T> values) {
         TypedExpr<T> param = this->tune(name, values);
         define(std::move(name), param);

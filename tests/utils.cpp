@@ -124,3 +124,30 @@ TEST_CASE("test string_split") {
     CHECK(string_split("", ',') == v {""});
     CHECK(string_split("aaaaa|bbbbb", '|') == v {"aaaaa", "bbbbb"});
 }
+
+TEST_CASE("test ProblemSize") {
+    ProblemSize p {1, 2, 3};
+
+    CHECK(p.x == 1);
+    CHECK(p.y == 2);
+    CHECK(p.z == 3);
+
+    CHECK(p[0] == 1);
+    CHECK(p[1] == 2);
+    CHECK(p[2] == 3);
+
+    auto [x, y, z] = p;
+    CHECK(x == 1);
+    CHECK(y == 2);
+    CHECK(z == 3);
+
+    CHECK(p.size() == 3);
+    CHECK(p.data() == &p.x);
+
+    CHECK(p == p);
+    CHECK_FALSE(p != p);
+
+    ProblemSize q {2, 5, 1};
+    CHECK(p != q);
+    CHECK_FALSE(p == q);
+}
