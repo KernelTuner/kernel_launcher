@@ -32,7 +32,7 @@ struct WisdomRecord {
     const WisdomRecordImpl& impl_;
 };
 
-/***
+/**
  * Processes a wisdom file and calls the provided callback for each record of
  * the file.
  *
@@ -41,7 +41,8 @@ struct WisdomRecord {
  * @param space Configuration space that corresponds to the parameters in the
  *              wisdom file.
  * @param callback User-provided function that is called for each record.
- * @return ``true`` if the file was processed successfully, ``false`` otherwise.
+ * @return ``true`` if the file was processed successfully, ``false`` if an
+ * error ocurred (for example, IO error or invalid file format).
  */
 bool process_wisdom_file(
     const std::string& wisdom_dir,
@@ -49,14 +50,15 @@ bool process_wisdom_file(
     const ConfigSpace& space,
     std::function<void(const WisdomRecord&)> callback);
 
-/// Returned by `load_best_config` to indicate the result:
-/// - NotFound: Wisdom file was not found. Default config is returned.
-/// - DeviceMismatch: File was found, but did not contain results for the
-///                   the current device. Results for another device was chosen.
-/// - ProblemSizeMismatch: File was found, but did not contain results for
-///                        the current problem size. Results for another size
-///                        was selected instead.
-/// - Ok: Device and problem size was found exactly.
+/**
+ * Return by `load_best_config` to indicate the result:
+ * * Ok: Device and problem size was found exactly.
+ * * ProblemSizeMismatch: File was found, but did not contain results for
+ *   the provided problem size. Results for another size was selected instead.
+ * * DeviceMismatch: File was found, but did not contain results for the
+ *   current device. Results for another device was chosen.
+ * * NotFound: Wisdom file was not found. Default configuration was returned.
+ */
 enum struct WisdomResult {
     Ok = 0,
     ProblemSizeMismatch = 1,
@@ -64,6 +66,18 @@ enum struct WisdomResult {
     NotFound = 3
 };
 
+/**
+ * Load the optimal configuration for a kernel from a wisdom file based on
+ * the provided parameters.
+ *
+ * @param wisdom_dir Directory where to find wisdom files.
+ * @param tuning_key The tuning key of the kernel.
+ * @param space The `ConfigSpace` of the kernel.
+ * @param device_name The name of the CUDA device.
+ * @param device_arch The architecture of the CUDA device.
+ * @param problem_size The current problem size.
+ * @param result_out Optional, returns one of `WisdomResult`.
+ */
 Config load_best_config(
     const std::string& wisdom_dir,
     const std::string& tuning_key,
@@ -71,7 +85,7 @@ Config load_best_config(
     const std::string& device_name,
     CudaArch device_arch,
     ProblemSize problem_size,
-    WisdomResult* result_out);
+    WisdomResult* result_out = nullptr);
 
 inline Config load_best_config(
     const std::string& wisdom_dir,
@@ -174,6 +188,9 @@ struct DefaultOracle: Oracle {
     bool force_capture_;
 };
 
+/**
+ * Describes how to load the configuration for a `WisdomKernel`.
+ */
 struct WisdomSettings {
     WisdomSettings();
     WisdomSettings(
@@ -189,6 +206,15 @@ struct WisdomSettings {
 
     WisdomSettings(const WisdomSettings&) = default;
 
+    /**
+     * Load the configuration for the given parameters.
+     *
+     * @param tuning_key The tuning key of the kernel.
+     * @param space The configuration space of the kernel.
+     * @param problem_size The current problem size.
+     * @param device The current device.
+     * @param should_capture_out Optional. Indicates if kernel must be captured.
+     */
     Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
@@ -203,6 +229,16 @@ struct WisdomSettings {
             should_capture_out);
     }
 
+    /**
+     *
+     *
+     * @param tuning_key
+     * @param builder
+     * @param problem_size
+     * @param param_types
+     * @param inputs
+     * @param outputs
+     */
     void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
@@ -223,12 +259,29 @@ struct WisdomSettings {
     std::shared_ptr<Oracle> impl_;
 };
 
-void append_global_wisdom_directory(std::string);
-
-void set_global_wisdom_directory(std::string);
-void set_global_capture_directory(std::string);
-void add_global_capture_pattern(std::string);
+/**
+ * Returns the default global `WisdomSettings`.
+ */
 WisdomSettings default_wisdom_settings();
+
+/**
+ * Append directory where to search for wisdom files for the `WisdomSettings`
+ * returned by `default_wisdom_settings`.
+ */
+void append_global_wisdom_directory(std::string);
+void set_global_wisdom_directory(std::string);
+
+/**
+ * Set directory where captures will be stored for the `WisdomSettings`
+ * returned by `default_wisdom_settings`.
+ */
+void set_global_capture_directory(std::string);
+
+/**
+ * Add capture pattern to the `WisdomSettings` returned by
+ * `default_wisdom_settings`.
+ */
+void add_global_capture_pattern(std::string);
 
 }  // namespace kernel_launcher
 

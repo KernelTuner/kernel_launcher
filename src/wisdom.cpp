@@ -252,6 +252,10 @@ bool process_wisdom_file(
     const std::string& tuning_key,
     const ConfigSpace& space,
     std::function<void(const WisdomRecord&)> callback) {
+    if (!callback) {
+        return false;
+    }
+
     return process_wisdom_file_impl(
         wisdom_dir,
         tuning_key,

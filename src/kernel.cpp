@@ -46,19 +46,19 @@ void compile_impl(
     WisdomKernelImpl* impl,
     const std::string& tuning_key,
     ProblemSize problem_size,
-    CudaDevice device,
+    CudaContextHandle context,
     std::vector<TypeInfo> param_types,
     bool* should_capture = nullptr) {
     Config config = impl->settings_.load_config(
         tuning_key,
         impl->builder_,
         problem_size,
-        device,
+        context.device(),
         should_capture);
 
     // Assign result to temporary variable since compile may throw
     auto instance =
-        impl->builder_.compile(config, param_types, impl->compiler_);
+        impl->builder_.compile(config, param_types, impl->compiler_, context);
 
     // Compile was successful. Overwrite fields of impl
     impl->instance_ = std::move(instance);
@@ -68,20 +68,20 @@ void compile_impl(
 
 void WisdomKernel::compile(
     ProblemSize problem_size,
-    CudaDevice device,
-    std::vector<TypeInfo> param_types) {
+    std::vector<TypeInfo> param_types,
+    CudaContextHandle context) {
     if (!impl_) {
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    const std::string& tuning_key = impl_->builder_.tuning_key_;
+    const std::string& tuning_key = impl_->builder_.tuning_key();
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
     compile_impl(
         impl_.get(),
         tuning_key,
         problem_size,
-        device,
+        context,
         std::move(param_types),
         nullptr);
 }
@@ -134,8 +134,8 @@ void WisdomKernel::launch(
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    const std::string& tuning_key = impl_->builder_.tuning_key_;
-    ProblemSize problem_size = impl_->builder_.problem_extractor_(args);
+    const std::string& tuning_key = impl_->builder_.tuning_key();
+    ProblemSize problem_size = impl_->builder_.extract_problem_size(args);
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
     if (!impl_->compiled_) {
@@ -149,7 +149,7 @@ void WisdomKernel::launch(
             impl_.get(),
             tuning_key,
             problem_size,
-            CudaDevice::current(),
+            CudaContextHandle::current(),
             param_types,
             &should_capture);
 

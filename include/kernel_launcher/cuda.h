@@ -17,6 +17,10 @@ struct CudaException: std::runtime_error {
         std::runtime_error(msg),
         err_(err) {}
 
+    /**
+     *
+     * @return
+     */
     CUresult error() const {
         return err_;
     }
@@ -27,6 +31,9 @@ struct CudaException: std::runtime_error {
 
 void cuda_check(CUresult result, const char* msg);
 
+/**
+ * Wrapper around `CUfunction` and the accompanying `CUmodule`.
+ */
 struct CudaModule {
     CudaModule(const char* image, const char* fun_name);
     ~CudaModule();
@@ -64,17 +71,39 @@ struct CudaModule {
     CUmodule module_ = nullptr;
 };
 
+/**
+ * Represent the architecture of a CUDA-capable device. The architecture
+ * is represented using two numbers: the _major_ and the _minor_ version.
+ * For example, `sm_82` has major version "8" and minor version "2".
+ */
 struct CudaArch {
-    CudaArch(int major, int minor) : major(major), minor(minor) {}
-    CudaArch(int version) : major(version / 10), minor(version % 10) {}
+    /**
+     * Create new `CudaArch` object.
+     */
+    CudaArch(int major, int minor) : major_(major), minor_(minor) {}
+    CudaArch(int version) : major_(version / 10), minor_(version % 10) {}
     CudaArch() : CudaArch(0, 0) {}
 
     int get() const {
-        return major * 10 + minor;
+        return major_ * 10 + minor_;
+    }
+
+    /**
+     * Return the major version.
+     */
+    int major() const {
+        return major_;
+    }
+
+    /**
+     * Return the minor version.
+     */
+    int minor() const {
+        return minor_;
     }
 
     bool operator==(const CudaArch& that) const {
-        return major == that.major && minor == that.minor;
+        return major_ == that.major_ && minor_ == that.minor_;
     }
 
     bool operator!=(const CudaArch& that) const {
@@ -82,10 +111,13 @@ struct CudaArch {
     }
 
   private:
-    int major;
-    int minor;
+    int major_;
+    int minor_;
 };
 
+/**
+ * Wrapper around `CUdevice`.
+ */
 struct CudaDevice {
     CudaDevice() = default;
     explicit CudaDevice(CUdevice d);
@@ -110,6 +142,9 @@ struct CudaDevice {
     CUdevice device_ = -1;
 };
 
+/**
+ * Wrapper around `CUcontext`.
+ */
 struct CudaContextHandle {
     CudaContextHandle() = default;
     CudaContextHandle(CUcontext c) : context_(c) {};
@@ -124,26 +159,32 @@ struct CudaContextHandle {
     CUcontext context_ = nullptr;
 };
 
-void cuda_raw_copy(const void* src, void* dst, size_t num_bytes);
-
-template<typename T>
-void cuda_copy(const T* src, T* dst, size_t num_elements) {
-    static_assert(std::is_trivially_copyable<T>::value, "must be trivial type");
-    cuda_raw_copy(
-        static_cast<const void*>(src),
-        static_cast<void*>(dst),
-        num_elements * sizeof(T));
-}
-
+/**
+ * Represents a contiguous sequence of objects of type `T` stored in GPU
+ * memory.
+ */
 template<typename T>
 struct CudaSpan {
+    /**
+     * Create new span for `nelements` objects starting at address `ptr`.
+     */
     CudaSpan(T* ptr, size_t nelements) : ptr_(ptr), nelem_(nelements) {}
+
+    /**
+     * Create empty span.
+     */
     CudaSpan() : ptr_(nullptr), nelem_(0) {}
 
+    /**
+     * Returns a pointer to the beginning of the sequence.
+     */
     T* data() const {
         return ptr_;
     }
 
+    /**
+     * Returns the number of elements in the span.
+     */
     size_t size() const {
         return nelem_;
     }
@@ -163,14 +204,31 @@ struct CudaSpan {
 
 template<typename T>
 struct CudaSpan<const T> {
+    /**
+     * Create new span for `nelements` objects starting at address `ptr`.
+     */
     CudaSpan(const T* ptr, size_t nelements) : ptr_(ptr), nelem_(nelements) {}
+
+    /**
+     * Create new span from the given span.
+     */
     CudaSpan(CudaSpan<T> that) : ptr_(that.data()), nelem_(that.size()) {}
+
+    /**
+     * Create empty span.
+     */
     CudaSpan() : ptr_(nullptr), nelem_(0) {}
 
+    /**
+     * Returns a pointer to the beginning of the sequence.
+     */
     const T* data() const {
         return ptr_;
     }
 
+    /**
+     * Returns the number of elements in the span.
+     */
     size_t size() const {
         return nelem_;
     }
@@ -184,9 +242,32 @@ struct CudaSpan<const T> {
     size_t nelem_;
 };
 
+/**
+ * Shorthand for `CudaSpan<T>(ptr, nelements)`
+ */
 template<typename T>
 CudaSpan<T> cuda_span(T* ptr, size_t nelements) {
     return {ptr, nelements};
+}
+
+void cuda_raw_copy(const void* src, void* dst, size_t num_bytes);
+
+template<typename T>
+void cuda_copy(const T* src, T* dst, size_t num_elements) {
+    static_assert(std::is_trivially_copyable<T>::value, "must be trivial type");
+    cuda_raw_copy(
+        static_cast<const void*>(src),
+        static_cast<void*>(dst),
+        num_elements * sizeof(T));
+}
+
+template<typename T>
+void cuda_copy(CudaSpan<T> src, CudaSpan<const T> dst) {
+    if (src.size() != dst.size()) {
+        throw std::runtime_error("spans have different sizes");
+    }
+
+    cuda_copy(src.data(), dst.data(), src.size());
 }
 
 }  // namespace kernel_launcher

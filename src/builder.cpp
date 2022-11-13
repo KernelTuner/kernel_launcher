@@ -266,6 +266,15 @@ KernelDef KernelBuilder::build(
     return def;
 }
 
+ProblemSize KernelBuilder::extract_problem_size(const std::vector<KernelArg>& args) const {
+    if (!problem_extractor_) {
+        throw std::runtime_error("No problem size configured. Please call "
+            "`KernelBuilder::problem_size()` first.");
+    }
+
+    return problem_extractor_(args);
+}
+
 KernelInstance KernelBuilder::compile(
     const Config& config,
     const std::vector<TypeInfo>& param_types,

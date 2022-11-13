@@ -58,6 +58,9 @@ struct KernelDef {
     std::vector<std::string> options;
 };
 
+/**
+ * Base clase for CUDA kernel compilers.
+ */
 struct ICompiler {
     virtual ~ICompiler() {}
     virtual void compile_ptx(
@@ -66,9 +69,18 @@ struct ICompiler {
         std::string& ptx_out,
         std::string& symbol_out) const = 0;
 
+    /**
+     * Compile the given kernel definition for the given CUDA context.
+     *
+     * @param ctx The CUDA context.
+     * @param def The kernel definition.
+     */
     virtual CudaModule compile(CudaContextHandle ctx, KernelDef def) const;
 };
 
+/**
+ * Wrapper around `std::shared_ptr<ICompiler>`.
+ */
 struct Compiler: ICompiler {
     Compiler() = default;
     Compiler(Compiler&) = default;
@@ -102,6 +114,10 @@ struct NvrtcException: std::runtime_error {
     NvrtcException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
+/**
+ * `ICompiler` that uses [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)
+ * to compile CUDA kernels.
+ */
 struct NvrtcCompiler: ICompiler {
     NvrtcCompiler(
         std::vector<std::string> options = {},
@@ -120,8 +136,15 @@ struct NvrtcCompiler: ICompiler {
     std::vector<std::string> default_options_;
 };
 
-void set_global_default_compiler(Compiler c);
+/**
+ * Retrieve the default compiler that is used to compile kernels.
+ */
 Compiler default_compiler();
+
+/**
+ * Set the global default compiler that is returned by `default_compiler`.
+ */
+void set_global_default_compiler(Compiler c);
 
 }  // namespace kernel_launcher
 

@@ -37,7 +37,7 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'breathe'
+    'breathe',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -86,7 +86,7 @@ breathe_projects = {
     "Kernel Launcher": "./_doxygen/xml"
 }
 
-breathe_default_members = ("members", "undoc-members")
+breathe_default_members = ("members",)
 breathe_default_project = "Kernel Launcher"
 
 # Tell sphinx what the primary language being documented is.

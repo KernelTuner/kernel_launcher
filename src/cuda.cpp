@@ -50,6 +50,10 @@ void CudaModule::launch(
     dim3 block_size,
     uint32_t shared_mem,
     void** args) const {
+    if (!valid()) {
+        throw std::runtime_error("CudaModule has not been initialized");
+    }
+
     KERNEL_LAUNCHER_CUDA_CHECK(cuLaunchKernel(
         fun_ptr_,
         grid_size.x,

@@ -20,10 +20,30 @@ struct CastException: std::runtime_error {
 using int64_t = std::int64_t;
 const std::string& intern_string(const char* input);
 
+/**
+ * Represents a value that can be one of the following five types:
+ *
+ * * integer (`int64_t`).
+ * * floating-point value (`double`).
+ * * boolean (`bool`).
+ * * string (`std::string`).
+ * * empty
+ *
+ * It is possible to convert a C++ value to a `Value` instance and back to
+ * a C++ value.
+ *
+ * `Value` also overloads several operators such as addition and multiplication.
+ */
 struct Value {
+  private:
     template<typename T>
     struct TypeIndicator {};
+
+  public:
     using integer_type = int64_t;
+    using float_type = double;
+    using bool_type = bool;
+    using string_type = std::string;
 
     enum class DataType { empty_, int_, double_, bool_, string_ };
 
@@ -79,35 +99,66 @@ struct Value {
         return dtype_;
     }
 
+    /**
+     * Returns `true` if this `Value` is empty.
+     */
     bool is_empty() const {
         return dtype_ == type_empty;
     }
 
+    /**
+     * Returns `true` if this `Value` is an integer.
+     */
     bool is_integer() const {
         return dtype_ == type_int;
     }
 
+    /**
+     * Returns `true` if this `Value` is a string.
+     */
     bool is_string() const {
         return dtype_ == type_string;
     }
 
+    /**
+     * Returns `true` if this `Value` is a boolean.
+     */
     bool is_bool() const {
         return dtype_ == type_bool;
     }
 
+    /**
+     * Returns `true` if this `Value` is a floating-point number.
+     */
     bool is_double() const {
         return dtype_ == type_double;
     }
 
-    bool is_float() const {
-        return is_double();
-    }
-
+    /**
+     * Convert this value to an integer. The data type of this value should
+     * be `integer`, `double`, or `boolean`.
+     */
     integer_type to_integer() const;
+
+    /**
+     * Convert this value to a string.
+     */
     std::string to_string() const;
+
+    /**
+     * Convert this value to a `bool`.
+     */
     bool to_bool() const;
+
+    /**
+     * Convert this value to a `double`.
+     */
     double to_double() const;
     float to_float() const;
+
+    /**
+     * Convert this value to a `TemplateArg`.
+     */
     TemplateArg to_template_arg() const;
 
     explicit operator bool() const {
@@ -122,11 +173,17 @@ struct Value {
         return to_float();
     }
 
+    /**
+     * Returns `true` if this value is convertible to an instance of `T`.
+     */
     template<typename T>
     bool is() const {
         return is(TypeIndicator<T> {});
     }
 
+    /**
+     * Convert this `Value` to an instance of type `T` if this is possible.
+     */
     template<typename T>
     T to() const {
         return to(TypeIndicator<T> {});
