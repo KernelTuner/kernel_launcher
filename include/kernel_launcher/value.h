@@ -173,6 +173,10 @@ struct Value {
         return to_float();
     }
 
+    Value round() const;
+    Value floor() const;
+    Value ceil() const;
+
     /**
      * Returns `true` if this value is convertible to an instance of `T`.
      */

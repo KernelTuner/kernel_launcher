@@ -167,6 +167,12 @@ Value UnaryExpr::eval(const Eval& ctx) const {
             return -operand;
         case Op::LogicNot:
             return !operand;
+        case Op::RoundNearest:
+            return operand.round();
+        case Op::RoundDown:
+            return operand.floor();
+        case Op::RoundUp:
+            return operand.ceil();
         default:
             throw std::runtime_error("invalid operator");
     }
@@ -174,7 +180,7 @@ Value UnaryExpr::eval(const Eval& ctx) const {
 
 std::string UnaryExpr::to_string() const {
     std::stringstream ss;
-    ss << "(" << op_name() << " " << operand_.to_string() << ")";
+    ss << op_name() << "(" << operand_.to_string() << ")";
     return ss.str();
 }
 
@@ -196,6 +202,12 @@ std::string UnaryExpr::op_name() const {
             return "-";
         case Op::LogicNot:
             return "!";
+        case Op::RoundNearest:
+            return "round";
+        case Op::RoundUp:
+            return "ceil";
+        case Op::RoundDown:
+            return "floor";
         default:
             return "???";
     }

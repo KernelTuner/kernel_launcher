@@ -401,6 +401,9 @@ struct UnaryExpr: BaseExpr {
         Plus,
         Minus,
         LogicNot,
+        RoundNearest,
+        RoundUp,
+        RoundDown
         //BitNot,
     };
 
@@ -425,6 +428,18 @@ struct UnaryExpr: BaseExpr {
     Op operator_;
     Expr operand_;
 };
+
+inline UnaryExpr round(Expr e) {
+    return {UnaryExpr::Op::RoundNearest, e};
+}
+
+inline UnaryExpr floor(Expr e) {
+    return {UnaryExpr::Op::RoundDown, e};
+}
+
+inline UnaryExpr ceil(Expr e) {
+    return {UnaryExpr::Op::RoundUp, e};
+}
 
 struct BinaryExpr: BaseExpr {
     enum struct Op {

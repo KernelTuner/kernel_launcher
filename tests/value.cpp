@@ -4,6 +4,10 @@
 
 using namespace kernel_launcher;
 
+#define CHECK_INT(expression, v)      \
+    CHECK((expression).is_integer()); \
+    CHECK((expression) == Value(Value::integer_type {(v)}));
+
 #define CHECK_LT(a, b)       \
     CHECK((a) < (b));        \
     CHECK_FALSE((b) < (a));  \
@@ -374,5 +378,56 @@ TEST_CASE("test Value") {
         CHECK(T(-1) / T(-1) == T(1));
         CHECK(T(MAX) / T(-1) == T(-MAX));
         CHECK_THROWS(T(MIN) / T(-1));  // corner case
+    }
+
+    SECTION("round ceil floor") {
+        // boolean
+        CHECK_INT(Value(true).round(), 1);
+        CHECK_INT(Value(true).floor(), 1);
+        CHECK_INT(Value(true).ceil(), 1);
+
+        CHECK_INT(Value(false).round(), 0);
+        CHECK_INT(Value(false).floor(), 0);
+        CHECK_INT(Value(false).ceil(), 0);
+
+        // string
+        CHECK_THROWS(Value("test").round());
+        CHECK_THROWS(Value("test").floor());
+        CHECK_THROWS(Value("test").ceil());
+
+        // empty
+        CHECK_THROWS(Value().round());
+        CHECK_THROWS(Value().floor());
+        CHECK_THROWS(Value().ceil());
+
+        // integer
+        CHECK_INT(Value(0).round(), 0);
+        CHECK_INT(Value(0).floor(), 0);
+        CHECK_INT(Value(0).ceil(), 0);
+
+        CHECK_INT(Value(123).round(), 123);
+        CHECK_INT(Value(123).floor(), 123);
+        CHECK_INT(Value(123).ceil(), 123);
+
+        // double
+        CHECK_INT(Value(0.0).round(), 0);
+        CHECK_INT(Value(0.0).floor(), 0);
+        CHECK_INT(Value(0.0).ceil(), 0);
+
+        CHECK_INT(Value(0.5).round(), 1);
+        CHECK_INT(Value(0.5).floor(), 0);
+        CHECK_INT(Value(0.5).ceil(), 1);
+
+        CHECK_INT(Value(-0.5).round(), -1);
+        CHECK_INT(Value(-0.5).floor(), -1);
+        CHECK_INT(Value(-0.5).ceil(), 0);
+
+        CHECK_THROWS(Value(std::numeric_limits<double>::quiet_NaN()).round());
+        CHECK_THROWS(Value(std::numeric_limits<double>::quiet_NaN()).floor());
+        CHECK_THROWS(Value(std::numeric_limits<double>::quiet_NaN()).ceil());
+
+        CHECK_THROWS(Value(std::numeric_limits<double>::infinity()).round());
+        CHECK_THROWS(Value(std::numeric_limits<double>::infinity()).floor());
+        CHECK_THROWS(Value(std::numeric_limits<double>::infinity()).ceil());
     }
 }

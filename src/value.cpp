@@ -267,6 +267,66 @@ TemplateArg Value::to_template_arg() const {
     }
 }
 
+Value Value::round() const {
+    int64_t result;
+
+    switch (dtype_) {
+        case DataType::int_:
+            return int_val_;
+        case DataType::bool_:
+            return integer_type(bool_val_);
+        case DataType::double_:
+            if (safe_double_to_int64(std::round(double_val_), result)) {
+                return result;
+            }
+            break;
+        default:
+            break;
+    }
+
+    throw_cast_exception(*this, type_of<integer_type>());
+}
+
+Value Value::floor() const {
+    int64_t result;
+
+    switch (dtype_) {
+        case DataType::int_:
+            return int_val_;
+        case DataType::bool_:
+            return integer_type(bool_val_);
+        case DataType::double_:
+            if (safe_double_to_int64(std::floor(double_val_), result)) {
+                return result;
+            }
+            break;
+        default:
+            break;
+    }
+
+    throw_cast_exception(*this, type_of<integer_type>());
+}
+
+Value Value::ceil() const {
+    int64_t result;
+
+    switch (dtype_) {
+        case DataType::int_:
+            return int_val_;
+        case DataType::bool_:
+            return integer_type(bool_val_);
+        case DataType::double_:
+            if (safe_double_to_int64(std::ceil(double_val_), result)) {
+                return result;
+            }
+            break;
+        default:
+            break;
+    }
+
+    throw_cast_exception(*this, type_of<integer_type>());
+}
+
 Value operator+(const Value& lhs, const Value& rhs) {
     if (lhs.is_bool() && rhs.is_bool()) {
         return lhs.to_bool() || rhs.to_bool();
