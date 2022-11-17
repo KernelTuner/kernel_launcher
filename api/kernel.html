@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>kernel.h &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="compiler.h" href="compiler.html" />
+    <link rel="prev" title="builder.h" href="builder.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="config.html">config.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html">builder.h</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">kernel.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compiler.html">compiler.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wisdom.html">wisdom.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda.html">cuda.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils.h</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">kernel.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/kernel.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="kernel-h">
+<h1>kernel.h<a class="headerlink" href="#kernel-h" title="Permalink to this heading"></a></h1>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher6KernelE">
+<span id="_CPPv3IDpEN15kernel_launcher6KernelE"></span><span id="_CPPv2IDpEN15kernel_launcher6KernelE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Args</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1Kernel"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Kernel</span></span></span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher6KernelE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>An instance of a CUDA kernel with fixed argument types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters</dt>
+<dd class="field-odd"><p><strong>Args</strong> – Types of the kernel arguments. </p>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6Kernel7compileERK13KernelBuilderRK6ConfigRK9ICompiler17CudaContextHandle">
+<span id="_CPPv3N15kernel_launcher6Kernel7compileERK13KernelBuilderRK6ConfigRK9ICompiler17CudaContextHandle"></span><span id="_CPPv2N15kernel_launcher6Kernel7compileERK13KernelBuilderRK6ConfigRK9ICompiler17CudaContextHandle"></span><span id="kernel_launcher::Kernel::compile__KernelBuilderCR.ConfigCR.ICompilerCR.CudaContextHandle"></span><span class="target" id="structkernel__launcher_1_1Kernel_1a11b559ec862927c8cc3271ee9f11a106"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">compile</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="builder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">builder</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="config.html#_CPPv4N15kernel_launcher6ConfigE" title="kernel_launcher::Config"><span class="n"><span class="pre">Config</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">config</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher9ICompilerE" title="kernel_launcher::ICompiler"><span class="n"><span class="pre">ICompiler</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">compiler</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher16default_compilerEv" title="kernel_launcher::default_compiler"><span class="n"><span class="pre">default_compiler</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span>, <a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">ctx</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">current</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher6Kernel7compileERK13KernelBuilderRK6ConfigRK9ICompiler17CudaContextHandle" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Compile a CUDA kernel using the given <code class="docutils literal notranslate"><a class="reference internal" href="builder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code> with the given <code class="docutils literal notranslate"><a class="reference internal" href="config.html#structkernel__launcher_1_1Config"><span class="std std-ref"><span class="pre">Config</span></span></a></code> and store the result in the current <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1Kernel"><span class="std std-ref"><span class="pre">Kernel</span></span></a></code> object. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6Kernel5clearEv">
+<span id="_CPPv3N15kernel_launcher6Kernel5clearEv"></span><span id="_CPPv2N15kernel_launcher6Kernel5clearEv"></span><span id="kernel_launcher::Kernel::clear"></span><span class="target" id="structkernel__launcher_1_1Kernel_1a31df9fde0e8dc71c7fc587c484f817dc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher6Kernel5clearEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Delete this kernel and reset its contents. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6Kernel6launchE12cudaStream_tDp4Args">
+<span id="_CPPv3N15kernel_launcher6Kernel6launchE12cudaStream_tDp4Args"></span><span id="_CPPv2N15kernel_launcher6Kernel6launchE12cudaStream_tDp4Args"></span><span id="kernel_launcher::Kernel::launch__cudaStream_t.ArgsDp"></span><span class="target" id="structkernel__launcher_1_1Kernel_1a6e02f049a78c7314973be6303cfa8dd8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">launch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">cudaStream_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">stream</span></span>, <a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher6KernelE" title="kernel_launcher::Kernel::Args"><span class="n"><span class="pre">Args</span></span></a><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher6Kernel6launchE12cudaStream_tDp4Args" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Launch this kernel onto the given stream with the given arguments. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6Kernel6launchEDp4Args">
+<span id="_CPPv3N15kernel_launcher6Kernel6launchEDp4Args"></span><span id="_CPPv2N15kernel_launcher6Kernel6launchEDp4Args"></span><span id="kernel_launcher::Kernel::launch__ArgsDp"></span><span class="target" id="structkernel__launcher_1_1Kernel_1a289aaa4831fc4d6be09721fbc25436a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">launch</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher6KernelE" title="kernel_launcher::Kernel::Args"><span class="n"><span class="pre">Args</span></span></a><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher6Kernel6launchEDp4Args" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Launch this kernel with the given arguments on the default CUDA stream. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher12WisdomKernelE">
+<span id="_CPPv3N15kernel_launcher12WisdomKernelE"></span><span id="_CPPv2N15kernel_launcher12WisdomKernelE"></span><span id="kernel_launcher::WisdomKernel"></span><span class="target" id="structkernel__launcher_1_1WisdomKernel"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WisdomKernel</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher12WisdomKernelE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>An instance of a CUDA kernel where the configuration is loaded from a wisdom file using the provided <code class="docutils literal notranslate"><a class="reference internal" href="wisdom.html#structkernel__launcher_1_1WisdomSettings"><span class="std std-ref"><span class="pre">WisdomSettings</span></span></a></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings">
+<span id="_CPPv3N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings"></span><span id="_CPPv2N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings"></span><span id="kernel_launcher::WisdomKernel::WisdomKernel__KernelBuilder.Compiler.WisdomSettings"></span><span class="target" id="structkernel__launcher_1_1WisdomKernel_1af49af29395cb1024ad46f5ef8fcf88a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WisdomKernel</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="builder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">builder</span></span>, <a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher8CompilerE" title="kernel_launcher::Compiler"><span class="n"><span class="pre">Compiler</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">compiler</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher16default_compilerEv" title="kernel_launcher::default_compiler"><span class="n"><span class="pre">default_compiler</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span>, <a class="reference internal" href="wisdom.html#_CPPv4N15kernel_launcher14WisdomSettingsE" title="kernel_launcher::WisdomSettings"><span class="n"><span class="pre">WisdomSettings</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">settings</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="wisdom.html#_CPPv4N15kernel_launcher23default_wisdom_settingsEv" title="kernel_launcher::default_wisdom_settings"><span class="n"><span class="pre">default_wisdom_settings</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Initialize this kernel. This will not directly compile the kernel. Compilation of the kernel happens on the first call to <code class="docutils literal notranslate"><span class="pre">launch</span></code> or to <code class="docutils literal notranslate"><span class="pre">compile</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>builder</strong> – The kernel’s specifications. </p></li>
+<li><p><strong>compiler</strong> – The compiler to use for compilation. </p></li>
+<li><p><strong>settings</strong> – The wisdom settings to use load configurations. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle">
+<span id="_CPPv3N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle"></span><span id="_CPPv2N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle"></span><span id="kernel_launcher::WisdomKernel::compile__ProblemSize.std::vector:TypeInfo:.CudaContextHandle"></span><span class="target" id="structkernel__launcher_1_1WisdomKernel_1af379489179427bd03dd6cdad24b6f636"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">compile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ProblemSize</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">problem_size</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TypeInfo</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">param_types</span></span>, <a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">context</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">current</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Explicitly compile this kernel for the given problem size and parameter types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem_size</strong> – Use to find the configuration from the wisdom file. </p></li>
+<li><p><strong>param_types</strong> – Types of kernel parameter arguments. </p></li>
+<li><p><strong>context</strong> – CUDA context to use. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher12WisdomKernel5clearEv">
+<span id="_CPPv3N15kernel_launcher12WisdomKernel5clearEv"></span><span id="_CPPv2N15kernel_launcher12WisdomKernel5clearEv"></span><span id="kernel_launcher::WisdomKernel::clear"></span><span class="target" id="structkernel__launcher_1_1WisdomKernel_1a13c0f68b620eccf687a0bb8e7b391a6e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher12WisdomKernel5clearEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Delete this kernel and reset its contents. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEv12cudaStream_tDpRR4Args">
+<span id="_CPPv3IDpEN15kernel_launcher12WisdomKernel6launchE12cudaStream_tDpRR4Args"></span><span id="_CPPv2IDpEN15kernel_launcher12WisdomKernel6launchE12cudaStream_tDpRR4Args"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Args</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1WisdomKernel_1ad0f5869b22c57f9c6df63a20f5072c06"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">launch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">cudaStream_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">stream</span></span>, <a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEv12cudaStream_tDpRR4Args" title="kernel_launcher::WisdomKernel::launch::Args"><span class="n"><span class="pre">Args</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEv12cudaStream_tDpRR4Args" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Launch this kernel onto the given stream with the given arguments. This will compile the kernel if it has not yet been compiled. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEvDpRR4Args">
+<span id="_CPPv3IDpEN15kernel_launcher12WisdomKernel6launchEDpRR4Args"></span><span id="_CPPv2IDpEN15kernel_launcher12WisdomKernel6launchEDpRR4Args"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Args</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1WisdomKernel_1a5915a999345330fbfa54ded57f88f9bb"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">launch</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEvDpRR4Args" title="kernel_launcher::WisdomKernel::launch::Args"><span class="n"><span class="pre">Args</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEvDpRR4Args" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Launch this kernel with the given arguments on the default CUDA stream. This will compile the kernel if it has not yet been compiled. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="builder.html" class="btn btn-neutral float-left" title="builder.h" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compiler.html" class="btn btn-neutral float-right" title="compiler.h" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

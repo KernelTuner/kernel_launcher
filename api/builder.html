@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>builder.h &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="kernel.h" href="kernel.html" />
+    <link rel="prev" title="config.h" href="config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="config.html">config.h</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">builder.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#kernelbuilder">KernelBuilder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kernelinstance">KernelInstance</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kernel.html">kernel.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compiler.html">compiler.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wisdom.html">wisdom.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda.html">cuda.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils.h</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">builder.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/builder.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="builder-h">
+<h1>builder.h<a class="headerlink" href="#builder-h" title="Permalink to this heading"></a></h1>
+<section id="kernelbuilder">
+<h2>KernelBuilder<a class="headerlink" href="#kernelbuilder" title="Permalink to this heading"></a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilderE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilderE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilderE"></span><span id="kernel_launcher::KernelBuilder"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">KernelBuilder</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="config.html#_CPPv4N15kernel_launcher11ConfigSpaceE" title="kernel_launcher::ConfigSpace"><span class="n"><span class="pre">ConfigSpace</span></span></a><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code> is essentially a <em>blueprint</em> that describes the information required to compile and run a CUDA kernel for a given configuration. Most methods take expressions that will be evaluated for a particular <code class="docutils literal notranslate"><a class="reference internal" href="config.html#structkernel__launcher_1_1Config"><span class="std std-ref"><span class="pre">Config</span></span></a></code>.</p>
+<p>The most important methods are:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tuning_key</span></code>: set the tuning key.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_size</span></code>: set the problem size.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_size</span></code>: set the thread block size.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grid_divisors</span></code>: calculate grid size by dividing the problem size.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shared_mem</span></code>: set amount of shared memory in bytes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template_arg</span></code>: Add a template argument.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compiler_flag</span></code>: Add a compiler_flag.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">define</span></code>: Define a preprocessor variable. </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder10tuning_keyENSt6stringE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder10tuning_keyENSt6stringE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder10tuning_keyENSt6stringE"></span><span id="kernel_launcher::KernelBuilder::tuning_key__ss"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1abb8c7f6d86e9e2b22f72922940f924c7"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">tuning_key</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder10tuning_keyENSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the tuning key that will be used to find wisdom files for this kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE11ProblemSize">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder12problem_sizeE11ProblemSize"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder12problem_sizeE11ProblemSize"></span><span id="kernel_launcher::KernelBuilder::problem_size__ProblemSize"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a0f5b709f364cb5bffc909d342879b909"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">problem_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ProblemSize</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">p</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE11ProblemSize" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set problem size for this kernel by providing a <code class="docutils literal notranslate"><span class="pre">ProblemSize</span></code> instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder12problem_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder12problem_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="kernel_launcher::KernelBuilder::problem_size__TypedExpr:uint32_t:.TypedExpr:uint32_t:.TypedExpr:uint32_t:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a990ddac2561dc65235461ae7be7cdb05"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">problem_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">x</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">y</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">z</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the problem size for this kernel by providing an expression for each dimension. These expressions can contain <code class="docutils literal notranslate"><span class="pre">ArgExpr</span></code> expressions such as <code class="docutils literal notranslate"><span class="pre">arg0</span></code>, <code class="docutils literal notranslate"><span class="pre">arg1</span></code>, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeENSt8functionIF11ProblemSizeRKNSt6vectorI9KernelArgEEEEE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder12problem_sizeENSt8functionIF11ProblemSizeRKNSt6vectorI9KernelArgEEEEE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder12problem_sizeENSt8functionIF11ProblemSizeRKNSt6vectorI9KernelArgEEEEE"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1ac2bdeed1e8b5b3dec49c0b13890b385a"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">problem_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">ProblemSize</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher9KernelArgE" title="kernel_launcher::KernelArg"><span class="n"><span class="pre">KernelArg</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeENSt8functionIF11ProblemSizeRKNSt6vectorI9KernelArgEEEEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the problem size for this kernel by providing a function to extract the problem size from the kernel arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder13KernelBuilderENSt6stringE12KernelSource11ConfigSpace">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder13KernelBuilderENSt6stringE12KernelSource11ConfigSpace"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder13KernelBuilderENSt6stringE12KernelSource11ConfigSpace"></span><span id="kernel_launcher::KernelBuilder::KernelBuilder__ss.KernelSource.ConfigSpace"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a62111070c191540cd700d25ebba15ece"></span><span class="sig-name descname"><span class="n"><span class="pre">KernelBuilder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">kernel_name</span></span>, <span class="n"><span class="pre">KernelSource</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">kernel_source</span></span>, <a class="reference internal" href="config.html#_CPPv4N15kernel_launcher11ConfigSpaceE" title="kernel_launcher::ConfigSpace"><span class="n"><span class="pre">ConfigSpace</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">space</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder13KernelBuilderENSt6stringE12KernelSource11ConfigSpace" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct a new <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kernel_name</strong> – Function name of the kernel. This should be the fully qualified name of the function, i.e. including the namespace. This name should not contain template parameters (this can be added by calling <code class="docutils literal notranslate"><span class="pre">template_args</span></code>). </p></li>
+<li><p><strong>kernel_source</strong> – The kernel source code. Can be either the file name as a string or a <code class="docutils literal notranslate"><span class="pre">KernelSource</span></code> instance. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder10block_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder10block_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder10block_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="kernel_launcher::KernelBuilder::block_size__TypedExpr:uint32_t:.TypedExpr:uint32_t:.TypedExpr:uint32_t:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a7a150a978ff71f13e966402ce06e9831"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">block_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">x</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">y</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">z</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder10block_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the block size for this kernel (i.e., number of threads per thread block).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Block size along X. </p></li>
+<li><p><strong>y</strong> – Block size along Y. </p></li>
+<li><p><strong>z</strong> – Block size along Z. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder9grid_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder9grid_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder9grid_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="kernel_launcher::KernelBuilder::grid_size__TypedExpr:uint32_t:.TypedExpr:uint32_t:.TypedExpr:uint32_t:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1acf2911321ca8ccc919d8bcee800f7767"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">grid_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">x</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">y</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">z</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder9grid_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the grid size for this kernel (i.e., number of thread blocks along each direction).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Grid size along X. </p></li>
+<li><p><strong>y</strong> – Grid size along Y. </p></li>
+<li><p><strong>z</strong> – Grid size along Z. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder13grid_divisorsE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder13grid_divisorsE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder13grid_divisorsE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE"></span><span id="kernel_launcher::KernelBuilder::grid_divisors__TypedExpr:uint32_t:.TypedExpr:uint32_t:.TypedExpr:uint32_t:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1ad76815dd4379da542b04f812d3ffd6e0"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">grid_divisors</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">x</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">y</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">z</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder13grid_divisorsE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the grid size for this kernel (i.e., number of thread blocks along each direction) by dividing the <code class="docutils literal notranslate"><span class="pre">problem_size</span></code> by the given <code class="docutils literal notranslate"><span class="pre">divisors</span></code>. For example, if the problem size is <code class="docutils literal notranslate"><span class="pre">(100,</span> <span class="pre">100)</span></code> and the divisors are <code class="docutils literal notranslate"><span class="pre">(5,</span> <span class="pre">15)</span></code> then the grid size will be <code class="docutils literal notranslate"><span class="pre">(20,</span> <span class="pre">7)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Grid divisor along X. </p></li>
+<li><p><strong>y</strong> – Grid divisor along Y. </p></li>
+<li><p><strong>z</strong> – Grid divisor along Z. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder13shared_memoryE9TypedExprI8uint32_tE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder13shared_memoryE9TypedExprI8uint32_tE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder13shared_memoryE9TypedExprI8uint32_tE"></span><span id="kernel_launcher::KernelBuilder::shared_memory__TypedExpr:uint32_t:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1acb97688dfe73981606cb5c332331a182"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">shared_memory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">smem</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder13shared_memoryE9TypedExprI8uint32_tE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the amount of shared memory in bytes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder6defineENSt6stringE9TypedExprINSt6stringEE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder6defineENSt6stringE9TypedExprINSt6stringEE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder6defineENSt6stringE9TypedExprINSt6stringEE"></span><span id="kernel_launcher::KernelBuilder::define__ss.TypedExpr:ss:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a35d7157845ee9e1278f6e46480a5174a"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">define</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span>, <span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder6defineENSt6stringE9TypedExprINSt6stringEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a preprocessor variable definition with the provided <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder14include_headerE12KernelSource">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder14include_headerE12KernelSource"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder14include_headerE12KernelSource"></span><span id="kernel_launcher::KernelBuilder::include_header__KernelSource"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a05626d520dbbf6f5684ce4b12a302f94"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">include_header</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">KernelSource</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder14include_headerE12KernelSource" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a header files that must be preincluded during compilation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher13KernelBuilder13template_argsER13KernelBuilder9TypedExprI11TemplateArgEDpRR2Ts">
+<span id="_CPPv3IDpEN15kernel_launcher13KernelBuilder13template_argsE9TypedExprI11TemplateArgEDpRR2Ts"></span><span id="_CPPv2IDpEN15kernel_launcher13KernelBuilder13template_argsE9TypedExprI11TemplateArgEDpRR2Ts"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Ts</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelBuilder_1ac5a601ab83a73f0052dfb542016f99c1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">template_args</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TemplateArg</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">first</span></span>, <a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder13template_argsER13KernelBuilder9TypedExprI11TemplateArgEDpRR2Ts" title="kernel_launcher::KernelBuilder::template_args::Ts"><span class="n"><span class="pre">Ts</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">rest</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder13template_argsER13KernelBuilder9TypedExprI11TemplateArgEDpRR2Ts" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add one or more template arguments. Each argument must be convertible to an instance of <code class="docutils literal notranslate"><span class="pre">TemplateArg</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher13KernelBuilder14compiler_flagsER13KernelBuilder9TypedExprINSt6stringEEDpRR2Ts">
+<span id="_CPPv3IDpEN15kernel_launcher13KernelBuilder14compiler_flagsE9TypedExprINSt6stringEEDpRR2Ts"></span><span id="_CPPv2IDpEN15kernel_launcher13KernelBuilder14compiler_flagsE9TypedExprINSt6stringEEDpRR2Ts"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Ts</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a881fe207627f57c0f55ce5c6ab5fe237"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">compiler_flags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">first</span></span>, <a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder14compiler_flagsER13KernelBuilder9TypedExprINSt6stringEEDpRR2Ts" title="kernel_launcher::KernelBuilder::compiler_flags::Ts"><span class="n"><span class="pre">Ts</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">rest</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder14compiler_flagsER13KernelBuilder9TypedExprINSt6stringEEDpRR2Ts" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add one ore more compilation flags that will be compiler. Each argument must be convertible to a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher13KernelBuilder15tune_block_sizeENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEE">
+<span id="_CPPv3N15kernel_launcher13KernelBuilder15tune_block_sizeENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEE"></span><span id="_CPPv2N15kernel_launcher13KernelBuilder15tune_block_sizeENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEE"></span><span id="kernel_launcher::KernelBuilder::tune_block_size__std::vector:uint32_t:.std::vector:uint32_t:.std::vector:uint32_t:"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a2cef025b592325419c945f50b50474da"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tune_block_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">xs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ys</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">1u</span></span><span class="p"><span class="pre">}</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">zs</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">1u</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher13KernelBuilder15tune_block_sizeENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEENSt6vectorI8uint32_tEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Short-hand for:</p>
+<p><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="p">.</span><span class="n">block_size</span><span class="p">(</span><span class="w"></span>
+<span class="w">     </span><span class="n">builder</span><span class="p">.</span><span class="n">tune</span><span class="p">(</span><span class="s">&quot;BLOCK_SIZE_X&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">xs</span><span class="p">),</span><span class="w"></span>
+<span class="w">     </span><span class="n">builder</span><span class="p">.</span><span class="n">tune</span><span class="p">(</span><span class="s">&quot;BLOCK_SIZE_Y&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ys</span><span class="p">),</span><span class="w"></span>
+<span class="w">     </span><span class="n">builder</span><span class="p">.</span><span class="n">tune</span><span class="p">(</span><span class="s">&quot;BLOCK_SIZE_Z&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">zs</span><span class="p">));</span><span class="w"></span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher13KernelBuilder11tune_defineE9TypedExprI1TENSt6stringENSt6vectorI1TEE">
+<span id="_CPPv3I0EN15kernel_launcher13KernelBuilder11tune_defineENSt6stringENSt6vectorI1TEE"></span><span id="_CPPv2I0EN15kernel_launcher13KernelBuilder11tune_defineENSt6stringENSt6vectorI1TEE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelBuilder_1ab5c40530864f4eb18f5d2432662375fe"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher13KernelBuilder11tune_defineE9TypedExprI1TENSt6stringENSt6vectorI1TEE" title="kernel_launcher::KernelBuilder::tune_define::T"><span class="n"><span class="pre">T</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tune_define</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher13KernelBuilder11tune_defineE9TypedExprI1TENSt6stringENSt6vectorI1TEE" title="kernel_launcher::KernelBuilder::tune_define::T"><span class="n"><span class="pre">T</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">values</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher13KernelBuilder11tune_defineE9TypedExprI1TENSt6stringENSt6vectorI1TEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Short-hand for</p>
+<p><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="p">.</span><span class="n">define</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">tune</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">));</span><span class="w"></span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher13KernelBuilder7compileERK6ConfigRKNSt6vectorI8TypeInfoEERK9ICompiler17CudaContextHandle">
+<span id="_CPPv3NK15kernel_launcher13KernelBuilder7compileERK6ConfigRKNSt6vectorI8TypeInfoEERK9ICompiler17CudaContextHandle"></span><span id="_CPPv2NK15kernel_launcher13KernelBuilder7compileERK6ConfigRKNSt6vectorI8TypeInfoEERK9ICompiler17CudaContextHandle"></span><span id="kernel_launcher::KernelBuilder::compile__ConfigCR.std::vector:TypeInfo:CR.ICompilerCR.CudaContextHandleC"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1af23a4c0f2ccd4aca25bb4e85af1829c9"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher14KernelInstanceE" title="kernel_launcher::KernelInstance"><span class="n"><span class="pre">KernelInstance</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">compile</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="config.html#_CPPv4N15kernel_launcher6ConfigE" title="kernel_launcher::Config"><span class="n"><span class="pre">Config</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">config</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TypeInfo</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param_types</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher9ICompilerE" title="kernel_launcher::ICompiler"><span class="n"><span class="pre">ICompiler</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">compiler</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher16default_compilerEv" title="kernel_launcher::default_compiler"><span class="n"><span class="pre">default_compiler</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span>, <a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">ctx</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">current</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher13KernelBuilder7compileERK6ConfigRKNSt6vectorI8TypeInfoEERK9ICompiler17CudaContextHandle" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Compile an instance of this kernel using the given configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The configuration. </p></li>
+<li><p><strong>param_types</strong> – The types of the parameters of this kernel. </p></li>
+<li><p><strong>compiler</strong> – The CUDA compiler to use. </p></li>
+<li><p><strong>ctx</strong> – The CUDA context for this CUDA kernel. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher13KernelBuilder11kernel_nameEv">
+<span id="_CPPv3NK15kernel_launcher13KernelBuilder11kernel_nameEv"></span><span id="_CPPv2NK15kernel_launcher13KernelBuilder11kernel_nameEv"></span><span id="kernel_launcher::KernelBuilder::kernel_nameC"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1ac4a681db50243fc924c3322dcfed4009"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">kernel_name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher13KernelBuilder11kernel_nameEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the function name of this kernel. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher13KernelBuilder10tuning_keyEv">
+<span id="_CPPv3NK15kernel_launcher13KernelBuilder10tuning_keyEv"></span><span id="_CPPv2NK15kernel_launcher13KernelBuilder10tuning_keyEv"></span><span id="kernel_launcher::KernelBuilder::tuning_keyC"></span><span class="target" id="structkernel__launcher_1_1KernelBuilder_1aff9f0e245b0f50d961c1b5d268f049e1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">tuning_key</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher13KernelBuilder10tuning_keyEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the tuning key for this kernel. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="kernelinstance">
+<h2>KernelInstance<a class="headerlink" href="#kernelinstance" title="Permalink to this heading"></a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher14KernelInstanceE">
+<span id="_CPPv3N15kernel_launcher14KernelInstanceE"></span><span id="_CPPv2N15kernel_launcher14KernelInstanceE"></span><span id="kernel_launcher::KernelInstance"></span><span class="target" id="structkernel__launcher_1_1KernelInstance"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">KernelInstance</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher14KernelInstanceE" title="Permalink to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher14KernelInstance6launchE12cudaStream_tRKNSt6vectorI9KernelArgEE">
+<span id="_CPPv3NK15kernel_launcher14KernelInstance6launchE12cudaStream_tRKNSt6vectorI9KernelArgEE"></span><span id="_CPPv2NK15kernel_launcher14KernelInstance6launchE12cudaStream_tRKNSt6vectorI9KernelArgEE"></span><span id="kernel_launcher::KernelInstance::launch__cudaStream_t.std::vector:KernelArg:CRC"></span><span class="target" id="structkernel__launcher_1_1KernelInstance_1a9219afec7cd3b19bd21ec8de976454bd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">launch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">cudaStream_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">stream</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher9KernelArgE" title="kernel_launcher::KernelArg"><span class="n"><span class="pre">KernelArg</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">args</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher14KernelInstance6launchE12cudaStream_tRKNSt6vectorI9KernelArgEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Launch this kernel on the given stream using the given argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream</strong> – </p></li>
+<li><p><strong>args</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="config.html" class="btn btn-neutral float-left" title="config.h" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="kernel.html" class="btn btn-neutral float-right" title="kernel.h" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

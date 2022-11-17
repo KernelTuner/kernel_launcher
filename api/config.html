@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>config.h &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="builder.h" href="builder.html" />
+    <link rel="prev" title="API Reference" href="../api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">config.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configspace">ConfigSpace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html">builder.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kernel.html">kernel.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compiler.html">compiler.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wisdom.html">wisdom.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda.html">cuda.h</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils.h</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">config.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="config-h">
+<h1>config.h<a class="headerlink" href="#config-h" title="Permalink to this heading"></a></h1>
+<section id="configspace">
+<h2>ConfigSpace<a class="headerlink" href="#configspace" title="Permalink to this heading"></a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ConfigSpaceE">
+<span id="_CPPv3N15kernel_launcher11ConfigSpaceE"></span><span id="_CPPv2N15kernel_launcher11ConfigSpaceE"></span><span id="kernel_launcher::ConfigSpace"></span><span class="target" id="structkernel__launcher_1_1ConfigSpace"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigSpace</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ConfigSpaceE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Subclassed by <a class="reference internal" href="builder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref">kernel_launcher::KernelBuilder</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE5Value">
+<span id="_CPPv3I00EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEENSt6vectorI1PEE5Value"></span><span id="_CPPv2I00EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEENSt6vectorI1PEE5Value"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">P</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1ConfigSpace_1acbd7f2babea53bd2a30cc161565f29ef"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tune</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE5Value" title="kernel_launcher::ConfigSpace::tune::T"><span class="n"><span class="pre">T</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">values</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE5Value" title="kernel_launcher::ConfigSpace::tune::P"><span class="n"><span class="pre">P</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">priors</span></span>, <a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">default_value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE5Value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a new parameter to the configuration space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the parameter. </p></li>
+<li><p><strong>values</strong> – The values of this parameter. </p></li>
+<li><p><strong>priors</strong> – The prior probabilities of the given values. </p></li>
+<li><p><strong>default_value</strong> – The default value that will be return by <code class="docutils literal notranslate"><span class="pre">ConfigSpace::default_config()</span></code>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE">
+<span id="_CPPv3I00EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEENSt6vectorI1PEE"></span><span id="_CPPv2I00EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEENSt6vectorI1PEE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">P</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1ConfigSpace_1ab785943b245d73ca693c1e165a0559f3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tune</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE" title="kernel_launcher::ConfigSpace::tune::T"><span class="n"><span class="pre">T</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">values</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE" title="kernel_launcher::ConfigSpace::tune::P"><span class="n"><span class="pre">P</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">priors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I00EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEENSt6vectorI1PEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a new parameter to the configuration space. The default value is assume to be the first value in the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the parameter. </p></li>
+<li><p><strong>values</strong> – The values of this parameter. </p></li>
+<li><p><strong>priors</strong> – The prior probabilities of the given values. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEE5Value">
+<span id="_CPPv3I0EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEE5Value"></span><span id="_CPPv2I0EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEE5Value"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1ConfigSpace_1aeaaec40ee62f2b60dc841411cc75ddf8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tune</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEE5Value" title="kernel_launcher::ConfigSpace::tune::T"><span class="n"><span class="pre">T</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">values</span></span>, <a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">default_value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEE5Value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a new parameter to the configuration space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the parameter. </p></li>
+<li><p><strong>values</strong> – The values of this parameter. </p></li>
+<li><p><strong>default_value</strong> – The default value that will be return by <code class="docutils literal notranslate"><span class="pre">ConfigSpace::default_config()</span></code>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEE">
+<span id="_CPPv3I0EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEE"></span><span id="_CPPv2I0EN15kernel_launcher11ConfigSpace4tuneENSt6stringENSt6vectorI1TEE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1ConfigSpace_1a09243e77eed48d7fe9a449b2c9d6a1ed"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tune</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEE" title="kernel_launcher::ConfigSpace::tune::T"><span class="n"><span class="pre">T</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">values</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher11ConfigSpace4tuneE9ParamExprNSt6stringENSt6vectorI1TEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a new parameter to the configuration space. The default value is assume to be the first value in the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the parameter. </p></li>
+<li><p><strong>values</strong> – The values of this parameter. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher11ConfigSpaceixERKNSt6stringE">
+<span id="_CPPv3NK15kernel_launcher11ConfigSpaceixERKNSt6stringE"></span><span id="_CPPv2NK15kernel_launcher11ConfigSpaceixERKNSt6stringE"></span><span id="kernel_launcher::ConfigSpace::subscript-operator__ssCRC"></span><span class="target" id="structkernel__launcher_1_1ConfigSpace_1ad5809d0ff7ec852d0c650a648e7bca65"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher11ConfigSpaceixERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the parameter expression with the given name. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher11ConfigSpace10parametersEv">
+<span id="_CPPv3NK15kernel_launcher11ConfigSpace10parametersEv"></span><span id="_CPPv2NK15kernel_launcher11ConfigSpace10parametersEv"></span><span id="kernel_launcher::ConfigSpace::parametersC"></span><span class="target" id="structkernel__launcher_1_1ConfigSpace_1a4beedb0993b6fe648688e0e5ba77c48f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher12TunableParamE" title="kernel_launcher::TunableParam"><span class="n"><span class="pre">TunableParam</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">parameters</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher11ConfigSpace10parametersEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the parameters of this configuration space. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ConfigSpace11restrictionE9TypedExprIbE">
+<span id="_CPPv3N15kernel_launcher11ConfigSpace11restrictionE9TypedExprIbE"></span><span id="_CPPv2N15kernel_launcher11ConfigSpace11restrictionE9TypedExprIbE"></span><span id="kernel_launcher::ConfigSpace::restriction__TypedExpr:b:"></span><span class="target" id="structkernel__launcher_1_1ConfigSpace_1a08f87f3946860705eb04548dfc1a8a68"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">restriction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TypedExpr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">e</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ConfigSpace11restrictionE9TypedExprIbE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add a restriction to this configuration space. A configuration is only considered valid this expression yields <code class="docutils literal notranslate"><span class="pre">true</span></code>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher11ConfigSpace14default_configEv">
+<span id="_CPPv3NK15kernel_launcher11ConfigSpace14default_configEv"></span><span id="_CPPv2NK15kernel_launcher11ConfigSpace14default_configEv"></span><span id="kernel_launcher::ConfigSpace::default_configC"></span><span class="target" id="structkernel__launcher_1_1ConfigSpace_1aa805561386ec82309526d1e6edc12f45"></span><a class="reference internal" href="#_CPPv4N15kernel_launcher6ConfigE" title="kernel_launcher::Config"><span class="n"><span class="pre">Config</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">default_config</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher11ConfigSpace14default_configEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the default configuration for this configuration space. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher11ConfigSpace8is_validERK4Eval">
+<span id="_CPPv3NK15kernel_launcher11ConfigSpace8is_validERK4Eval"></span><span id="_CPPv2NK15kernel_launcher11ConfigSpace8is_validERK4Eval"></span><span id="kernel_launcher::ConfigSpace::is_valid__EvalCRC"></span><span class="target" id="structkernel__launcher_1_1ConfigSpace_1a4e4425bed251300df1d55f5ac2739fb6"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_valid</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eval</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">config</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher11ConfigSpace8is_validERK4Eval" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Check if the given configuration is a valid member of this configuration space. This method essentially checks three things:</p>
+<p><ul class="simple">
+<li><p>Does the configuration contain the correct parameters.</p></li>
+<li><p>Do these parameter contain valid values.</p></li>
+<li><p>Does the configuration meet the restrictions. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="config">
+<h2>Config<a class="headerlink" href="#config" title="Permalink to this heading"></a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6ConfigE">
+<span id="_CPPv3N15kernel_launcher6ConfigE"></span><span id="_CPPv2N15kernel_launcher6ConfigE"></span><span id="kernel_launcher::Config"></span><span class="target" id="structkernel__launcher_1_1Config"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Config</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Eval</span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher6ConfigE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A particular configuration from a <code class="docutils literal notranslate"><span class="pre">ConfigSpace</span></code>. This class is essentially a table that maps <code class="docutils literal notranslate"><span class="pre">TunableParam</span></code>s to <code class="docutils literal notranslate"><a class="reference internal" href="utils.html#structkernel__launcher_1_1Value"><span class="std std-ref"><span class="pre">Value</span></span></a></code>s. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6Config6insertE12TunableParam5Value">
+<span id="_CPPv3N15kernel_launcher6Config6insertE12TunableParam5Value"></span><span id="_CPPv2N15kernel_launcher6Config6insertE12TunableParam5Value"></span><span id="kernel_launcher::Config::insert__TunableParam.Value"></span><span class="target" id="structkernel__launcher_1_1Config_1a35e8e5594c4a00f023f30fb256e84b5e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher12TunableParamE" title="kernel_launcher::TunableParam"><span class="n"><span class="pre">TunableParam</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">k</span></span>, <a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher6Config6insertE12TunableParam5Value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Insert a <code class="docutils literal notranslate"><span class="pre">TunableParam</span></code> with the associated <code class="docutils literal notranslate"><a class="reference internal" href="utils.html#structkernel__launcher_1_1Value"><span class="std std-ref"><span class="pre">Value</span></span></a></code>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6ConfigixERKNSt6stringE">
+<span id="_CPPv3NK15kernel_launcher6ConfigixERKNSt6stringE"></span><span id="_CPPv2NK15kernel_launcher6ConfigixERKNSt6stringE"></span><span id="kernel_launcher::Config::subscript-operator__ssCRC"></span><span class="target" id="structkernel__launcher_1_1Config_1a0473257d7b097876181215e170a10815"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6ConfigixERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value that corresponds to the parameter with the given name. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6ConfigixERK12TunableParam">
+<span id="_CPPv3NK15kernel_launcher6ConfigixERK12TunableParam"></span><span id="_CPPv2NK15kernel_launcher6ConfigixERK12TunableParam"></span><span id="kernel_launcher::Config::subscript-operator__TunableParamCRC"></span><span class="target" id="structkernel__launcher_1_1Config_1a33bdd80cd0df7fb2a5951a5e1cf7e3f0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher12TunableParamE" title="kernel_launcher::TunableParam"><span class="n"><span class="pre">TunableParam</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6ConfigixERK12TunableParam" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value that corresponds to the given parameter. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6ConfigixERK9ParamExpr">
+<span id="_CPPv3NK15kernel_launcher6ConfigixERK9ParamExpr"></span><span id="_CPPv2NK15kernel_launcher6ConfigixERK9ParamExpr"></span><span id="kernel_launcher::Config::subscript-operator__ParamExprCRC"></span><span class="target" id="structkernel__launcher_1_1Config_1a921a8f69868a5d3b9c0cd265b8a641d2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="utils.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6ConfigixERK9ParamExpr" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value that corresponds to the given parameter. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6Config4sizeEv">
+<span id="_CPPv3NK15kernel_launcher6Config4sizeEv"></span><span id="_CPPv2NK15kernel_launcher6Config4sizeEv"></span><span id="kernel_launcher::Config::sizeC"></span><span class="target" id="structkernel__launcher_1_1Config_1a26f921187f989324f0d272d16b108ffc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6Config4sizeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the number of parameters in this configuration. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="builder.html" class="btn btn-neutral float-right" title="builder.h" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
