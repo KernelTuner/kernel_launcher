@@ -629,14 +629,11 @@ class SelectExpr(Expr):
     def evaluate(self, config):
         index = self.condition.evaluate(config)
 
-        if isinstance(index, bool):
-            index = int(index)
-
-        if not isinstance(index, int) or index < 0 or index >= self.options:
+        if not is_int_like(index) or index < 0 or len(index >= self.options):
             raise RuntimeError("expression must yield an integer in " +
                                f"range 0..{len(self.options)}: {self}")
 
-        return self.options[index].evaluate(config)
+        return self.options[int(index)].evaluate(config)
 
     def visit_children(self, fun):
         return SelectExpr(fun(self.condition), [fun(a) for a in self.options])
