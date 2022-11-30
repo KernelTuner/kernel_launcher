@@ -48,10 +48,10 @@
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wisdom.html">Wisdom Files</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Kernel Registry</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#c-source-code">C++ source code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-code">Source code</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#code-explanation">Code Explanation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#defining-kernel-descriptor">Defining kernel descriptor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#using-kernelregistry">Using KernelRegistry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#defining-a-kernel-descriptor">Defining a kernel descriptor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-the-kernelregistry">Using the KernelRegistry</a></li>
 </ul>
 </li>
 </ul>
@@ -91,13 +91,13 @@
              
   <section id="kernel-registry">
 <h1>Kernel Registry<a class="headerlink" href="#kernel-registry" title="Permalink to this heading"></a></h1>
-<p>In the previous example, we saw how to use wisdom files by creating <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> object.
+<p>In the previous example, we saw how to use wisdom files by creating a <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> object.
 This object will compile the kernel code on the first call and the keep the kernel loaded as long as the object exists.
 Typically, one would define the <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> object as part of a class or as a global variable.</p>
 <p>However, in certain scenarios, it is inconvenient or impractical to store <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> objects.
 In these cases, it is possible to use the <code class="docutils literal notranslate"><span class="pre">KernelRegistry</span></code>, that essentially acts like a global table of compiled kernel instances.</p>
-<section id="c-source-code">
-<h2>C++ source code<a class="headerlink" href="#c-source-code" title="Permalink to this heading"></a></h2>
+<section id="source-code">
+<h2>Source code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h2>
 <p>Consider the following code snippet:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel_launcher.h&quot;</span><span class="cp"></span>
 <span class="linenos"> 2</span>
@@ -170,8 +170,8 @@ In these cases, it is possible to use the <code class="docutils literal notransl
 <p>The code example consists of two parts.
 In the first part, a class <code class="docutils literal notranslate"><span class="pre">VectorAddDescriptor</span></code> is defined.
 In the second part, this class is searched in the global kernel registry.</p>
-<section id="defining-kernel-descriptor">
-<h3>Defining kernel descriptor<a class="headerlink" href="#defining-kernel-descriptor" title="Permalink to this heading"></a></h3>
+<section id="defining-a-kernel-descriptor">
+<h3>Defining a kernel descriptor<a class="headerlink" href="#defining-a-kernel-descriptor" title="Permalink to this heading"></a></h3>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 6</span><span class="k">class</span><span class="w"> </span><span class="nc">VectorAddDescriptor</span><span class="o">:</span><span class="w"> </span><span class="n">kl</span><span class="o">::</span><span class="n">IKernelDescriptor</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="linenos"> 7</span><span class="k">public</span><span class="o">:</span><span class="w"></span>
 <span class="linenos"> 8</span><span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"></span>
@@ -220,10 +220,10 @@ This class should override two methods:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">equals</span></code> to check for equality with another <code class="docutils literal notranslate"><span class="pre">IKernelDescriptor</span></code>.</p></li>
 </ul>
 <p>The last method is required since a kernel registry is essentially a hash table that maps <code class="docutils literal notranslate"><span class="pre">IKernelDescriptor</span></code> objects to kernel objects.
-The <code class="docutils literal notranslate"><span class="pre">equals</span></code> method is used to check if two keys in the hash table are equivalent.</p>
+The <code class="docutils literal notranslate"><span class="pre">equals</span></code> method is used to check if two descriptors (i.e., keys in the hash table) are equivalent.</p>
 </section>
-<section id="using-kernelregistry">
-<h3>Using KernelRegistry<a class="headerlink" href="#using-kernelregistry" title="Permalink to this heading"></a></h3>
+<section id="using-the-kernelregistry">
+<h3>Using the KernelRegistry<a class="headerlink" href="#using-the-kernelregistry" title="Permalink to this heading"></a></h3>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">54</span><span class="w">    </span><span class="c1">// Launch the kernel!</span>
 <span class="linenos">55</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">default_registry</span><span class="p">()</span><span class="w"></span>
 <span class="linenos">56</span><span class="w">        </span><span class="p">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">VectorAddDescriptor</span><span class="o">::</span><span class="n">for_type</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">())</span><span class="w"></span>
@@ -249,6 +249,7 @@ This syntax also make it is easy to replace the element type <code class="docuti
 <span class="linenos">4</span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
+<p>Instead of using the global kernel registery, it is also possible to create local registry by creating a <code class="docutils literal notranslate"><span class="pre">KernelRegistry</span></code> instance.</p>
 </section>
 </section>
 </section>

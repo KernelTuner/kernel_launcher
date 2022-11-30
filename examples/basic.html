@@ -46,8 +46,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../example.html">Tutorial</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Basic Example</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#code">Code</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#explanation">Explanation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-code">Source Code</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vector-add-kernel-cu">vector_add_kernel.cu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main-cpp">main.cpp</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#code-explanation">Code Explanation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="wisdom.html">Wisdom Files</a></li>
@@ -87,10 +91,28 @@
              
   <section id="basic-example">
 <h1>Basic Example<a class="headerlink" href="#basic-example" title="Permalink to this heading"></a></h1>
-<p>On this page, we show a basic example of how to use <cite>kernel_launcher</cite>.
+<p>On this page, we show a basic example of how to use <cite>Kernel Launcher</cite>.
 We first show the full source code and then go over the example line by line.</p>
-<section id="code">
-<h2>Code<a class="headerlink" href="#code" title="Permalink to this heading"></a></h2>
+<section id="source-code">
+<h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h2>
+<section id="vector-add-kernel-cu">
+<h3>vector_add_kernel.cu<a class="headerlink" href="#vector-add-kernel-cu" title="Permalink to this heading"></a></h3>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"></span>
+<span class="linenos"> 2</span><span class="n">__global__</span><span class="w"></span>
+<span class="linenos"> 3</span><span class="kt">void</span><span class="w"> </span><span class="n">vector_add</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">B</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos"> 4</span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ELEMENTS_PER_THREAD</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos"> 5</span><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ELEMENTS_PER_THREAD</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w"></span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos"> 8</span><span class="w">            </span><span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
+<span class="linenos"> 9</span><span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="linenos">10</span><span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="linenos">11</span><span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="main-cpp">
+<h3>main.cpp<a class="headerlink" href="#main-cpp" title="Permalink to this heading"></a></h3>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel_launcher.h&quot;</span><span class="cp"></span>
 <span class="linenos"> 2</span>
 <span class="linenos"> 3</span>
@@ -136,15 +158,16 @@ We first show the full source code and then go over the example line by line.</p
 </pre></div>
 </div>
 </section>
-<section id="explanation">
-<h2>Explanation<a class="headerlink" href="#explanation" title="Permalink to this heading"></a></h2>
+</section>
+<section id="code-explanation">
+<h2>Code Explanation<a class="headerlink" href="#code-explanation" title="Permalink to this heading"></a></h2>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">8</span><span class="w">    </span><span class="c1">// Create a kernel builder</span>
 <span class="linenos">9</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">KernelBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">(</span><span class="s">&quot;vector_add&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;vector_add_kernel.cu&quot;</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>First, we need to define a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance.
 A <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> is essentially a <cite>blueprint</cite> that describes the information required to compile the CUDA kernel.
-The constructor takes the function name of the kernel and the <cite>cu</cite> file where the code is located.
+The constructor takes the name of the kernel function and the <cite>.cu</cite> file where the code is located.
 Optionally, we can also give the kernel source as a third parameter.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">11</span><span class="w">    </span><span class="c1">// Define tunable parameters </span>
 <span class="linenos">12</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">tune</span><span class="p">(</span><span class="s">&quot;block_size&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="p">});</span><span class="w"></span>
@@ -152,7 +175,7 @@ Optionally, we can also give the kernel source as a third parameter.</p>
 </pre></div>
 </div>
 <p>CUDA kernels often have tunable parameters that affect performance, such as block size, thread granularity, how registers to use, whether to use shared memory.
-Here we define two tunable parameters: the number of threads per blocks and the number of elements processed per thread.</p>
+Here, we define two tunable parameters: the number of threads per blocks and the number of elements processed per thread.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">15</span><span class="w">    </span><span class="c1">// Define expressions</span>
 <span class="linenos">16</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">elements_per_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">elements_per_thread</span><span class="p">;</span><span class="w"></span>
 </pre></div>
@@ -174,16 +197,13 @@ Instead, it is an abstract expression that, when the kernel is instantiated, eva
 The value for these properties can be expressions as shown above.
 The following properties are supported:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">problem_size</span></code>: The problem size is a N-D vector that represents the size of the problem. Here, the problem size is</dt><dd><p>1D and <code class="docutils literal notranslate"><span class="pre">kl::arg0</span></code> indicates that the size follows for the first kernel argument.</p>
-</dd>
-</dl>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">block_size</span></code>: The block size as an <cite>(x, y, z)</cite> triplet.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_size</span></code>: The problem size is an N-D vector that represents the size of the problem. Here, the problem size is 1D and <code class="docutils literal notranslate"><span class="pre">kl::arg0</span></code> indicates that the size follows for the first kernel argument.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_size</span></code>: The block size as an <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">z)</span></code> triplet.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">grid_divsor</span></code>: Used to calculate the size of the grid (i.e., number of blocks along each axis).
-For each kernel launch, the <cite>problem size</cite> is divided by the <cite>divisors</cite> to calculate the grid size.</p></li>
+For each kernel launch, the <cite>problem size</cite> is divided by the <cite>divisors</cite> to calculate the grid size.
+In other words, this expresses the number of elements processed per thread block.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">template_args</span></code>: Template arguments which can be either type names or integral values.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">define</span></code>: Define preprocessor macro.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">define</span></code>: Define preprocessor constants.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">shared_memory</span></code>: The amount of shared memory used in bytes.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">compiler_flags</span></code>: Additional flags passed to the compiler.</p></li>
 </ul>
@@ -194,7 +214,7 @@ For each kernel launch, the <cite>problem size</cite> is divided by the <cite>di
 </pre></div>
 </div>
 <p>The configuration defines the values of the tunable parameters to be used for compilation.
-Here, the <cite>Config</cite> instance is constructed manually, but it could also be loaded from file or a tuning database.</p>
+Here, the <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance is constructed manually, but it could also be loaded from file or a tuning database.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">31</span><span class="w">    </span><span class="c1">// Compile kernel</span>
 <span class="linenos">32</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">Kernel</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">vector_add_kernel</span><span class="p">;</span><span class="w"></span>
 <span class="linenos">33</span><span class="w">    </span><span class="n">vector_add_kernel</span><span class="p">.</span><span class="n">compile</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">);</span><span class="w"></span>

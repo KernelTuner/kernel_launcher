@@ -47,7 +47,11 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../example.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Example</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Wisdom Files</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#c-source-code">C++ source code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-code">Source code</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vector-add-kernel-cu">vector_add_kernel.cu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main-cpp">main.cpp</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#code-explanation">Code Explanation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#export-the-kernel">Export the kernel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tune-the-kernel">Tune the kernel</a></li>
@@ -90,13 +94,14 @@
              
   <section id="wisdom-files">
 <h1>Wisdom Files<a class="headerlink" href="#wisdom-files" title="Permalink to this heading"></a></h1>
-<p>In the previous example, we saw how it was possible to compile a kernel by providing both a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance (describing <cite>blueprint</cite> for the kernel) and a <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance (describing the configuration of the tunable parameters).</p>
-<p>However, determining the optimal configuration is often difficult since it highly depends both on the <cite>problem size</cite> and the type of <cite>GPU</cite> being used.
+<p>In the previous example, we saw how it was possible to compile a kernel by providing both a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance (describing the <cite>blueprint</cite> for the kernel) and a <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance (describing the configuration of the tunable parameters).</p>
+<p>However, determining the optimal configuration is often difficult since it highly depends on both the <cite>problem size</cite> and the type of <cite>GPU</cite> being used.
 <cite>Kernel Launcher</cite> offers a solution this problem in form of <cite>wisdom</cite> files (terminology borrowed from <a class="reference external" href="http://www.fftw.org/">FFTW</a>).</p>
 <p>Let’s see this in action.</p>
-<section id="c-source-code">
-<h2>C++ source code<a class="headerlink" href="#c-source-code" title="Permalink to this heading"></a></h2>
-<p>Again, consider the following CUDA kernel <code class="docutils literal notranslate"><span class="pre">vector_add.cu</span></code> to perform vector addition:</p>
+<section id="source-code">
+<h2>Source code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h2>
+<section id="vector-add-kernel-cu">
+<h3>vector_add_kernel.cu<a class="headerlink" href="#vector-add-kernel-cu" title="Permalink to this heading"></a></h3>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"></span>
 <span class="linenos"> 2</span><span class="n">__global__</span><span class="w"></span>
 <span class="linenos"> 3</span><span class="kt">void</span><span class="w"> </span><span class="n">vector_add</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">B</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -110,7 +115,9 @@
 <span class="linenos">11</span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>The following code snippet show an example of the associated host code:</p>
+</section>
+<section id="main-cpp">
+<h3>main.cpp<a class="headerlink" href="#main-cpp" title="Permalink to this heading"></a></h3>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel_launcher.h&quot;</span><span class="cp"></span>
 <span class="linenos"> 2</span>
 <span class="linenos"> 3</span><span class="c1">// Namespace alias.</span>
@@ -155,6 +162,7 @@
 </pre></div>
 </div>
 </section>
+</section>
 <section id="code-explanation">
 <h2>Code Explanation<a class="headerlink" href="#code-explanation" title="Permalink to this heading"></a></h2>
 <p>Notice how this example is similar to the previous example, with some minor differences such that <code class="docutils literal notranslate"><span class="pre">kl::Kernel</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">kl::WisdomKernel</span></code>.
@@ -184,7 +192,7 @@ We now highlight the important lines of this code example.</p>
 </pre></div>
 </div>
 <p>Using a <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> requires the <cite>tuning key</cite> to be set.
-If no tuning key is specified, then the kernel name is taken by default (which, in this example, happens to be <code class="docutils literal notranslate"><span class="pre">vector_add</span></code>).
+If no tuning key is specified, then the kernel name is taken by default (which, in this example is <code class="docutils literal notranslate"><span class="pre">vector_add</span></code>).
 The <cite>tuning key</cite> is a string that uniquely identifies this kernel and is used to search for the kernel’s wisdom file.
 If no wisdom file can be been found, the default configuration is chosen (in this case, that will be <code class="docutils literal notranslate"><span class="pre">block_size=32,elements_per_thread=1</span></code>).</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">25</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">set_global_wisdom_directory</span><span class="p">(</span><span class="s">&quot;wisdom/&quot;</span><span class="p">);</span><span class="w"></span>
@@ -193,11 +201,11 @@ If no wisdom file can be been found, the default configuration is chosen (in thi
 </div>
 <p>These two lines set global settings for the application.</p>
 <p>The function <code class="docutils literal notranslate"><span class="pre">set_global_wisdom_directory</span></code> sets the directory containing the wisdom files.
-When a kernel is compiled, this is where <code class="docutils literal notranslate"><span class="pre">kernel_launcher</span></code> will search for the associated wisdom file.
-In this example, <code class="docutils literal notranslate"><span class="pre">kernel_launcher</span></code> will search for the file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add.wisdom</span></code> since <code class="docutils literal notranslate"><span class="pre">wisdim/</span></code> is the
-wisdom directory and <code class="docutils literal notranslate"><span class="pre">vector_add</span></code> is the tuning key.</p>
+When a kernel is compiled, this is where Kernel Launcher will search for the associated wisdom file.
+In this example, Kernel Launcher will search for the file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add_float.wisdom</span></code> since <code class="docutils literal notranslate"><span class="pre">wisdim/</span></code> is the
+wisdom directory and <code class="docutils literal notranslate"><span class="pre">vector_add_float</span></code> is the tuning key.</p>
 <p>The function <code class="docutils literal notranslate"><span class="pre">set_global_capture_directory</span></code> sets the directory for capture files.
-When capturing a kernel launch, this is where <code class="docutils literal notranslate"><span class="pre">kernel_launcher</span></code> will store the resulting files.</p>
+When capturing a kernel launch, this is where Kernel Launcher`` will store the resulting files.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">28</span><span class="w">    </span><span class="c1">// Define the kernel.</span>
 <span class="linenos">29</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">KernelBuilder</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">build_kernel</span><span class="p">();</span><span class="w"></span>
 <span class="linenos">30</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">WisdomKernel</span><span class="w"> </span><span class="nf">vector_add_kernel</span><span class="p">(</span><span class="n">builder</span><span class="p">);</span><span class="w"></span>
@@ -209,41 +217,41 @@ When capturing a kernel launch, this is where <code class="docutils literal notr
 <h2>Export the kernel<a class="headerlink" href="#export-the-kernel" title="Permalink to this heading"></a></h2>
 <p>To tune the kernel, we first need to capture the kernel launch.
 To do this, we run the program with the environment variable <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_CAPTURE</span><span class="o">=</span>vector_add ./main
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nv">KERNEL_LAUNCHER_CAPTURE</span><span class="o">=</span>vector_add ./main
 </pre></div>
 </div>
 <p>This generates a file <code class="docutils literal notranslate"><span class="pre">vector_add_1000000.json</span></code> in the directory set by <code class="docutils literal notranslate"><span class="pre">set_global_capture_directory</span></code>.</p>
-<p>Alternatively, it is possible to export several kernels at once by using the wildcard <code class="docutils literal notranslate"><span class="pre">*</span></code>.
+<p>Alternatively, it is possible to capture several kernels at once by using the wildcard <code class="docutils literal notranslate"><span class="pre">*</span></code>.
 For example, the following command export all kernels that are start with <code class="docutils literal notranslate"><span class="pre">vector_</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_CAPTURE</span><span class="o">=</span>vector_* ./main
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nv">KERNEL_LAUNCHER_CAPTURE</span><span class="o">=</span>vector_* ./main
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="../env_vars.html"><span class="doc">Environment Variables</span></a> for an overview and description of additional environment variables.</p>
 </section>
 <section id="tune-the-kernel">
 <h2>Tune the kernel<a class="headerlink" href="#tune-the-kernel" title="Permalink to this heading"></a></h2>
-<p>To tune the kernel, run the Python script <code class="docutils literal notranslate"><span class="pre">tune.py</span></code> in the directory <code class="docutils literal notranslate"><span class="pre">python</span></code> which internally uses <code class="docutils literal notranslate"><span class="pre">kernel_tuner</span></code> to tune the kernel.
+<p>To tune the kernel, run the Python script <code class="docutils literal notranslate"><span class="pre">tune.py</span></code> in the directory <code class="docutils literal notranslate"><span class="pre">python/</span></code> which internally uses <code class="docutils literal notranslate"><span class="pre">kernel_tuner</span></code> to tune the kernel.
 Use <code class="docutils literal notranslate"><span class="pre">--help</span></code> to get an overview of all available options.
 For example, to tune spend 10 minutes (600 seconds) tuning the kernel for the current kernel, use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python tune.py tuning/vector_add_1000000.json --output wisdom/ --time <span class="m">600</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python tune.py tuning/vector_add_1000000.json --output wisdom/ --time <span class="m">600</span>
 </pre></div>
 </div>
 <p>To tune multiple kernels all at once, use a wildcard:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python tune.py tuning/*.json --output wisdom/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python tune.py tuning/*.json --output wisdom/
 </pre></div>
 </div>
-<p>If everything goes well, the script should run for ten minutes and eventually create a file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add.wisdom</span></code> containing the tuning results.
+<p>If everything goes well, the script should run for ten minutes and eventually create a file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add_float.wisdom</span></code> containing the tuning results.
 Note that it is possible to tune the same kernel for different devices and problem sizes, for which all results will be stored in the same wisdom file.
 After tuning, the files in the <code class="docutils literal notranslate"><span class="pre">tuning/</span></code> directory can safely be deleted.</p>
 </section>
 <section id="import-the-wisdom">
 <h2>Import the wisdom<a class="headerlink" href="#import-the-wisdom" title="Permalink to this heading"></a></h2>
-<p>To use the wisdom file, make sure that the file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add.wisdom</span></code> is available and simply rerun the program.
+<p>To use the wisdom file, make sure that the file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add_float.wisdom</span></code> is available and simply rerun the program.
 Now, when running the program, on the first call to <code class="docutils literal notranslate"><span class="pre">vector_add_kernel</span></code>, the kernel finds the wisdom file and compiles the kernel given the optimal configuration.
 To confirm that wisdom file has indeed been found, check the debugging output by define the environment variable <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_LOG=debug</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">KERNEL_LAUNCHER_LOG</span><span class="o">=</span>debug ./main
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nv">KERNEL_LAUNCHER_LOG</span><span class="o">=</span>debug ./main
 
-KERNEL_LAUNCHER <span class="o">[</span>DEBUG<span class="o">]</span> reading wisdom file wisdom/vector_add.wisdom
+KERNEL_LAUNCHER <span class="o">[</span>DEBUG<span class="o">]</span> reading wisdom file wisdom/vector_add_float.wisdom
 KERNEL_LAUNCHER <span class="o">[</span>DEBUG<span class="o">]</span> found configuration <span class="k">for</span> kernel vector_add, device NVIDIA A100-PCIE-40GB, problem size <span class="o">(</span><span class="m">1000000</span>, <span class="m">1</span>, <span class="m">1</span><span class="o">)</span>: <span class="o">{</span><span class="s2">&quot;block_size&quot;</span>: <span class="m">128</span>, <span class="s2">&quot;elements_per_thread&quot;</span>: <span class="m">4</span><span class="o">}</span>
 KERNEL_LAUNCHER <span class="o">[</span>DEBUG<span class="o">]</span> compiling kernel <span class="o">(</span>vector_add.cu<span class="o">)</span>
 </pre></div>
