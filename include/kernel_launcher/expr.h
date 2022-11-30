@@ -347,7 +347,7 @@ struct SelectExpr: BaseExpr {
 };
 
 /**
- * Returns a new expression that first evaluates ``index``` as an integer `n`
+ * Returns a new expression that first evaluates ``index`` as an integer `n`
  * and then evaluates the `n`-th operand in the list of ``operand`` expressions.
  * For example, if ``index`` returns 0, then the first operand is evaluated.
  * Note that ``index`` can also be a boolean expression, in which case ``false``
@@ -364,7 +364,7 @@ SelectExpr select(C&& index, Es&&... operands) {
 }
 
 /**
- * Returns a new expression that first evaluates ``index``` as an integer `n`
+ * Returns a new expression that first evaluates ``index`` as an integer `n`
  * and then evaluates the `n`-th operand in the list of ``operand`` expressions.
  * For example, if ``index`` returns 0, then the first operand is evaluated.
  *
