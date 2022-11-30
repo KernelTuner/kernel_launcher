@@ -12,6 +12,7 @@ API Reference
    api/registry
    api/cuda
    api/utils
+   api/expr
 
 
 
