@@ -629,7 +629,7 @@ class SelectExpr(Expr):
     def evaluate(self, config):
         index = self.condition.evaluate(config)
 
-        if not is_int_like(index) or index < 0 or len(index >= self.options):
+        if not is_int_like(index) or index < 0 or index >= len(self.options):
             raise RuntimeError("expression must yield an integer in " +
                                f"range 0..{len(self.options)}: {self}")
 
