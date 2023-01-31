@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>kernel.h &mdash; kernel-launcher 0.1 documentation</title>
@@ -13,9 +13,6 @@
   <![endif]-->
   
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -93,7 +90,7 @@
 <span id="_CPPv3IDpEN15kernel_launcher6KernelE"></span><span id="_CPPv2IDpEN15kernel_launcher6KernelE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Args</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1Kernel"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Kernel</span></span></span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher6KernelE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>An instance of a CUDA kernel with fixed argument types.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Template Parameters</dt>
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>Args</strong> – Types of the kernel arguments. </p>
 </dd>
 </dl>
@@ -137,7 +134,7 @@
 <span id="_CPPv3N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings"></span><span id="_CPPv2N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings"></span><span id="kernel_launcher::WisdomKernel::WisdomKernel__KernelBuilder.Compiler.WisdomSettings"></span><span class="target" id="structkernel__launcher_1_1WisdomKernel_1af49af29395cb1024ad46f5ef8fcf88a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WisdomKernel</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="builder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">builder</span></span>, <a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher8CompilerE" title="kernel_launcher::Compiler"><span class="n"><span class="pre">Compiler</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">compiler</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="compiler.html#_CPPv4N15kernel_launcher16default_compilerEv" title="kernel_launcher::default_compiler"><span class="n"><span class="pre">default_compiler</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span>, <a class="reference internal" href="wisdom.html#_CPPv4N15kernel_launcher14WisdomSettingsE" title="kernel_launcher::WisdomSettings"><span class="n"><span class="pre">WisdomSettings</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">settings</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="wisdom.html#_CPPv4N15kernel_launcher23default_wisdom_settingsEv" title="kernel_launcher::default_wisdom_settings"><span class="n"><span class="pre">default_wisdom_settings</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher12WisdomKernel12WisdomKernelE13KernelBuilder8Compiler14WisdomSettings" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Initialize this kernel. This will not directly compile the kernel. Compilation of the kernel happens on the first call to <code class="docutils literal notranslate"><span class="pre">launch</span></code> or to <code class="docutils literal notranslate"><span class="pre">compile</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>builder</strong> – The kernel’s specifications. </p></li>
 <li><p><strong>compiler</strong> – The compiler to use for compilation. </p></li>
@@ -152,7 +149,7 @@
 <span id="_CPPv3N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle"></span><span id="_CPPv2N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle"></span><span id="kernel_launcher::WisdomKernel::compile__ProblemSize.std::vector:TypeInfo:.CudaContextHandle"></span><span class="target" id="structkernel__launcher_1_1WisdomKernel_1af379489179427bd03dd6cdad24b6f636"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">compile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ProblemSize</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">problem_size</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TypeInfo</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">param_types</span></span>, <a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">context</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="cuda.html#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">current</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Explicitly compile this kernel for the given problem size and parameter types.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>problem_size</strong> – Use to find the configuration from the wisdom file. </p></li>
 <li><p><strong>param_types</strong> – Types of kernel parameter arguments. </p></li>

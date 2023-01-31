@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>expr.h &mdash; kernel-launcher 0.1 documentation</title>
@@ -13,9 +13,6 @@
   <![endif]-->
   
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -217,7 +214,7 @@
 <span class="target" id="expr_8h_1aa30cbf7c3e73cba0a75f4f6327df7b36"></span><span class="sig-name descname"><span class="pre">template&lt;typename</span> <span class="pre">C,</span> <span class="pre">typename...</span> <span class="pre">Es&gt;</span> <span class="pre">KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(KERNEL_LAUNCHER_DEFINE_DEVICE_ATTRIBUTE)</span> <span class="pre">struct</span> <span class="pre">SelectExpr</span> <span class="pre">SelectExpr</span> <span class="pre">select</span> <span class="pre">(C</span> <span class="pre">&amp;&amp;index,</span> <span class="pre">Es</span> <span class="pre">&amp;&amp;...</span> <span class="pre">operands)</span></span></dt>
 <dd><p>Returns a new expression that first evaluates <code class="docutils literal notranslate"><span class="pre">index</span></code> as an integer <code class="docutils literal notranslate"><span class="pre">n</span></code> and then evaluates the <code class="docutils literal notranslate"><span class="pre">n</span></code>-th operand in the list of <code class="docutils literal notranslate"><span class="pre">operand</span></code> expressions. For example, if <code class="docutils literal notranslate"><span class="pre">index</span></code> returns 0, then the first operand is evaluated. Note that <code class="docutils literal notranslate"><span class="pre">index</span></code> can also be a boolean expression, in which case <code class="docutils literal notranslate"><span class="pre">false</span></code> is interpreted as <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">true</span></code> is interpreted as <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index</strong> – The index expression </p></li>
 <li><p><strong>operands</strong> – The operand expressions. </p></li>
@@ -232,7 +229,7 @@
 <dd><p>Returns a new expression that first evaluates <code class="docutils literal notranslate"><span class="pre">index</span></code> as an integer <code class="docutils literal notranslate"><span class="pre">n</span></code> and then evaluates the <code class="docutils literal notranslate"><span class="pre">n</span></code>-th operand in the list of <code class="docutils literal notranslate"><span class="pre">operand</span></code> expressions. For example, if <code class="docutils literal notranslate"><span class="pre">index</span></code> returns 0, then the first operand is evaluated.</p>
 <p>This function is equivalent to <code class="docutils literal notranslate"><span class="pre">select</span></code>, expect it takes an iterable (e..g, vector, array) instead of a variadic list of arguments.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index</strong> – The index expression </p></li>
 <li><p><strong>operands</strong> – The operand expressions. </p></li>
@@ -246,7 +243,7 @@
 <span id="_CPPv3I000EN15kernel_launcher6ifelseERR1CRR2ETRR2EF"></span><span id="_CPPv2I000EN15kernel_launcher6ifelseERR1CRR2ETRR2EF"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ET</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EF</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="expr_8h_1af6194158daea914bde138c6a156f6d51"></span><span class="n"><span class="pre">SelectExpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ifelse</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I000EN15kernel_launcher6ifelseE10SelectExprRR1CRR2ETRR2EF" title="kernel_launcher::ifelse::C"><span class="n"><span class="pre">C</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond</span></span>, <a class="reference internal" href="#_CPPv4I000EN15kernel_launcher6ifelseE10SelectExprRR1CRR2ETRR2EF" title="kernel_launcher::ifelse::ET"><span class="n"><span class="pre">ET</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">true_expr</span></span>, <a class="reference internal" href="#_CPPv4I000EN15kernel_launcher6ifelseE10SelectExprRR1CRR2ETRR2EF" title="kernel_launcher::ifelse::EF"><span class="n"><span class="pre">EF</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">false_expr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I000EN15kernel_launcher6ifelseE10SelectExprRR1CRR2ETRR2EF" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Returns a new expression that first evaluates <code class="docutils literal notranslate"><span class="pre">cond</span></code> and then evaluates either <code class="docutils literal notranslate"><span class="pre">true_expr</span></code> if the condition is true and <code class="docutils literal notranslate"><span class="pre">false_expr</span></code> otherwise.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cond</strong> – Condition expression. </p></li>
 <li><p><strong>true_expr</strong> – The expression if the condition is true. </p></li>
