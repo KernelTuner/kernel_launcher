@@ -265,9 +265,41 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher13KernelBuilder14template_typesER13KernelBuilderv">
+<span id="_CPPv3IDpEN15kernel_launcher13KernelBuilder14template_typesEv"></span><span id="_CPPv2IDpEN15kernel_launcher13KernelBuilder14template_typesEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Ts</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a1db1ecd352b0e09513eb9fd1ebf43940"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">template_types</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder14template_typesER13KernelBuilderv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add one or more types <code class="docutils literal notranslate"><span class="pre">Ts...</span></code> as template arguments to this kernel.</p>
+<p>Short-hand for:</p>
+<p><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="p">.</span><span class="n">template_args</span><span class="p">(</span><span class="n">type_of</span><span class="o">&lt;</span><span class="n">Ts</span><span class="o">&gt;</span><span class="p">()...);</span>
+</pre></div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher13KernelBuilder13template_typeER13KernelBuilderv">
+<span id="_CPPv3I0EN15kernel_launcher13KernelBuilder13template_typeEv"></span><span id="_CPPv2I0EN15kernel_launcher13KernelBuilder13template_typeEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a1e81ffeae06173bf22900c057fce2572"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">template_type</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher13KernelBuilder13template_typeER13KernelBuilderv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Add type <code class="docutils literal notranslate"><span class="pre">T</span></code> as a template argument to this kernel.</p>
+<p>Short-hand for:</p>
+<p><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="p">.</span><span class="n">template_arg</span><span class="p">(</span><span class="n">type_of</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">());</span>
+</pre></div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher13KernelBuilder14compiler_flagsER13KernelBuilder9TypedExprINSt6stringEEDpRR2Ts">
 <span id="_CPPv3IDpEN15kernel_launcher13KernelBuilder14compiler_flagsE9TypedExprINSt6stringEEDpRR2Ts"></span><span id="_CPPv2IDpEN15kernel_launcher13KernelBuilder14compiler_flagsE9TypedExprINSt6stringEEDpRR2Ts"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Ts</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelBuilder_1a881fe207627f57c0f55ce5c6ab5fe237"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">compiler_flags</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="expr.html#_CPPv4I0EN15kernel_launcher9TypedExprE" title="kernel_launcher::TypedExpr"><span class="n"><span class="pre">TypedExpr</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">first</span></span>, <a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder14compiler_flagsER13KernelBuilder9TypedExprINSt6stringEEDpRR2Ts" title="kernel_launcher::KernelBuilder::compiler_flags::Ts"><span class="n"><span class="pre">Ts</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">rest</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher13KernelBuilder14compiler_flagsER13KernelBuilder9TypedExprINSt6stringEEDpRR2Ts" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Add one ore more compilation flags that will be compiler. Each argument must be convertible to a string.</p>
+<dd><p>Add one ore more compilation flags that will be passed to the compiler. Each argument must be convertible to a string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">this</span></code> </p>
