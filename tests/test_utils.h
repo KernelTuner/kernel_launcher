@@ -42,7 +42,7 @@ inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     builder
         .problem_size(arg0)
         .define("ELEMENTS_PER_THREAD", et)
-        .template_args(type_of<int>())
+        .template_type<int>()
         .block_size(tb)
         .grid_divisors(eb);
     return builder;

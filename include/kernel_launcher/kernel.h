@@ -107,8 +107,8 @@ struct WisdomKernel {
      * types.
      *
      * @param problem_size Use to find the configuration from the wisdom file.
-     * @param param_types Types of kernel parameter arguments.
-     * @param context CUDA context to use.
+     * @param param_types Types of kernel parameters.
+     * @param context CUDA context to use for compilation.
      */
     void compile(
         ProblemSize problem_size,

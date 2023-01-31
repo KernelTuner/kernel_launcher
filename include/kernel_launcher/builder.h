@@ -208,8 +208,40 @@ struct KernelBuilder: ConfigSpace {
     }
 
     /**
-     * Add one ore more compilation flags that will be compiler. Each argument
-     * must be convertible to a string.
+     * Add one or more types `Ts...` as template arguments to this kernel.
+     *
+     * Short-hand for:
+     *
+     * ```
+     * builder.template_args(type_of<Ts>()...);
+     * ```
+     *
+     * @return `this`
+     */
+    template<typename... Ts>
+    KernelBuilder& template_types() {
+        return template_args(type_of<Ts>()...);
+    }
+
+    /**
+     * Add type `T` as a template argument to this kernel.
+     *
+     * Short-hand for:
+     *
+     * ```
+     * builder.template_arg(type_of<T>());
+     * ```
+     *
+     * @return `this`
+     */
+    template<typename T>
+    KernelBuilder& template_type() {
+        return template_arg(type_of<T>());
+    }
+
+    /**
+     * Add one ore more compilation flags that will be passed to the compiler.
+     * Each argument must be convertible to a string.
      *
      * @return `this`
      */
