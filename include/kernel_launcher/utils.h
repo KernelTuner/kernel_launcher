@@ -25,38 +25,38 @@ std::ostream& log_warning();
 std::string demangle_type_info(const std::type_info& type);
 
 namespace detail {
-    template<typename T>
-    inline const std::string& demangle_type_info_for() {
-        static std::string result = demangle_type_info(typeid(T));
-        return result;
-    }
+template<typename T>
+inline const std::string& demangle_type_info_for() {
+    static std::string result = demangle_type_info(typeid(T));
+    return result;
+}
 
-    struct TypeInfoInternalImpl {
-        size_t alignment;
-        size_t size;
-        const std::type_info& type_info;
-        const std::string& (*name_fun)();
-        const TypeInfoInternalImpl* remove_pointer_type;
-        const TypeInfoInternalImpl* remove_const;
-        const TypeInfoInternalImpl* add_const;
-        bool is_const;
-        bool is_empty;
-        bool is_trivial_copy;
-    };
+struct TypeInfoInternalImpl {
+    size_t alignment;
+    size_t size;
+    const std::type_info& type_info;
+    const std::string& (*name_fun)();
+    const TypeInfoInternalImpl* remove_pointer_type;
+    const TypeInfoInternalImpl* remove_const;
+    const TypeInfoInternalImpl* add_const;
+    bool is_const;
+    bool is_empty;
+    bool is_trivial_copy;
+};
 
-    template<typename T>
-    static constexpr TypeInfoInternalImpl type_impl_for = {
-        alignof(T),
-        sizeof(T),
-        typeid(T),
-        demangle_type_info_for<T>,
-        &type_impl_for<typename std::remove_pointer<T>::type>,
-        &type_impl_for<typename std::remove_const<T>::type>,
-        &type_impl_for<typename std::add_const<T>::type>,
-        std::is_const<T>::value,
-        std::is_empty<T>::value,
-        std::is_trivially_copyable<T>::value,
-    };
+template<typename T>
+static constexpr TypeInfoInternalImpl type_impl_for = {
+    alignof(T),
+    sizeof(T),
+    typeid(T),
+    demangle_type_info_for<T>,
+    &type_impl_for<typename std::remove_pointer<T>::type>,
+    &type_impl_for<typename std::remove_const<T>::type>,
+    &type_impl_for<typename std::add_const<T>::type>,
+    std::is_const<T>::value,
+    std::is_empty<T>::value,
+    std::is_trivially_copyable<T>::value,
+};
 }  // namespace detail
 
 /**
