@@ -272,6 +272,50 @@ inline ArgExpr arg(uint8_t i) {
     return i;
 }
 
+namespace detail {
+    template<typename T>
+    struct ArgsHelper;
+
+    template<size_t... Is>
+    struct ArgsHelper<std::index_sequence<Is...>> {
+        using type = std::tuple<typename std::enable_if<
+            Is <= std::numeric_limits<uint8_t>::max(),
+            ArgExpr>::type...>;
+
+        static type call() {
+            return {Is...};
+        }
+    };
+}  // namespace detail
+
+template<size_t N>
+using args_type =
+    typename detail::ArgsHelper<std::make_index_sequence<N>>::type;
+
+/**
+ * Given a template parameter `N`, returns a tuple of size `N` that contains
+ * `ArgExpr` for each element. This function can be used in combination with
+ * `std::tie` or structured binding to quickly assign names to argument
+ * expression. For example, to bind four arguments to the names `n`, `A`,
+ * `B`, and `C`:
+ *
+ * ```
+ * auto [n, A, B, C] = kernel_launcher::args<4>();
+ * ```
+ *
+ * The above example only works in C++17 or higher. For, C++11 or higher, one
+ * can use `std::tie` as follows:
+ *
+ * ```
+ * ArgExpr n, A, B, C;
+ * std::tie(n, A, B, C) = kernel_launcher::args<4>();
+ * ```
+ */
+template<size_t N>
+inline args_type<N> args() {
+    return detail::ArgsHelper<std::make_index_sequence<N>>::call();
+}
+
 struct DeviceAttributeExpr: BaseExpr, Variable {
     constexpr DeviceAttributeExpr(CUdevice_attribute attribute) noexcept :
         attribute_(attribute) {}
