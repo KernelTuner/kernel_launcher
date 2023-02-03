@@ -201,31 +201,31 @@ std::vector<Token> tokenize(const std::string& input) {
     return tokens;
 }
 
-TokenStream::TokenStream(std::string file, std::string input) : index_(0) {
-    auto tokens = tokenize(input);
-    impl_ = std::make_shared<TokenStreamImpl>(
-        TokenStreamImpl {std::move(file), std::move(input), std::move(tokens)});
+TokenStream::TokenStream(std::string file, std::string input) :
+    file_(std::move(file)),
+    text_(std::move(input)),
+    index_(0) {
+    tokens_ = tokenize(text_);
 }
 
-void TokenStream::reset(Token t) {
-    const auto& tokens = impl_->tokens_;
+void TokenStream::seek(Token t) {
     auto it = std::lower_bound(
-        tokens.begin(),
-        tokens.end(),
+        tokens_.begin(),
+        tokens_.end(),
         t,
         [&](const auto& lhs, const auto& rhs) {
             return lhs.begin < rhs.begin;
         });
 
-    if (it == tokens.end() || *it != t) {
+    if (it == tokens_.end() || *it != t) {
         throw std::runtime_error("cannot reset to unknown token");
     }
 
-    index_ = static_cast<size_t>(it - tokens.begin());
+    index_ = static_cast<size_t>(it - tokens_.begin());
 }
 
 bool TokenStream::has_next() const {
-    return index_ < impl_->tokens_.size();
+    return index_ < tokens_.size();
 }
 
 Token TokenStream::next() {
@@ -235,13 +235,11 @@ Token TokenStream::next() {
 }
 
 Token TokenStream::peek() {
-    const auto& tokens = impl_->tokens_;
-
-    if (index_ >= tokens.size()) {
+    if (index_ >= tokens_.size()) {
         throw std::runtime_error("unexpected EOF while parsing");
     }
 
-    return tokens[index_];
+    return tokens_[index_];
 }
 
 void TokenStream::prev() {
@@ -251,24 +249,20 @@ void TokenStream::prev() {
 }
 
 bool TokenStream::matches(Token t, char c) const {
-    const auto& text = impl_->text_;
-
-    if (t.begin + 1 != t.end || t.begin >= text.size()) {
+    if (t.begin + 1 != t.end || t.begin >= text_.size()) {
         return false;
     }
 
-    return text[t.begin] == c;
+    return text_[t.begin] == c;
 }
 
 bool TokenStream::matches(Token t, const char* needle) const {
-    const auto& text = impl_->text_;
-
-    if (t.end > text.size()) {
+    if (t.end > text_.size()) {
         return false;
     }
 
     for (index_t i = t.begin; i < t.end; i++) {
-        if (*needle != text[i] || *needle == '\0') {
+        if (*needle != text_[i] || *needle == '\0') {
             return false;
         }
 
@@ -279,12 +273,11 @@ bool TokenStream::matches(Token t, const char* needle) const {
 }
 
 std::pair<int, int> TokenStream::extract_line_column(Token t) const {
-    const auto& text = impl_->text_;
     int lineno = 1;
     int colno = 1;
 
-    for (size_t i = 0; i < text.size() && i < t.begin; i++) {
-        if (text[i] == '\n') {
+    for (size_t i = 0; i < text_.size() && i < t.begin; i++) {
+        if (text_[i] == '\n') {
             lineno++;
             colno = 1;
         } else {
@@ -366,9 +359,8 @@ void TokenStream::throw_unexpected_token(Token t, const std::string& reason)
     auto line_col = extract_line_column(t);
 
     std::stringstream msg;
-    msg << "error:" << impl_->file_ << ":" << line_col.first << ":"
-        << line_col.second << ": found invalid token \""
-        << clean_string(span(t)) << "\"";
+    msg << "error:" << file_ << ":" << line_col.first << ":" << line_col.second
+        << ": found invalid token \"" << clean_string(span(t)) << "\"";
 
     if (!reason.empty()) {
         msg << ", " << reason;
@@ -378,12 +370,11 @@ void TokenStream::throw_unexpected_token(Token t, const std::string& reason)
 }
 
 std::string TokenStream::span(size_t begin, size_t end) const {
-    const auto& text = impl_->text_;
-    if (begin > end || end > text.size()) {
+    if (begin > end || end > text_.size()) {
         throw std::runtime_error("index out of bounds");
     }
 
-    return text.substr(begin, end - begin);
+    return text_.substr(begin, end - begin);
 }
 
 }  // namespace internal

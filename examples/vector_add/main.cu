@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "kernel_launcher.h"
+#include "kernel_launcher/pragma.h"
 
 namespace kl = kernel_launcher;
 
@@ -11,14 +12,16 @@ void cuda_check(cudaError_t code) {
     }
 }
 
-kl::KernelBuilder build_vector_add() {
+std::string kernel_directory() {
     // Find kernel file
     std::string this_file = __FILE__;
     std::string this_directory = this_file.substr(0, this_file.rfind('/'));
-    std::string kernel_file = this_directory + "/kernel.cu";
+    return this_directory + "/";
+}
 
+kl::KernelBuilder build_vector_add() {
     // Tunable parameters
-    kl::KernelBuilder builder("vector_add", kernel_file);
+    kl::KernelBuilder builder("vector_add", kernel_directory() + "/kernel.cu");
     auto threads_per_block =
         builder.tune("threads_per_block", {32, 64, 128, 256, 512, 1024});
     auto blocks_per_sm =

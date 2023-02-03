@@ -8,7 +8,7 @@
 
 using namespace kernel_launcher;
 
-TEST_CASE("tokenizer") {
+TEST_CASE("tokenizer real") {
     using internal::TokenKind;
 
     std::string input = R"(
@@ -20,34 +20,69 @@ TEST_CASE("tokenizer") {
             multi-line * /
             comment */
 
-            "a" == 1.2 // should not compile
+            "a" == 1.2 // just a silly comment
         }
     )";
 
     std::vector<std::pair<std::string, TokenKind>> expected = {
-        {"#", TokenKind::DirectiveBegin},
-        {"include", TokenKind::Ident},
-        {"<", TokenKind::AngleL},
-        {"stdio", TokenKind::Ident},
-        {">", TokenKind::AngleR},
-        {"", TokenKind::DirectiveEnd},
-        {"#", TokenKind::DirectiveBegin},
-        {"pragma", TokenKind::Ident},
-        {"kernel_tuner", TokenKind::Ident},
-        {"test", TokenKind::Ident},
-        {"", TokenKind::DirectiveEnd},
-        {"void", TokenKind::Ident},
-        {"foo", TokenKind::Ident},
-        {"(", TokenKind::ParenL},
-        {"int", TokenKind::Ident},
-        {"x", TokenKind::Ident},
-        {")", TokenKind::ParenR},
-        {"{", TokenKind::BraceL},
-        {"\"a\"", TokenKind::String},
-        {"=", TokenKind::Punct},
-        {"=", TokenKind::Punct},
-        {"1.2", TokenKind::Number},
-        {"}", TokenKind::BraceR}};
+        {"#", TokenKind::DirectiveBegin},   {"include", TokenKind::Ident},
+        {"<", TokenKind::AngleL},           {"stdio", TokenKind::Ident},
+        {">", TokenKind::AngleR},           {"\n", TokenKind::DirectiveEnd},
+        {"#", TokenKind::DirectiveBegin},   {"pragma", TokenKind::Ident},
+        {"kernel_tuner", TokenKind::Ident}, {"test", TokenKind::Ident},
+        {"\n", TokenKind::DirectiveEnd},    {"void", TokenKind::Ident},
+        {"foo", TokenKind::Ident},          {"(", TokenKind::ParenL},
+        {"int", TokenKind::Ident},          {"x", TokenKind::Ident},
+        {")", TokenKind::ParenR},           {"{", TokenKind::BraceL},
+        {"\"a\"", TokenKind::String},       {"==", TokenKind::Punct},
+        {"1", TokenKind::Number},           {".", TokenKind::Unknown},
+        {"2", TokenKind::Number},           {"}", TokenKind::BraceR},
+        {"", TokenKind::EndOfFile}};
+
+    auto stream = internal::TokenStream("<stdin>", input);
+
+    for (size_t i = 0; i < expected.size(); i++) {
+        auto token = stream.next();
+
+        INFO("index=" << i);
+        CHECK(stream.span(token) == expected[i].first);
+        CHECK(token.kind == expected[i].second);
+    }
+}
+
+TEST_CASE("tokenizer exhaustive") {
+    using internal::TokenKind;
+
+    std::string input = R"(
+        == <= >= && || << >> ::
+        { } [ ] ( ) , < > + = - * / ! ~ & | ^ %
+        123 4.5
+        "test" "a\"b" 'c'
+        foo $foo foo_bar _bar _ bar1
+    )";
+
+    std::vector<std::pair<std::string, TokenKind>> expected = {
+        {"==", TokenKind::Punct},         {"<=", TokenKind::Punct},
+        {">=", TokenKind::Punct},         {"&&", TokenKind::Punct},
+        {"||", TokenKind::Punct},         {"<<", TokenKind::Punct},
+        {">>", TokenKind::Punct},         {"::", TokenKind::Punct},
+        {"{", TokenKind::BraceL},         {"}", TokenKind::BraceR},
+        {"[", TokenKind::BracketL},       {"]", TokenKind::BracketR},
+        {"(", TokenKind::ParenL},         {")", TokenKind::ParenR},
+        {",", TokenKind::Comma},          {"<", TokenKind::AngleL},
+        {">", TokenKind::AngleR},         {"+", TokenKind::Punct},
+        {"=", TokenKind::Punct},          {"-", TokenKind::Punct},
+        {"*", TokenKind::Punct},          {"/", TokenKind::Punct},
+        {"!", TokenKind::Punct},          {"~", TokenKind::Punct},
+        {"&", TokenKind::Punct},          {"|", TokenKind::Punct},
+        {"^", TokenKind::Punct},          {"%", TokenKind::Punct},
+        {"123", TokenKind::Number},       {"4", TokenKind::Number},
+        {".", TokenKind::Unknown},        {"5", TokenKind::Number},
+        {R"("test")", TokenKind::String}, {R"("a\"b")", TokenKind::String},
+        {"'c'", TokenKind::String},       {"foo", TokenKind::Ident},
+        {"$foo", TokenKind::Ident},       {"foo_bar", TokenKind::Ident},
+        {"_bar", TokenKind::Ident},       {"_", TokenKind::Ident},
+        {"bar1", TokenKind::Ident},       {"", TokenKind::EndOfFile}};
 
     auto stream = internal::TokenStream("<stdin>", input);
 

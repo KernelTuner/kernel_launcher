@@ -2,6 +2,7 @@
 #define KERNEL_LAUNCHER_DIRECTIVES_H
 
 #include "../builder.h"
+#include "parser.h"
 #include "tokens.h"
 
 namespace kernel_launcher {

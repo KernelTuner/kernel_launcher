@@ -49,28 +49,19 @@ struct Token {
     }
 };
 
-struct TokenStream;
-struct TokenStreamImpl {
-    friend TokenStream;
-
-    std::string file_;
-    std::string text_;
-    std::vector<Token> tokens_;
-};
-
 struct TokenStream {
     explicit TokenStream(const TokenStream&) = default;
     TokenStream(TokenStream&&) = default;
 
     TokenStream(std::string file, std::string input);
-    void reset(Token t);
+    void seek(Token t);
     bool has_next() const;
     Token next();
     Token peek();
     void prev();
 
     bool matches(Token t, char c) const;
-    bool matches(Token t, const char* c) const;
+    bool matches(Token t, const char* needle) const;
 
     bool matches(Token t, const std::string& s) const {
         return matches(t, s.c_str());
@@ -128,9 +119,19 @@ struct TokenStream {
     [[noreturn]] void
     throw_unexpected_token(Token t, const std::string& reason = "") const;
 
+    const std::string& file() const {
+        return file_;
+    }
+
+    const std::string& content() const {
+        return text_;
+    }
+
   private:
-    size_t index_;
-    std::shared_ptr<TokenStreamImpl> impl_;
+    std::string file_;
+    std::string text_;
+    size_t index_ = 0;
+    std::vector<Token> tokens_;
 };
 
 }  // namespace internal

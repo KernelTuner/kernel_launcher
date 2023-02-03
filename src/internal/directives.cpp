@@ -155,6 +155,14 @@ static Expr parse_expr(TokenStream& stream, const Context& ctx, int prec) {
             lhs = lhs < parse_expr(stream, ctx, 3);
         } else if (prec < 3 && stream.next_if('>')) {
             lhs = lhs > parse_expr(stream, ctx, 3);
+        } else if (prec < 3 && stream.next_if("<=")) {
+            lhs = lhs <= parse_expr(stream, ctx, 3);
+        } else if (prec < 3 && stream.next_if(">=")) {
+            lhs = lhs >= parse_expr(stream, ctx, 3);
+        } else if (prec < 3 && stream.next_if("!=")) {
+            lhs = lhs != parse_expr(stream, ctx, 3);
+        } else if (prec < 3 && stream.next_if("==")) {
+            lhs = lhs == parse_expr(stream, ctx, 3);
         } else {
             return lhs;
         }
@@ -190,7 +198,7 @@ static std::array<Expr, 3>
 parse_expr_list3(TokenStream& stream, const Context& ctx) {
     auto list = parse_expr_list(stream, ctx, 3);
     return {
-        list.size() > 0 ? list[0] : 1,
+        list.size() > 0 ? list[0] : 1,  // NOLINT
         list.size() > 1 ? list[1] : 1,
         list.size() > 2 ? list[2] : 1,
     };
@@ -207,11 +215,7 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
     stream.consume("pragma");
     stream.consume("kernel_tuner");
 
-    while (true) {
-        if (stream.next_if(TokenKind::DirectiveEnd)) {
-            break;
-        }
-
+    while (!stream.next_if(TokenKind::DirectiveEnd)) {
         Token t = stream.consume(TokenKind::Ident);
         std::string name = stream.span(t);
 
@@ -222,11 +226,11 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
 
             std::string var = stream.span(var_token);
 
-            if (ctx.config_args.count(var)) {
+            if (ctx.config_args.count(var) > 0) {
                 stream.throw_unexpected_token(var_token, "variable redefined");
             }
 
-            if (ctx.compile_args.count(var)) {
+            if (ctx.compile_args.count(var) > 0) {
                 stream.throw_unexpected_token(
                     var_token,
                     "variable already passed as compile-time value");
@@ -259,6 +263,10 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
         } else if (name == "problem_size") {
             auto l = parse_expr_list3(stream, ctx);
             builder.problem_size(l[0], l[1], l[2]);
+        } else if (name == "restriction") {
+            for (const auto& expr : parse_expr_list(stream, ctx)) {
+                builder.restriction(expr);
+            }
         } else {
             stream.throw_unexpected_token(
                 t,
@@ -271,8 +279,8 @@ KernelBuilder process_kernel(
     TokenStream& stream,
     const KernelDef& def,
     const std::vector<Value>& template_args) {
-    auto builder =
-        KernelBuilder(def.qualified_name, KernelSource("TODO", "TODO"));
+    auto source = KernelSource(stream.file(), stream.content());
+    auto builder = KernelBuilder(def.qualified_name, source);
 
     Context ctx;
 
@@ -295,7 +303,7 @@ KernelBuilder process_kernel(
     }
 
     for (const auto& directive : def.directives) {
-        stream.reset(directive);
+        stream.seek(directive);
         process_directive(stream, builder, ctx);
     }
 

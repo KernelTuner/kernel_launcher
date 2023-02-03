@@ -1,9 +1,5 @@
 #include "kernel_launcher/internal/parser.h"
 
-#include <unordered_map>
-
-#include "kernel_launcher/expr.h"
-
 namespace kernel_launcher {
 namespace internal {
 
@@ -84,16 +80,19 @@ parse_kernel(TokenStream& stream, const std::vector<std::string>& namespaces) {
         }
     }
 
+    // check for 'template' '<' ... '>'
     if (stream.next_if("template")) {
         stream.consume(TokenKind::AngleL);
         template_params = parse_template_params(stream);
         stream.consume(TokenKind::AngleR);
     }
 
+    // check for '__global__' 'void' IDENT
     stream.consume("__global__");
     stream.consume("void");
     Token name = stream.consume(TokenKind::Ident);
 
+    // check for '(' ... ')'
     stream.consume(TokenKind::ParenL);
     auto fun_params = parse_kernel_params(stream);
     stream.consume(TokenKind::ParenR);
@@ -121,10 +120,19 @@ enum struct Scope {
     Namespace,
 };
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 std::vector<KernelDef> parse_kernels(TokenStream& stream) {
     std::vector<std::string> namespace_stack;
     std::vector<Scope> scope_stack;
     std::vector<KernelDef> kernels;
+
+    auto assert_pop_scope = [&](Token t, Scope scope, const char* msg) {
+        if (scope_stack.empty() || scope_stack.back() != scope) {
+            stream.throw_unexpected_token(t, msg);
+        }
+
+        scope_stack.pop_back();
+    };
 
     while (stream.has_next()) {
         Token t = stream.next();
@@ -138,38 +146,25 @@ std::vector<KernelDef> parse_kernels(TokenStream& stream) {
         } else if (t.kind == TokenKind::BraceL) {
             scope_stack.push_back(Scope::Brace);
         } else if (t.kind == TokenKind::BraceR) {
-            if (scope_stack.empty()) {
-                stream.throw_unexpected_token(t, "no matching '{' found");
-            }
-
-            Scope s = scope_stack.back();
-            scope_stack.pop_back();
-
-            if (s == Scope::Namespace) {
+            if (!scope_stack.empty()
+                && scope_stack.back() == Scope::Namespace) {
                 namespace_stack.pop_back();
-            } else if (s != Scope::Brace) {
-                stream.throw_unexpected_token(t, "no matching '{' found");
+                scope_stack.back() = Scope::Brace;
             }
+
+            assert_pop_scope(t, Scope::Brace, "no matching '{' found");
         } else if (t.kind == TokenKind::ParenL) {
             scope_stack.push_back(Scope::Paren);
         } else if (t.kind == TokenKind::ParenR) {
-            if (scope_stack.empty() || scope_stack.back() != Scope::Paren) {
-                stream.throw_unexpected_token(t, "no matching '(' found");
-            }
-
-            scope_stack.pop_back();
+            assert_pop_scope(t, Scope::Paren, "no matching '(' found");
         } else if (t.kind == TokenKind::BracketL) {
             scope_stack.push_back(Scope::Bracket);
         } else if (t.kind == TokenKind::BracketR) {
-            if (scope_stack.empty() || scope_stack.back() != Scope::Bracket) {
-                stream.throw_unexpected_token(t, "no matching '[' found");
-            }
-
-            scope_stack.pop_back();
+            assert_pop_scope(t, Scope::Bracket, "no matching '[' found");
         } else if (t.kind == TokenKind::DirectiveBegin) {
             bool is_pragma =
                 stream.next_if("pragma") && stream.next_if("kernel_tuner");
-            stream.reset(t);
+            stream.seek(t);
 
             if (is_pragma) {
                 kernels.push_back(parse_kernel(stream, namespace_stack));
