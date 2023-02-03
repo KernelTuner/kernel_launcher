@@ -340,7 +340,10 @@ static json kernel_args_to_json(
         entry["type"] = dtype.name();
 
         if (dtype.is_pointer()) {
-            if (inputs[i].size() % dtype.size() != 0) {
+            // Data type of primitive scalar type for pointer
+            TypeInfo prim_type = dtype.remove_pointer();
+
+            if (inputs[i].size() % prim_type.size() != 0) {
                 throw std::invalid_argument("invalid input argument");
             }
 
