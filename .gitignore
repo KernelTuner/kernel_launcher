@@ -54,3 +54,6 @@ venv
 # docs
 _build
 _doxygen
+
+# Temp files
+*.swp
