@@ -23,6 +23,9 @@ struct KernelArg {
     KernelArg(const KernelArg&);
     ~KernelArg();
 
+    KernelArg& operator=(const KernelArg&);
+    KernelArg& operator=(KernelArg&&) noexcept;
+
     template<typename T>
     static KernelArg from_scalar(T value) {
         static_assert(sizeof(T) == type_of<T>().size(), "internal error");

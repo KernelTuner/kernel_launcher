@@ -28,6 +28,20 @@ KernelArg::KernelArg(TypeInfo type, void* ptr, size_t nelements) {
 }
 
 KernelArg::KernelArg(const KernelArg& that) : KernelArg() {
+    *this = that;
+}
+
+KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
+    *this = std::move(that);
+}
+
+KernelArg::~KernelArg() {
+    if (is_scalar() && !is_inline_scalar(type_)) {
+        delete[](char*) data_.large_scalar;
+    }
+}
+
+KernelArg& KernelArg::operator=(const KernelArg& that) {
     type_ = that.type_;
     scalar_ = that.scalar_;
 
@@ -39,18 +53,15 @@ KernelArg::KernelArg(const KernelArg& that) : KernelArg() {
         data_.large_scalar = new char[type_.size()];
         ::memcpy(data_.large_scalar, that.data_.large_scalar, type_.size());
     }
+
+    return *this;
 }
 
-KernelArg::~KernelArg() {
-    if (is_scalar() && !is_inline_scalar(type_)) {
-        delete[](char*) data_.large_scalar;
-    }
-}
-
-KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
+KernelArg& KernelArg::operator=(KernelArg&& that) noexcept {
     std::swap(this->data_, that.data_);
     std::swap(this->type_, that.type_);
     std::swap(this->scalar_, that.scalar_);
+    return *this;
 }
 
 Value KernelArg::to_value_or_empty() const {

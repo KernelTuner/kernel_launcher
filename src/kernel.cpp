@@ -12,6 +12,7 @@ struct WisdomKernelImpl {
     bool compiled_;
     KernelBuilder builder_;
     KernelInstance instance_;
+    ProblemProcessor problem_processor_;
     Compiler compiler_;
     std::vector<TypeInfo> param_types_;
     WisdomSettings settings_;
@@ -25,11 +26,13 @@ void WisdomKernel::initialize(
     KernelBuilder builder,
     Compiler compiler,
     WisdomSettings settings) {
+    auto problem_processor = builder.problem_processor();
     impl_ = std::unique_ptr<WisdomKernelImpl>(new WisdomKernelImpl {
         {},
         false,
         std::move(builder),
         KernelInstance {},
+        std::move(problem_processor),
         std::move(compiler),
         std::vector<TypeInfo> {},
         std::move(settings)});
@@ -127,18 +130,17 @@ static void assert_types_equal(
     throw std::runtime_error(msg);
 }
 
-void WisdomKernel::launch(
-    cudaStream_t stream,
-    const std::vector<KernelArg>& args) {
+void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
     if (!impl_) {
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    const std::string& tuning_key = impl_->builder_.tuning_key();
-    ProblemSize problem_size = impl_->builder_.extract_problem_size(args);
+    ProblemSize problem_size = impl_->problem_processor_(args);
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
     if (!impl_->compiled_) {
+        const std::string& tuning_key = impl_->builder_.tuning_key();
+
         std::vector<TypeInfo> param_types;
         for (const KernelArg& arg : args) {
             param_types.push_back(arg.type());
@@ -164,7 +166,7 @@ void WisdomKernel::launch(
                 inputs.push_back(arg.to_bytes());
             }
 
-            impl_->instance_.launch(stream, args);
+            impl_->instance_.launch(stream, problem_size, args);
 
             KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
             KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
@@ -192,7 +194,7 @@ void WisdomKernel::launch(
     }
 
     assert_types_equal(args, impl_->param_types_);
-    impl_->instance_.launch(stream, args);
+    impl_->instance_.launch(stream, problem_size, args);
 }
 
 }  // namespace kernel_launcher

@@ -12,26 +12,27 @@ namespace kernel_launcher {
 
 struct KernelArg;
 
-using ProblemExtractor =
-    std::function<auto(const std::vector<KernelArg>&)->ProblemSize>;
+using ProblemProcessor =
+    std::function<auto(std::vector<KernelArg>&)->ProblemSize>;
+using ArgumentsProcessor =
+    std::function<auto(std::vector<KernelArg>&, const Eval&)->void>;
 
 struct KernelInstance {
     KernelInstance() = default;
 
     KernelInstance(
         CudaModule module,
-        ProblemExtractor problem,
         std::array<TypedExpr<uint32_t>, 3> block_size,
         std::array<TypedExpr<uint32_t>, 3> grid_size,
         TypedExpr<uint32_t> shared_mem) :
         module_(std::move(module)),
-        problem_extractor_(std::move(problem)),
         block_size_(std::move(block_size)),
         grid_size_(std::move(grid_size)),
         shared_mem_(std::move(shared_mem)) {}
 
     void launch(
         cudaStream_t stream,
+        ProblemSize problem_size,
         const std::vector<KernelArg>& args,
         const Eval& fallback) const;
 
@@ -41,11 +42,13 @@ struct KernelInstance {
      * @param stream
      * @param args
      */
-    void launch(cudaStream_t stream, const std::vector<KernelArg>& args) const;
+    void launch(
+        cudaStream_t stream,
+        ProblemSize problem_size,
+        const std::vector<KernelArg>& args) const;
 
   private:
     CudaModule module_;
-    ProblemExtractor problem_extractor_;
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1, 1, 1};
     std::array<TypedExpr<uint32_t>, 3> grid_size_ = {0, 0, 0};
     TypedExpr<uint32_t> shared_mem_ = 0;
@@ -70,6 +73,20 @@ struct KernelBuilderSerializerHack;
  */
 struct KernelBuilder: ConfigSpace {
     friend ::kernel_launcher::KernelBuilderSerializerHack;
+
+    /**
+     * Construct a new `KernelBuilder`.
+     * @param kernel_name Function name of the kernel. This should be the
+     * fully qualified name of the function, i.e. including the namespace.
+     * This name should not contain template parameters (this can be added
+     * by calling `template_args`).
+     * @param kernel_source The kernel source code. Can be either the file name
+     * as a string or a `KernelSource` instance.
+     */
+    KernelBuilder(
+        std::string kernel_name,
+        KernelSource kernel_source,
+        ConfigSpace space = {});
 
     /**
      * Set the tuning key that will be used to find wisdom files for this kernel.
@@ -103,22 +120,17 @@ struct KernelBuilder: ConfigSpace {
      *
      * @return `this`
      */
-    KernelBuilder&
-        problem_size(std::function<ProblemSize(const std::vector<KernelArg>&)>);
+    KernelBuilder& problem_size(ProblemProcessor f);
 
     /**
-     * Construct a new `KernelBuilder`.
-     * @param kernel_name Function name of the kernel. This should be the
-     * fully qualified name of the function, i.e. including the namespace.
-     * This name should not contain template parameters (this can be added
-     * by calling `template_args`).
-     * @param kernel_source The kernel source code. Can be either the file name
-     * as a string or a `KernelSource` instance.
+     * Add a `ArgumentsProcessor` to the list of processors for this kernel.
+     * This processors are user-defined that can modify the kernel
+     * arguments before they are passed to the actual kernel.
+     *
+     * @param f The processors
+     * @return `this`
      */
-    KernelBuilder(
-        std::string kernel_name,
-        KernelSource kernel_source,
-        ConfigSpace space = {});
+    KernelBuilder& argument_processor(ArgumentsProcessor f);
 
     /**
      * Set the block size for this kernel (i.e., number of threads per
@@ -320,7 +332,7 @@ struct KernelBuilder: ConfigSpace {
         return tuning_key_;
     }
 
-    ProblemSize extract_problem_size(const std::vector<KernelArg>&) const;
+    ProblemProcessor problem_processor() const;
 
   private:
     TypedExpr<uint32_t> determine_block_size(size_t axis) const;
@@ -335,7 +347,8 @@ struct KernelBuilder: ConfigSpace {
     std::string kernel_name_;
     KernelSource kernel_source_;
     std::string tuning_key_;
-    ProblemExtractor problem_extractor_;
+    std::vector<ArgumentsProcessor> args_processors_;
+    ProblemProcessor problem_processor_;
     std::vector<KernelSource> preheaders_;
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
     std::array<TypedExpr<uint32_t>, 3> grid_size_ = {1u, 1u, 1u};
