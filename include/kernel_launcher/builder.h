@@ -323,8 +323,14 @@ struct KernelBuilder: ConfigSpace {
     ProblemSize extract_problem_size(const std::vector<KernelArg>&) const;
 
   private:
+    TypedExpr<uint32_t> determine_block_size(size_t axis) const;
+    TypedExpr<uint32_t> determine_grid_size(size_t axis) const;
+
     KernelDef
     build(const Eval& eval, const std::vector<TypeInfo>& param_types) const;
+
+    bool grid_size_set_ = false;
+    bool block_size_set_ = false;
 
     std::string kernel_name_;
     KernelSource kernel_source_;
@@ -333,7 +339,6 @@ struct KernelBuilder: ConfigSpace {
     std::vector<KernelSource> preheaders_;
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1u, 1u, 1u};
     std::array<TypedExpr<uint32_t>, 3> grid_size_ = {1u, 1u, 1u};
-    bool grid_set_ = false;
     TypedExpr<uint32_t> shared_mem_ = {0u};
     std::vector<TypedExpr<TemplateArg>> template_args_ {};
     std::vector<TypedExpr<std::string>> compile_flags_ {};

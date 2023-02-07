@@ -131,18 +131,10 @@ KernelBuilder& KernelBuilder::block_size(
     TypedExpr<uint32_t> x,
     TypedExpr<uint32_t> y,
     TypedExpr<uint32_t> z) {
+    block_size_set_ = true;
     block_size_[0] = std::move(x);
     block_size_[1] = std::move(y);
     block_size_[2] = std::move(z);
-
-    // if `grid_size` or `grid_divisors` has not been called explicitly yet,
-    // then we set the grid size implicitly here.
-    if (!grid_set_) {
-        grid_size_[0] = div_ceil(problem_size_x, block_size_[0]);
-        grid_size_[1] = div_ceil(problem_size_y, block_size_[1]);
-        grid_size_[2] = div_ceil(problem_size_z, block_size_[2]);
-    }
-
     return *this;
 }
 
@@ -150,7 +142,7 @@ KernelBuilder& KernelBuilder::grid_size(
     TypedExpr<uint32_t> x,
     TypedExpr<uint32_t> y,
     TypedExpr<uint32_t> z) {
-    grid_set_ = true;
+    grid_size_set_ = true;
     grid_size_[0] = std::move(x);
     grid_size_[1] = std::move(y);
     grid_size_[2] = std::move(z);
@@ -270,11 +262,124 @@ ProblemSize
 KernelBuilder::extract_problem_size(const std::vector<KernelArg>& args) const {
     if (!problem_extractor_) {
         throw std::runtime_error(
-            "No problem size configured. Please call "
+            "no problem size configured. Please call "
             "`KernelBuilder::problem_size()` first.");
     }
 
     return problem_extractor_(args);
+}
+
+static const TunableParam*
+find_param(const ConfigSpace& space, const std::vector<std::string>& keys) {
+    for (const auto& key : keys) {
+        for (const auto& param : space.parameters()) {
+            if (strcasecmp(param.name().c_str(), key.c_str()) == 0) {
+                return &param;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+/**
+ * Determine the block size for a specific axis. This should be the block size
+ * set by the user (by calling `block_size(...)`) or, as a fallback, a
+ * tunable variable named something like `block_size_x`.
+ *
+ * @param axis 0,1,2 for X,Y,Z
+ */
+TypedExpr<uint32_t> KernelBuilder::determine_block_size(size_t axis) const {
+    if (block_size_set_) {
+        return block_size_[axis];
+    }
+
+    if (axis == 0) {
+        if (const auto* p = find_param(
+                *this,
+                {"block_size",
+                 "block_dim",
+                 "block_size_x",
+                 "block_dim_x",
+                 "block_x"})) {
+            return *p;
+        }
+
+        // The block size for the X axis MUST be found. Otherwise, the kernel
+        // will always run for block size `(1, 1, 1)` which is likely an error
+        // by the user.
+        throw std::runtime_error(
+            "no block size configured. Please call "
+            "`KernelBuilder::block_size(...)` first.");
+    } else if (axis == 1) {
+        if (const auto* p =
+                find_param(*this, {"block_size_y", "block_dim_y", "block_y"})) {
+            return *p;
+        }
+    } else if (axis == 2) {
+        if (const auto* p =
+                find_param(*this, {"block_size_z", "block_dim_z", "block_z"})) {
+            return *p;
+        }
+    }
+
+    return 1;
+}
+
+/**
+ * Determine the grid size for a specific axis. This should be the grid size
+ * set by the user (by calling `grid_size(...)`) or, as a fallback, a
+ * tunable variable named something like `grid_size_x`.
+ *
+ * @param axis 0,1,2 for X,Y,Z
+ */
+TypedExpr<uint32_t> KernelBuilder::determine_grid_size(size_t axis) const {
+    // First, return grid size set by the user
+    if (grid_size_set_) {
+        return grid_size_[axis];
+    }
+
+    // Second, find variable named "grid_size_x"
+    if (axis == 0) {
+        if (const auto* p = find_param(
+                *this,
+                {"grid_size", "grid_dim", "grid_size_x", "grid_dim_x"})) {
+            return *p;
+        }
+    } else if (axis == 1) {
+        if (const auto* p =
+                find_param(*this, {"grid_size_y", "grid_dim_y", "grid_y"})) {
+            return *p;
+        }
+    } else if (axis == 2) {
+        if (const auto* p =
+                find_param(*this, {"grid_size_z", "grid_dim_z", "grid_z"})) {
+            return *p;
+        }
+    }
+
+    // Third, find variable like "grid_div_x" and divide problem by divisor
+    TypedExpr<uint32_t> divisor = determine_block_size(axis);
+
+    if (axis == 0) {
+        if (const auto* p = find_param(
+                *this,
+                {"grid_div", "grid_divisor", "grid_div_x", "grid_divisor_x"})) {
+            divisor = *p;
+        }
+    } else if (axis == 1) {
+        if (const auto* p =
+                find_param(*this, {"grid_div_y", "grid_divisor_y"})) {
+            divisor = *p;
+        }
+    } else if (axis == 2) {
+        if (const auto* p =
+                find_param(*this, {"grid_div_z", "grid_divisor_z"})) {
+            divisor = *p;
+        }
+    }
+
+    return div_ceil(kernel_launcher::problem_size(axis), divisor);
 }
 
 KernelInstance KernelBuilder::compile(
@@ -292,14 +397,14 @@ KernelInstance KernelBuilder::compile(
     }
 
     std::array<TypedExpr<uint32_t>, 3> block_size = {
-        block_size_[0].resolve(eval),
-        block_size_[1].resolve(eval),
-        block_size_[2].resolve(eval)};
+        determine_block_size(0).resolve(eval),
+        determine_block_size(1).resolve(eval),
+        determine_block_size(2).resolve(eval)};
 
     std::array<TypedExpr<uint32_t>, 3> grid_size = {
-        grid_size_[0].resolve(eval),
-        grid_size_[1].resolve(eval),
-        grid_size_[2].resolve(eval)};
+        determine_grid_size(0).resolve(eval),
+        determine_grid_size(1).resolve(eval),
+        determine_grid_size(2).resolve(eval)};
 
     TypedExpr<uint32_t> shared_mem = shared_mem_.resolve(eval);
 
