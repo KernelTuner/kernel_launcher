@@ -104,6 +104,12 @@
 </li>
       <li><a href="api/expr.html#_CPPv4N15kernel_launcher4arg8E">kernel_launcher::arg8 (C++ member)</a>
 </li>
+      <li><a href="api/expr.html#_CPPv4N15kernel_launcher9ArgBufferE">kernel_launcher::ArgBuffer (C++ struct)</a>
+</li>
+      <li><a href="api/expr.html#_CPPv4N15kernel_launcher9ArgBuffer5indexE">kernel_launcher::ArgBuffer::index (C++ member)</a>
+</li>
+      <li><a href="api/expr.html#_CPPv4N15kernel_launcher9ArgBuffer6lengthE">kernel_launcher::ArgBuffer::length (C++ member)</a>
+</li>
       <li><a href="api/expr.html#_CPPv4N15kernel_launcher7ArgExprE">kernel_launcher::ArgExpr (C++ struct)</a>
 </li>
       <li><a href="api/expr.html#_CPPv4N15kernel_launcher7ArgExpr7ArgExprE7uint8_t">kernel_launcher::ArgExpr::ArgExpr (C++ function)</a>
@@ -117,6 +123,8 @@
       <li><a href="api/expr.html#_CPPv4NK15kernel_launcher7ArgExpr4hashEv">kernel_launcher::ArgExpr::hash (C++ function)</a>
 </li>
       <li><a href="api/expr.html#_CPPv4N15kernel_launcher7ArgExpr6index_E">kernel_launcher::ArgExpr::index_ (C++ member)</a>
+</li>
+      <li><a href="api/expr.html#_CPPv4NK15kernel_launcher7ArgExprixE9TypedExprI6size_tE">kernel_launcher::ArgExpr::operator[] (C++ function)</a>
 </li>
       <li><a href="api/expr.html#_CPPv4NK15kernel_launcher7ArgExpr7resolveERK4Eval">kernel_launcher::ArgExpr::resolve (C++ function)</a>
 </li>
@@ -334,13 +342,19 @@
 </li>
       <li><a href="api/kernel.html#_CPPv4N15kernel_launcher6Kernel7compileERK13KernelBuilderRK6ConfigRK9ICompiler17CudaContextHandle">kernel_launcher::Kernel::compile (C++ function)</a>
 </li>
-      <li><a href="api/kernel.html#_CPPv4N15kernel_launcher6Kernel6launchE12cudaStream_tDp4Args">kernel_launcher::Kernel::launch (C++ function)</a>, <a href="api/kernel.html#_CPPv4N15kernel_launcher6Kernel6launchEDp4Args">[1]</a>
+      <li><a href="api/kernel.html#_CPPv4N15kernel_launcher6Kernel6launchE12cudaStream_tDpRR4Args">kernel_launcher::Kernel::launch (C++ function)</a>, <a href="api/kernel.html#_CPPv4N15kernel_launcher6Kernel6launchEDp4Args">[1]</a>
 </li>
       <li><a href="api/utils.html#_CPPv4N15kernel_launcher9KernelArgE">kernel_launcher::KernelArg (C++ struct)</a>
 </li>
       <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilderE">kernel_launcher::KernelBuilder (C++ struct)</a>
 </li>
+      <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder18argument_processorE18ArgumentsProcessor">kernel_launcher::KernelBuilder::argument_processor (C++ function)</a>
+</li>
       <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder10block_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">kernel_launcher::KernelBuilder::block_size (C++ function)</a>
+</li>
+      <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder11buffer_sizeE7ArgExpr9TypedExprI6size_tE">kernel_launcher::KernelBuilder::buffer_size (C++ function)</a>
+</li>
+      <li><a href="api/builder.html#_CPPv4IDpEN15kernel_launcher13KernelBuilder7buffersER13KernelBuilderDp2Ts">kernel_launcher::KernelBuilder::buffers (C++ function)</a>
 </li>
       <li><a href="api/builder.html#_CPPv4NK15kernel_launcher13KernelBuilder7compileERK6ConfigRKNSt6vectorI8TypeInfoEERK9ICompiler17CudaContextHandle">kernel_launcher::KernelBuilder::compile (C++ function)</a>
 </li>
@@ -358,7 +372,7 @@
 </li>
       <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder13KernelBuilderENSt6stringE12KernelSource11ConfigSpace">kernel_launcher::KernelBuilder::KernelBuilder (C++ function)</a>
 </li>
-      <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE11ProblemSize">kernel_launcher::KernelBuilder::problem_size (C++ function)</a>, <a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">[1]</a>, <a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeENSt8functionIF11ProblemSizeRKNSt6vectorI9KernelArgEEEEE">[2]</a>
+      <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE11ProblemSize">kernel_launcher::KernelBuilder::problem_size (C++ function)</a>, <a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE16ProblemProcessor">[1]</a>, <a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder12problem_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">[2]</a>
 </li>
       <li><a href="api/builder.html#_CPPv4N15kernel_launcher13KernelBuilder13shared_memoryE9TypedExprI8uint32_tE">kernel_launcher::KernelBuilder::shared_memory (C++ function)</a>
 </li>
@@ -376,7 +390,7 @@
 </li>
       <li><a href="api/builder.html#_CPPv4N15kernel_launcher14KernelInstanceE">kernel_launcher::KernelInstance (C++ struct)</a>
 </li>
-      <li><a href="api/builder.html#_CPPv4NK15kernel_launcher14KernelInstance6launchE12cudaStream_tRKNSt6vectorI9KernelArgEE">kernel_launcher::KernelInstance::launch (C++ function)</a>
+      <li><a href="api/builder.html#_CPPv4NK15kernel_launcher14KernelInstance6launchE12cudaStream_t11ProblemSizeRKNSt6vectorI9KernelArgEE">kernel_launcher::KernelInstance::launch (C++ function)</a>
 </li>
       <li><a href="api/wisdom.html#_CPPv4N15kernel_launcher16load_best_configERKNSt6stringERKNSt6stringERK11ConfigSpaceRKNSt6stringE8CudaArch11ProblemSizeP12WisdomResult">kernel_launcher::load_best_config (C++ function)</a>
 </li>
