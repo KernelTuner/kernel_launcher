@@ -19,7 +19,7 @@ struct FunctionParam {
     Token name;
 };
 
-struct KernelDef {
+struct AnnotatedKernelSpec {
     std::string qualified_name;
     Token name;
     std::vector<Token> directives;
@@ -27,7 +27,12 @@ struct KernelDef {
     std::vector<FunctionParam> fun_params;
 };
 
-std::vector<KernelDef> parse_kernels(TokenStream& stream);
+struct AnnotatedDocument {
+    std::vector<AnnotatedKernelSpec> kernels;
+    std::string processed_source;
+};
+
+AnnotatedDocument extract_annotated_kernels(TokenStream& stream);
 
 }  // namespace internal
 }  // namespace kernel_launcher

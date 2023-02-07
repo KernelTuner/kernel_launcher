@@ -9,15 +9,24 @@ KernelBuilder build_pragma_kernel(
     const std::string& name,
     const std::vector<Value>& template_args,
     const FileLoader& fs) {
+    // Read file
     std::string filename = source.file_name();
     std::string content = source.read(fs);
 
+    // Tokenize content of file
     internal::TokenStream stream(filename, content);
-    std::vector<internal::KernelDef> kernels = internal::parse_kernels(stream);
 
-    for (const auto& kernel : kernels) {
+    // Extract annotated kernels from token stream
+    auto result = internal::extract_annotated_kernels(stream);
+    auto processed_source = KernelSource(filename, result.processed_source);
+
+    for (const auto& kernel : result.kernels) {
         if (stream.matches(kernel.name, name)) {
-            return internal::process_kernel(stream, kernel, template_args);
+            return internal::builder_from_annotated_kernel(
+                stream,
+                processed_source,
+                kernel,
+                template_args);
         }
     }
 

@@ -1,6 +1,7 @@
 #include "kernel_launcher/internal/directives.h"
 
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "kernel_launcher/builder.h"
@@ -275,12 +276,12 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
     }
 }
 
-KernelBuilder process_kernel(
+KernelBuilder builder_from_annotated_kernel(
     TokenStream& stream,
-    const KernelDef& def,
+    KernelSource source,
+    const AnnotatedKernelSpec& def,
     const std::vector<Value>& template_args) {
-    auto source = KernelSource(stream.file(), stream.content());
-    auto builder = KernelBuilder(def.qualified_name, source);
+    auto builder = KernelBuilder(def.qualified_name, std::move(source));
 
     Context ctx;
 
@@ -318,7 +319,7 @@ KernelBuilder process_kernel(
         } else {
             stream.throw_unexpected_token(
                 param.name,
-                "this parameter is not defined, please add "
+                "this template parameter is not defined, please add "
                 "`#pragma kernel_tuner tune("
                     + name + "=...)`");
         }

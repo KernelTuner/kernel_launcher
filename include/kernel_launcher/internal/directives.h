@@ -8,9 +8,10 @@
 namespace kernel_launcher {
 namespace internal {
 
-KernelBuilder process_kernel(
+KernelBuilder builder_from_annotated_kernel(
     TokenStream& stream,
-    const KernelDef& def,
+    KernelSource source,
+    const AnnotatedKernelSpec& def,
     const std::vector<Value>& template_args);
 
 }

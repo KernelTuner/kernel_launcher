@@ -17,9 +17,11 @@ static std::vector<TemplateParam> parse_template_params(TokenStream& stream) {
         Token name = stream.consume(TokenKind::Ident);
         Value default_value;
 
-        bool is_integral = ty != "typename" && ty != "class";
+        // integral parameters do not start with "typename" or "class"
+        bool is_integral = !(ty == "typename" || ty == "class");
 
         if (is_integral && stream.next_if('=')) {
+            // We only support numbers for now...
             Token v = stream.consume(TokenKind::Number);
             long l;
 
@@ -64,21 +66,41 @@ static std::vector<FunctionParam> parse_kernel_params(TokenStream& stream) {
     return params;
 }
 
-static KernelDef
-parse_kernel(TokenStream& stream, const std::vector<std::string>& namespaces) {
-    std::vector<Token> directives;
-    std::vector<TemplateParam> template_params;
+static bool extract_kernel_tuner_directives(
+    TokenStream& stream,
+    std::vector<Token>& directives_out) {
+    static constexpr const char* PRAGMA_NAME = "kernel_tuner";
 
-    // Advance the stream past all directives
-    while (stream.next_if(TokenKind::DirectiveBegin)) {
-        Token t = stream.next();
-        directives.push_back(t);
+    // Check if directive starts with correct pragma. If not, this is
+    // not a relevant pragma and we do not need to parse it.
+    Token t = stream.peek();
+    bool is_relevant = stream.next_if("pragma") && stream.next_if(PRAGMA_NAME);
+    stream.seek(t);
 
-        // Find the directive end
+    if (!is_relevant) {
+        return false;
+    }
+
+    // Parse all pragmas
+    do {
+        stream.consume("pragma");
+        stream.consume(PRAGMA_NAME);
+        t = stream.next();
+        directives_out.push_back(t);
+
         while (t.kind != TokenKind::DirectiveEnd) {
             t = stream.next();
         }
-    }
+    } while (stream.next_if(TokenKind::DirectiveBegin));
+
+    return true;
+}
+
+static AnnotatedKernelSpec parse_kernel(
+    TokenStream& stream,
+    const std::vector<std::string>& namespaces,
+    std::vector<Token> directives) {
+    std::vector<TemplateParam> template_params;
 
     // check for 'template' '<' ... '>'
     if (stream.next_if("template")) {
@@ -121,10 +143,12 @@ enum struct Scope {
 };
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-std::vector<KernelDef> parse_kernels(TokenStream& stream) {
+AnnotatedDocument extract_annotated_kernels(TokenStream& stream) {
     std::vector<std::string> namespace_stack;
     std::vector<Scope> scope_stack;
-    std::vector<KernelDef> kernels;
+    std::vector<AnnotatedKernelSpec> kernels;
+    std::vector<Token> directives;
+    std::string source;
 
     auto assert_pop_scope = [&](Token t, Scope scope, const char* msg) {
         if (scope_stack.empty() || scope_stack.back() != scope) {
@@ -134,49 +158,62 @@ std::vector<KernelDef> parse_kernels(TokenStream& stream) {
         scope_stack.pop_back();
     };
 
-    while (stream.has_next()) {
-        Token t = stream.next();
+    Token last {};
+    Token cur;
 
-        if (t.kind == TokenKind::Ident && stream.matches(t, "namespace")) {
-            t = stream.consume(TokenKind::Ident);
-            namespace_stack.push_back(stream.span(t));
+    while (stream.has_next()) {
+        cur = stream.next();
+
+        if (cur.kind == TokenKind::Ident && stream.matches(cur, "namespace")) {
+            cur = stream.consume(TokenKind::Ident);
+            namespace_stack.push_back(stream.span(cur));
 
             stream.consume(TokenKind::BraceL);
             scope_stack.push_back(Scope::Namespace);
-        } else if (t.kind == TokenKind::BraceL) {
+        } else if (cur.kind == TokenKind::BraceL) {
             scope_stack.push_back(Scope::Brace);
-        } else if (t.kind == TokenKind::BraceR) {
+        } else if (cur.kind == TokenKind::BraceR) {
             if (!scope_stack.empty()
                 && scope_stack.back() == Scope::Namespace) {
                 namespace_stack.pop_back();
                 scope_stack.back() = Scope::Brace;
             }
 
-            assert_pop_scope(t, Scope::Brace, "no matching '{' found");
-        } else if (t.kind == TokenKind::ParenL) {
+            assert_pop_scope(cur, Scope::Brace, "no matching '{' found");
+        } else if (cur.kind == TokenKind::ParenL) {
             scope_stack.push_back(Scope::Paren);
-        } else if (t.kind == TokenKind::ParenR) {
-            assert_pop_scope(t, Scope::Paren, "no matching '(' found");
-        } else if (t.kind == TokenKind::BracketL) {
+        } else if (cur.kind == TokenKind::ParenR) {
+            assert_pop_scope(cur, Scope::Paren, "no matching '(' found");
+        } else if (cur.kind == TokenKind::BracketL) {
             scope_stack.push_back(Scope::Bracket);
-        } else if (t.kind == TokenKind::BracketR) {
-            assert_pop_scope(t, Scope::Bracket, "no matching '[' found");
-        } else if (t.kind == TokenKind::DirectiveBegin) {
-            bool is_pragma =
-                stream.next_if("pragma") && stream.next_if("kernel_tuner");
-            stream.seek(t);
+        } else if (cur.kind == TokenKind::BracketR) {
+            assert_pop_scope(cur, Scope::Bracket, "no matching '[' found");
+        } else if (cur.kind == TokenKind::DirectiveBegin) {
+            if (extract_kernel_tuner_directives(stream, directives)) {
+                Token before_dir = cur;
+                Token after_dir = stream.peek();
 
-            if (is_pragma) {
-                kernels.push_back(parse_kernel(stream, namespace_stack));
+                source.append(stream.span(last.begin, before_dir.begin));
+                source.append("/*");
+                source.append(stream.span(before_dir.begin, after_dir.begin));
+                source.append("*/");
+
+                kernels.push_back(parse_kernel(
+                    stream,
+                    namespace_stack,
+                    std::move(directives)));
+
+                last = after_dir;
             } else {
-                while (t.kind != TokenKind::DirectiveEnd) {
-                    t = stream.next();
+                while (cur.kind != TokenKind::DirectiveEnd) {
+                    cur = stream.next();
                 }
             }
         }
     }
 
-    return kernels;
+    source.append(stream.span(last, cur));
+    return AnnotatedDocument {kernels, source};
 }
 
 }  // namespace internal

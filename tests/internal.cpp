@@ -126,9 +126,41 @@ __global__ void spaz(int n, const float* input, float* output) {
 } // namespace foo
     )";
 
-    auto stream = internal::TokenStream("<stdin>", input);
-    auto kernels = parse_kernels(stream);
+    std::string expected = R"(
+// This is a comment
+namespace foo {
+namespace bar {
 
+#ifdef SOMECONSTANT
+#endif
+
+/*#pragma kernel_tuner tune(block_size=32, 64, 128, 256)
+#pragma kernel_tuner problem_size(n)
+*/__global__ void baz(int n, const float* a) {
+    if (threadIdx.x < 10) {
+        return a[threadIdx.x];
+    }
+}
+} // namespace bar
+
+/*#pragma kernel_tuner tune(block_size=32, 64, 128, 256)
+#pragma kernel_tuner tune(tiling_factor=1,2,3,4)
+#pragma kernel_tuner problem_size(n) \
+                     grid_divisor(tiling_factor * block_size)
+*/template <int tiling_factor>
+__global__ void spaz(int n, const float* input, float* output) {
+    if (threadIdx.x < 10) {
+        return a[threadIdx.x];
+    }
+}
+} // namespace foo
+    )";
+
+    auto stream = internal::TokenStream("<stdin>", input);
+    auto result = extract_annotated_kernels(stream);
+    CHECK(result.processed_source == expected);
+
+    const auto& kernels = result.kernels;
     REQUIRE(kernels.size() == 2);
 
     const auto& baz = kernels[0];
@@ -168,10 +200,13 @@ TEST_CASE("directives") {
     )";
 
     auto stream = internal::TokenStream("<stdin>", input);
-    auto kernels = parse_kernels(stream);
+    auto result = extract_annotated_kernels(stream);
+    const auto& kernels = result.kernels;
 
     REQUIRE(kernels.size() == 1);
     const auto& kernel = kernels[0];
 
-    KernelBuilder builder = process_kernel(stream, kernels[0], {"float"});
+    KernelSource source("<stdin>", result.processed_source);
+    KernelBuilder builder =
+        builder_from_annotated_kernel(stream, source, kernels[0], {"float"});
 }

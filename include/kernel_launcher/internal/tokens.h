@@ -119,14 +119,6 @@ struct TokenStream {
     [[noreturn]] void
     throw_unexpected_token(Token t, const std::string& reason = "") const;
 
-    const std::string& file() const {
-        return file_;
-    }
-
-    const std::string& content() const {
-        return text_;
-    }
-
   private:
     std::string file_;
     std::string text_;
