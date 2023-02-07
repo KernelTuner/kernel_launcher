@@ -6,7 +6,7 @@
 
 using namespace kernel_launcher;
 
-TEST_CASE("KernelBuilder", "[CUDA]") {
+TEST_CASE("KernelBuilder compilation", "[CUDA]") {
     CUcontext ctx;
     KERNEL_LAUNCHER_CUDA_CHECK(cuInit(0));
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));

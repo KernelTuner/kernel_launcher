@@ -31,6 +31,8 @@ struct Kernel {
             std::vector<TypeInfo> {type_of<Args>()...},
             compiler,
             ctx);
+
+        problem_processor_ = builder.problem_processor();
     }
 
     /**
@@ -43,9 +45,11 @@ struct Kernel {
     /**
      * Launch this kernel onto the given stream with the given arguments.
      */
-    void launch(cudaStream_t stream, Args... args) {
-        std::vector<KernelArg> kargs = {KernelArg::for_scalar<Args>(args)...};
-        instance_.launch(stream, kargs);
+    void launch(cudaStream_t stream, Args&&... args) {
+        std::vector<KernelArg> kargs = {
+            into_kernel_arg(std::forward<Args>(args))...};
+        ProblemSize problem_size = problem_processor_(kargs);
+        instance_.launch(stream, problem_size, kargs);
     }
 
     /**
@@ -63,6 +67,7 @@ struct Kernel {
         return launch(cudaStream_t(nullptr), std::move(args)...);
     }
 
+    ProblemProcessor problem_processor_;
     KernelInstance instance_;
 };
 
@@ -120,11 +125,7 @@ struct WisdomKernel {
      */
     void clear();
 
-    void launch(cudaStream_t stream, const std::vector<KernelArg>& args);
-
-    void launch(cudaStream_t stream, std::vector<KernelArg>& args) {
-        launch(stream, (const std::vector<KernelArg>&)args);
-    }
+    void launch(cudaStream_t stream, std::vector<KernelArg> args);
 
     /**
      * Launch this kernel onto the given stream with the given arguments.

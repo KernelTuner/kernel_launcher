@@ -239,6 +239,11 @@ inline ProblemExpr problem_size(size_t axis = 0) {
     return axis;
 }
 
+struct ArgBuffer {
+    uint8_t index;
+    TypedExpr<size_t> length;
+};
+
 struct ArgExpr: BaseExpr, Variable {
     constexpr ArgExpr(uint8_t i) noexcept : index_(i) {};
     std::string to_string() const override;
@@ -259,6 +264,10 @@ struct ArgExpr: BaseExpr, Variable {
 
     size_t get() const {
         return index_;
+    }
+
+    ArgBuffer operator[](TypedExpr<size_t> len) const {
+        return {index_, std::move(len)};
     }
 
   private:
