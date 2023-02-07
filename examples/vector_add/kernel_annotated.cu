@@ -6,6 +6,7 @@
 #pragma kernel_tuner problem_size(n)
 #pragma kernel_tuner grid_divisor(items_per_block)
 #pragma kernel_tuner restriction(items_per_block <= 1024)
+#pragma kernel_tuner buffers(C[n], A[n], B[n])
 template<
     typename T,
     int block_size = 32,
@@ -21,8 +22,7 @@ __global__ void vector_add(int n, T* C, const T* A, const T* B) {
 
         // contiguous. thread processes items i, i+1, i+2, ...
         if (tiling_strategy == 0) {
-            i = (blockIdx.x * block_size + threadIdx.x) * items_per_thread
-                + k;
+            i = (blockIdx.x * block_size + threadIdx.x) * items_per_thread + k;
         }
 
         // block-strided. thread processes items i, i + block_size, i + 2*block_size

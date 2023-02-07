@@ -211,6 +211,75 @@ struct DummyEval: Eval {
     }
 };
 
+static void parse_buffer_directive(
+    TokenStream& stream,
+    KernelBuilder& builder,
+    Context& ctx) {
+    stream.consume(TokenKind::ParenL);
+    do {
+        Token var_token = stream.consume(TokenKind::Ident);
+        stream.consume(TokenKind::BracketL);
+        Expr length = parse_expr(stream, ctx);
+        stream.consume(TokenKind::BracketR);
+
+        auto it = ctx.runtime_args.find(stream.span(var_token));
+        if (it == ctx.runtime_args.end()) {
+            stream.throw_unexpected_token(
+                var_token,
+                "this is not the name of a kernel argument");
+        }
+
+        builder.buffer_size(it->second, length);
+    } while (stream.next_if(TokenKind::Comma));
+    stream.consume(TokenKind::ParenR);
+}
+
+static void parse_tune_directive(
+    TokenStream& stream,
+    KernelBuilder& builder,
+    Context& ctx) {
+    std::vector<Value> values;
+    std::vector<double> priors;
+
+    stream.consume(TokenKind::ParenL);
+    Token var_token = stream.consume(TokenKind::Ident);
+    stream.consume('=');
+
+    do {
+        Value v = parse_expr(stream, {}).eval(DummyEval {});
+        values.push_back(v);
+        priors.push_back(1.0);
+    } while (stream.next_if(TokenKind::Comma));
+
+    stream.consume(TokenKind::ParenR);
+
+    std::string var = stream.span(var_token);
+
+    if (ctx.config_args.count(var) > 0) {
+        stream.throw_unexpected_token(var_token, "variable redefined");
+    }
+
+    if (ctx.compile_args.count(var) > 0) {
+        stream.throw_unexpected_token(
+            var_token,
+            "variable already passed as compile-time value");
+    }
+
+    auto param = builder.add(var, values, priors, values.front());
+    ctx.config_args.insert({var, param});
+}
+
+static void parse_set_directive(TokenStream& stream, Context& ctx) {
+    stream.consume(TokenKind::ParenL);
+    Token var_token = stream.consume(TokenKind::Ident);
+    stream.consume('=');
+    Value value = parse_expr(stream, ctx).eval(DummyEval {});
+    stream.consume(TokenKind::ParenR);
+
+    std::string var = stream.span(var_token);
+    ctx.compile_args.insert({var, value});
+}
+
 static void
 process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
     stream.consume("pragma");
@@ -221,45 +290,11 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
         std::string name = stream.span(t);
 
         if (name == "tune") {
-            stream.consume(TokenKind::ParenL);
-            Token var_token = stream.consume(TokenKind::Ident);
-            stream.consume('=');
-
-            std::string var = stream.span(var_token);
-
-            if (ctx.config_args.count(var) > 0) {
-                stream.throw_unexpected_token(var_token, "variable redefined");
-            }
-
-            if (ctx.compile_args.count(var) > 0) {
-                stream.throw_unexpected_token(
-                    var_token,
-                    "variable already passed as compile-time value");
-            }
-
-            std::vector<Value> values;
-            std::vector<double> priors;
-
-            do {
-                Value v = parse_expr(stream, {}).eval(DummyEval {});
-
-                values.push_back(v);
-                priors.push_back(1.0);
-            } while (stream.next_if(TokenKind::Comma));
-
-            stream.consume(TokenKind::ParenR);
-
-            auto param = builder.add(var, values, priors, values.front());
-
-            ctx.config_args.insert({var, param});
+            parse_tune_directive(stream, builder, ctx);
         } else if (name == "set") {
-            stream.consume(TokenKind::ParenL);
-            Token var_token = stream.consume(TokenKind::Ident);
-            stream.consume('=');
-            Value value = parse_expr(stream, ctx).eval(DummyEval {});
-
-            std::string var = stream.span(var_token);
-            ctx.compile_args.insert({var, value});
+            parse_set_directive(stream, ctx);
+        } else if (name == "buffers" || name == "buffer") {
+            parse_buffer_directive(stream, builder, ctx);
         } else if (name == "grid_size") {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_size(l[0], l[1], l[2]);

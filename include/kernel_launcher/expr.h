@@ -289,14 +289,14 @@ inline ArgExpr arg(uint8_t i) {
 }
 
 namespace detail {
-    template<typename T>
-    struct ArgsHelper;
+template<typename T>
+struct ArgsHelper;
 
-    template<size_t... Is>
-    struct ArgsHelper<std::index_sequence<Is...>> {
-        using type = std::tuple<typename std::enable_if<
-            Is <= std::numeric_limits<uint8_t>::max(),
-            ArgExpr>::type...>;
+template<size_t... Is>
+struct ArgsHelper<std::index_sequence<Is...>> {
+    using type = std::tuple<typename std::enable_if<
+        Is <= std::numeric_limits<uint8_t>::max(),
+        ArgExpr>::type...>;
 
         static type call() {
             return {Is...};

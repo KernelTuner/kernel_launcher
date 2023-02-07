@@ -86,7 +86,11 @@ int main(int argc, char* argv[]) {
     kl::WisdomKernel vector_add(build_vector_add());
 
     // Call kernel
-    vector_add(n, C_dev, (const float*)A_dev, (const float*)B_dev);
+    vector_add(
+        n,
+        kl::cuda_span(C_dev, n),
+        kl::cuda_span<const float>(A_dev, n),
+        kl::cuda_span<const float>(B_dev, n));
 
     // Copy results back
     cuda_check(cudaMemcpy(
