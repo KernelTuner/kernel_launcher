@@ -135,6 +135,15 @@ KernelBuilder& KernelBuilder::argument_processor(ArgumentsProcessor f) {
     return *this;
 }
 
+KernelBuilder& KernelBuilder::buffer_size(ArgExpr arg, TypedExpr<size_t> len) {
+    return argument_processor([=](auto& args, auto& fallback) {
+        ArgsEval eval {args, fallback};
+        size_t i = arg.get();
+        size_t n = eval(len);
+        args[i] = args[i].to_array(n);
+    });
+}
+
 KernelBuilder& KernelBuilder::block_size(
     TypedExpr<uint32_t> x,
     TypedExpr<uint32_t> y,

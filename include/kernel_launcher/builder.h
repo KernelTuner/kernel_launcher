@@ -133,6 +133,55 @@ struct KernelBuilder: ConfigSpace {
     KernelBuilder& argument_processor(ArgumentsProcessor f);
 
     /**
+     * Set the size (in number of elements) for the given argument of this
+     * kernel. For example, the following example sets the length of the buffer
+     * given by the 5th argument (index=4) to the integer value given by
+     * the 1st argument (index=0).
+     *
+     * ```
+     * builder.buffer_size(4, arg0);
+     * ```
+     *
+     * Alternatively, it is recommended to use this function in combination
+     * with the `args` function for more readable variable names. For example,
+     * the following kernel takes three arguments (`n`, `A`, `B`) where the
+     * size of `A` and `B` is given by the variable `n`.
+     *
+     * ```
+     * auto [n, A, B] = args<3>();
+     * builder.buffer_size(A, n);
+     * builder.buffer_size(B, 2 * n);
+     * ```
+     *
+     * @param arg The argument buffer that this size is applied to.
+     * @param len The length of the buffer in number of elements.
+     * @return `this`
+     */
+    KernelBuilder& buffer_size(ArgExpr arg, TypedExpr<size_t> len);
+
+    /**
+     * Short-hand for using `KernelBuilder::buffer_size(...)`. For example,
+     * the following kernel takes three arguments (`n`, `A`, `B`) where the
+     * size of `A` and `B` is given by the expressions `n` and `2 * n`.
+     *
+     * ```
+     * auto [n, A, B] = args<3>();
+     * builder.buffers(A[n], B[2 * n]);
+     * ```
+     *
+     * @param buffers Expressions of type `ArgBuffer`.
+     * @return `this`
+     */
+    template<typename... Ts>
+    KernelBuilder& buffers(Ts... buffers) {
+        for (auto arg : std::array<ArgBuffer, sizeof...(Ts)> {buffers...}) {
+            buffer_size(arg.index, arg.length);
+        }
+
+        return *this;
+    }
+
+    /**
      * Set the block size for this kernel (i.e., number of threads per
      * thread block).
      *
