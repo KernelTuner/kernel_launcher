@@ -85,6 +85,28 @@ Value KernelArg::to_value_or_empty() const {
     return {};
 }
 
+KernelArg KernelArg::to_array(size_t nelements) const {
+    if (is_array()) {
+        if (nelements > data_.array.nelements) {
+            throw std::runtime_error(
+                "array of type " + type_.remove_pointer().name()
+                + " cannot be be resized to " + std::to_string(nelements)
+                + " elements, it only has "
+                + std::to_string(data_.array.nelements) + " elements");
+        }
+
+        return {type_, data_.array.ptr, nelements};
+    } else {
+        if (!type_.is_pointer()) {
+            throw std::runtime_error(
+                "argument is not a pointer type and cannot be converted into an array: "
+                + type_.name());
+        }
+
+        return {type_, *(void**)as_void_ptr(), nelements};
+    }
+}
+
 Value KernelArg::to_value() const {
     Value v = to_value_or_empty();
 

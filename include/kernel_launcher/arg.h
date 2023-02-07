@@ -7,7 +7,6 @@
 #include <iostream>
 #include <utility>
 
-#include "kernel_launcher/builder.h"
 #include "kernel_launcher/compiler.h"
 #include "kernel_launcher/config.h"
 
@@ -49,6 +48,7 @@ struct KernelArg {
         return result;
     }
 
+    KernelArg to_array(size_t nelements) const;
     Value to_value() const;
     Value to_value_or_empty() const;
     void assert_type_matches(TypeInfo t) const;
