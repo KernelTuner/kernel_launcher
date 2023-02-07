@@ -24,13 +24,13 @@ struct KernelArg {
     ~KernelArg();
 
     template<typename T>
-    static KernelArg for_scalar(T value) {
+    static KernelArg from_scalar(T value) {
         static_assert(sizeof(T) == type_of<T>().size(), "internal error");
         return KernelArg(type_of<T>(), (void*)&value);
     }
 
     template<typename T>
-    static KernelArg for_array(T* value, size_t nelements) {
+    static KernelArg from_array(T* value, size_t nelements) {
         static_assert(sizeof(T) == type_of<T>().size(), "internal error");
         static_assert(sizeof(T*) == type_of<T*>().size(), "internal error");
         return KernelArg(type_of<T*>(), (void*)value, nelements);
@@ -86,7 +86,7 @@ struct IntoKernelArg<
     T,
     typename std::enable_if<std::is_scalar<T>::value>::type> {
     static KernelArg convert(T value) {
-        return KernelArg::for_scalar<T>(value);
+        return KernelArg::from_scalar<T>(value);
     }
 };
 
@@ -95,7 +95,7 @@ struct IntoKernelArg<
     CudaSpan<T>,
     typename std::enable_if<std::is_trivially_copyable<T>::value>::type> {
     static KernelArg convert(CudaSpan<T> s) {
-        return KernelArg::for_array<T>(s.data(), s.size());
+        return KernelArg::from_array<T>(s.data(), s.size());
     }
 };
 

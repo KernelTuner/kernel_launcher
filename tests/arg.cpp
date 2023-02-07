@@ -46,7 +46,7 @@ TEST_CASE("test KernelArg") {
     SECTION("array int*") {
         std::vector<int> input = {1, 2, 3};
 
-        KernelArg v = KernelArg::for_array(input.data(), input.size());
+        KernelArg v = KernelArg::from_array(input.data(), input.size());
         CHECK(v.type() == type_of<int*>());
         //        // This only works if cuda is enabled :-(
         //        CHECK(
@@ -66,7 +66,7 @@ TEST_CASE("test KernelArg") {
         std::vector<int> input = {1, 2, 3};
 
         KernelArg v =
-            KernelArg::for_array<const int>(input.data(), input.size());
+            KernelArg::from_array<const int>(input.data(), input.size());
         CHECK(v.type() == type_of<const int*>());
         CHECK(v.is_array() == true);
         CHECK(v.is_scalar() == false);
@@ -78,35 +78,35 @@ TEST_CASE("test KernelArg") {
     }
 
     SECTION("to_value") {
-        CHECK(KernelArg::for_scalar<signed char>(13).to_value() == 13);
-        CHECK(KernelArg::for_scalar<unsigned char>(14).to_value() == 14);
-        CHECK(KernelArg::for_scalar<char>(15).to_value() == 15);
-        CHECK(KernelArg::for_scalar<int>(16).to_value() == 16);
-        CHECK(KernelArg::for_scalar<double>(17).to_value() == 17.0);
+        CHECK(KernelArg::from_scalar<signed char>(13).to_value() == 13);
+        CHECK(KernelArg::from_scalar<unsigned char>(14).to_value() == 14);
+        CHECK(KernelArg::from_scalar<char>(15).to_value() == 15);
+        CHECK(KernelArg::from_scalar<int>(16).to_value() == 16);
+        CHECK(KernelArg::from_scalar<double>(17).to_value() == 17.0);
 
         // `const` should not matter
-        CHECK(KernelArg::for_scalar<const int>(18).to_value() == 18);
+        CHECK(KernelArg::from_scalar<const int>(18).to_value() == 18);
 
         // These should fail
-        CHECK_THROWS(KernelArg::for_scalar<point3>({1, 2, 3}).to_value());
-        CHECK_THROWS(KernelArg::for_array<int>(nullptr, 2).to_value());
+        CHECK_THROWS(KernelArg::from_scalar<point3>({1, 2, 3}).to_value());
+        CHECK_THROWS(KernelArg::from_array<int>(nullptr, 2).to_value());
     }
 
     SECTION("to_array") {
         std::vector<char> input = {1, 2, 3};
 
         // non-pointer types can never be converted to arrays
-        CHECK_THROWS(KernelArg::for_scalar(123).to_array(0));
-        CHECK_THROWS(KernelArg::for_scalar(123).to_array(1));
+        CHECK_THROWS(KernelArg::from_scalar(123).to_array(0));
+        CHECK_THROWS(KernelArg::from_scalar(123).to_array(1));
 
         // pointer types can be converted to arrays
-        CHECK_NOTHROW(KernelArg::for_scalar(input.data()).to_array(0));
-        CHECK_NOTHROW(KernelArg::for_scalar(input.data()).to_array(3));
+        CHECK_NOTHROW(KernelArg::from_scalar(input.data()).to_array(0));
+        CHECK_NOTHROW(KernelArg::from_scalar(input.data()).to_array(3));
 
         // arrays can only be converted to arrays which are smaller
         CHECK_NOTHROW(
-            KernelArg::for_array(input.data(), input.size()).to_array(2));
+            KernelArg::from_array(input.data(), input.size()).to_array(2));
         CHECK_THROWS(
-            KernelArg::for_array(input.data(), input.size()).to_array(5));
+            KernelArg::from_array(input.data(), input.size()).to_array(5));
     }
 }

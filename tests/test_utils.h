@@ -19,7 +19,7 @@ namespace kernel_launcher {
 template<>
 struct IntoKernelArg<point3> {
     static KernelArg convert(point3 value) {
-        return KernelArg::for_scalar<point3>(value);
+        return KernelArg::from_scalar<point3>(value);
     }
 };
 }  // namespace kernel_launcher

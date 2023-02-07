@@ -43,8 +43,9 @@ struct Kernel {
     /**
      * Launch this kernel onto the given stream with the given arguments.
      */
-    void launch(cudaStream_t stream, Args... args) {
-        std::vector<KernelArg> kargs = {KernelArg::for_scalar<Args>(args)...};
+    void launch(cudaStream_t stream, Args&&... args) {
+        std::vector<KernelArg> kargs = {
+            into_kernel_arg(std::forward<Args>(args))...};
         instance_.launch(stream, kargs);
     }
 
