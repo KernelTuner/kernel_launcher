@@ -252,6 +252,14 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
             auto param = builder.add(var, values, priors, values.front());
 
             ctx.config_args.insert({var, param});
+        } else if (name == "set") {
+            stream.consume(TokenKind::ParenL);
+            Token var_token = stream.consume(TokenKind::Ident);
+            stream.consume('=');
+            Value value = parse_expr(stream, ctx).eval(DummyEval {});
+
+            std::string var = stream.span(var_token);
+            ctx.compile_args.insert({var, value});
         } else if (name == "grid_size") {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_size(l[0], l[1], l[2]);
