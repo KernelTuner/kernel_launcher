@@ -1,0 +1,38 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Kernel Launcher
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Stijn
+    family-names: Heldens
+    email: s.heldens@esciencecenter.nl
+    affiliation: Netherlands eScience Center
+  - given-names: Ben
+    family-names: van Werkhoven
+    email: b.vanwerkhoven@esciencecenter.nl
+    affiliation: Netherlands eScience Center
+identifiers:
+  - type: url
+    value: 'https://github.com/KernelTuner/kernel_launcher'
+    description: GitHub repository
+repository-code: 'https://github.com/KernelTuner/kernel_launcher'
+url: 'https://kerneltuner.github.io/kernel_launcher/'
+abstract: >-
+  Kernel Launcher is a C++ library that makes it easy to
+  dynamically compile CUDA kernels at run time (using NVRTC)
+  and call them in an easy type-safe way using C++ magic.
+  Additionally, Kernel Launcher supports exporting kernel
+  specifications, to enable tuning by Kernel Tuner, and
+  importing the tuning results, known as wisdom files, back
+  into the application.
+keywords:
+  - CUDA
+  - auto-tuning
+  - C++
+  - library
+license: Apache-2.0
