@@ -1,12 +1,14 @@
-#pragma kernel_tuner tune(block_size = 32, 64, 128, 256, 512, 1024)
+#pragma kernel_tuner tune(threads_per_block = 32, 64, 128, 256, 512, 1024)
 #pragma kernel_tuner tune(items_per_thread = 1, 2, 3, 4)
 #pragma kernel_tuner tune(tiling_strategy = 0, 1, 2)
-#pragma kernel_tuner set(items_per_block = block_size * items_per_thread)
-#pragma kernel_tuner block_size(block_size)
-#pragma kernel_tuner problem_size(n)
-#pragma kernel_tuner grid_divisor(items_per_block)
+#pragma kernel_tuner set(items_per_block = items_per_thread * threads_per_block)
+#pragma kernel_tuner set(block_size = items_per_block)
 #pragma kernel_tuner restriction(items_per_block <= 1024)
+#pragma kernel_tuner problem_size(n)
+#pragma kernel_tuner block_size(threads_per_block)
+#pragma kernel_tuner grid_divisor(items_per_block)
 #pragma kernel_tuner buffers(C[n], A[n], B[n])
+#pragma kernel_tuner tuning_key("vector_add_" + T)
 template<
     typename T,
     int block_size = 32,
