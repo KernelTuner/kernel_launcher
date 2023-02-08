@@ -13,8 +13,8 @@ namespace internal {
 
 struct Context {
     std::unordered_map<std::string, ArgExpr> runtime_args;
-    std::unordered_map<std::string, Expr> compile_args;
-    std::unordered_map<std::string, ParamExpr> config_args;
+    std::unordered_map<std::string, Value> compile_args;
+    std::unordered_map<std::string, Expr> config_args;
 };
 
 static Expr parse_expr(TokenStream& stream, const Context& ctx, int prec = 0);
@@ -126,6 +126,7 @@ static bool parse_string(const std::string& input, std::string& output) {
                     break;
                 case 't':
                     x = '\t';
+                    break;
                 case 'r':
                     x = '\r';
                     break;
@@ -256,9 +257,21 @@ parse_expr_list3(TokenStream& stream, const Context& ctx) {
 
 struct DummyEval: Eval {
     bool lookup(const Variable& v, Value& out) const override {
-        throw std::runtime_error("internal error");
+        return false;
     }
 };
+
+static Value parse_comptime_expr(TokenStream& stream, const Context& ctx) {
+    Expr e = parse_expr(stream, ctx);
+
+    try {
+        return e.eval(DummyEval {});
+    } catch (const std::exception& err) {
+        throw std::runtime_error(
+            "error while evaluating expression '" + e.to_string()
+            + "': " + err.what());
+    }
+}
 
 static void parse_buffer_directive(
     TokenStream& stream,
@@ -295,7 +308,7 @@ static void parse_tune_directive(
     stream.consume('=');
 
     do {
-        Value v = parse_expr(stream, {}).eval(DummyEval {});
+        Value v = parse_comptime_expr(stream, ctx);
         values.push_back(v);
         priors.push_back(1.0);
     } while (stream.next_if(TokenKind::Comma));
@@ -319,21 +332,34 @@ static void parse_tune_directive(
 }
 
 static void parse_set_directive(TokenStream& stream, Context& ctx) {
+    // '(' IDENT '=' EXPR ')'
     stream.consume(TokenKind::ParenL);
     Token var_token = stream.consume(TokenKind::Ident);
     stream.consume('=');
-    Value value = parse_expr(stream, ctx).eval(DummyEval {});
+    Expr expr = parse_expr(stream, ctx);
+    stream.consume(TokenKind::ParenR);
+    std::string var = stream.span(var_token);
+
+    ctx.config_args.insert({var, expr});
+}
+
+static void parse_tuning_key_directive(
+    TokenStream& stream,
+    KernelBuilder& builder,
+    Context& ctx) {
+    std::string key;
+
+    stream.consume(TokenKind::ParenL);
+    do {
+        key += parse_comptime_expr(stream, ctx).to_string();
+    } while (stream.next_if(TokenKind::Comma));
     stream.consume(TokenKind::ParenR);
 
-    std::string var = stream.span(var_token);
-    ctx.compile_args.insert({var, value});
+    builder.tuning_key(std::move(key));
 }
 
 static void
 process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
-    stream.consume("pragma");
-    stream.consume("kernel_tuner");
-
     while (!stream.next_if(TokenKind::DirectiveEnd)) {
         Token t = stream.consume(TokenKind::Ident);
         std::string name = stream.span(t);
@@ -345,14 +371,7 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
         } else if (name == "buffers" || name == "buffer") {
             parse_buffer_directive(stream, builder, ctx);
         } else if (name == "tuning_key") {
-            std::string key = "";
-
-            for (const auto& expr : parse_expr_list(stream, ctx)) {
-                key += expr.eval(DummyEval {}).to_string();
-            }
-
-            builder.tuning_key(std::move(key));
-
+            parse_tuning_key_directive(stream, builder, ctx);
         } else if (name == "grid_size") {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_size(l[0], l[1], l[2]);
