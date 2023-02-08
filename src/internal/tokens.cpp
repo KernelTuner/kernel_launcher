@@ -354,6 +354,41 @@ TokenStream::throw_expecting_token(Token t, const char* c) const {
     throw_unexpected_token(t, reason);
 }
 
+static std::string
+underlined_token(size_t begin, size_t end, const std::string& text) {
+    size_t begin_line = begin;
+    while (begin_line > 0 && text[begin_line - 1] != '\n') {
+        begin_line--;
+    }
+
+    size_t end_line = begin_line;
+    while (end_line < text.size() && text[end_line] != '\n') {
+        end_line++;
+    }
+
+    // In these cases, there is nothing to underline (empty token? empty line?)
+    if (begin >= end || begin_line >= end_line || begin >= end_line
+        || begin_line >= end) {
+        return "";
+    }
+
+    std::stringstream msg;
+    for (size_t i = begin_line; i < end_line; i++) {
+        msg << text[i];
+    }
+
+    msg << "\n";
+    for (size_t i = begin_line; i < end_line; i++) {
+        if (i >= begin && i < end) {
+            msg << '^';
+        } else {
+            msg << ' ';
+        }
+    }
+
+    return msg.str();
+}
+
 void TokenStream::throw_unexpected_token(Token t, const std::string& reason)
     const {
     auto line_col = extract_line_column(t);
@@ -364,6 +399,11 @@ void TokenStream::throw_unexpected_token(Token t, const std::string& reason)
 
     if (!reason.empty()) {
         msg << ", " << reason;
+    }
+
+    std::string snippet = underlined_token(t.begin, t.end, text_);
+    if (!snippet.empty()) {
+        msg << "\n" << snippet;
     }
 
     throw std::runtime_error(msg.str());
