@@ -12,7 +12,7 @@ Source Code
 -----------
 
 Below shows the CUDA kernel code.
-This is valid regular CUDA code since the ``#pragma`` will be ignored by the ``nvcc`` compiler (although they will emit a warning).
+This is valid regular CUDA code since the ``#pragma`` will be ignored by the ``nvcc`` compiler (although they might cause compiler warnings).
 
 .. literalinclude:: vector_add_annotated.cu
    :lines: 1-20

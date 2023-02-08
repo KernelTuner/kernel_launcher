@@ -5,7 +5,7 @@
 #pragma kernel_tuner block_size(threads_per_block)
 #pragma kernel_tuner grid_divisor(items_per_block)
 #pragma kernel_tuner buffers(C[n], A[n], B[n])
-#pragma kernel_tuner tuning_key("vector_add_", T)
+#pragma kernel_tuner tuning_key("vector_add_" + T)
 template <typename T, int items_per_thread=1>
 __global__
 void vector_add(int n, T* C, const T* A, const T* B) {
