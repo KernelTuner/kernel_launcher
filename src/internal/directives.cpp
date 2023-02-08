@@ -107,6 +107,49 @@ static Expr parse_ident(Token t, TokenStream& stream, const Context& ctx) {
     stream.throw_unexpected_token(t, "unknown variable name");
 }
 
+static bool parse_string(const std::string& input, std::string& output) {
+    size_t n = input.size();
+    if (n < 2 || input[0] != input[n - 1]) {
+        return false;
+    }
+
+    bool prev_backslash = false;
+
+    for (size_t i = 1; i < n - 1; i++) {
+        char c = input[i];
+        if (prev_backslash) {
+            char x;
+
+            switch (c) {
+                case 'n':
+                    x = '\n';
+                    break;
+                case 't':
+                    x = '\t';
+                case 'r':
+                    x = '\r';
+                    break;
+                case '"':
+                case '\'':
+                case '\\':
+                    x = c;
+                    break;
+                default:
+                    return false;
+            }
+
+            prev_backslash = false;
+            output += x;
+        } else if (c == '\\') {
+            prev_backslash = true;
+        } else {
+            output += c;
+        }
+    }
+
+    return !prev_backslash;
+}
+
 static bool parse_long(const std::string& input, long& output) {
     char* endptr = nullptr;
     output = strtol(input.c_str(), &endptr, 10);
@@ -122,6 +165,12 @@ static Expr parse_prim(TokenStream& stream, const Context& ctx) {
         Expr e = parse_expr(stream, ctx);
         stream.consume(TokenKind::ParenR);
         return e;
+    } else if (t.kind == TokenKind::String) {
+        std::string out;
+        if (!parse_string(stream.span(t), out)) {
+            stream.throw_unexpected_token(t, "failed to parse string");
+        }
+        return ScalarExpr(out);
     } else if (t.kind == TokenKind::Number) {
         long l;
         if (!parse_long(stream.span(t), l)) {
@@ -295,6 +344,15 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
             parse_set_directive(stream, ctx);
         } else if (name == "buffers" || name == "buffer") {
             parse_buffer_directive(stream, builder, ctx);
+        } else if (name == "tuning_key") {
+            std::string key = "";
+
+            for (const auto& expr : parse_expr_list(stream, ctx)) {
+                key += expr.eval(DummyEval {}).to_string();
+            }
+
+            builder.tuning_key(std::move(key));
+
         } else if (name == "grid_size") {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_size(l[0], l[1], l[2]);

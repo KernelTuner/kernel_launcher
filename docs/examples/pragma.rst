@@ -29,16 +29,16 @@ The kernel contains the following ``pragma`` directives:
    :lineno-start: 1
 
 The ``tune`` directives defines the tunable parameters.
-In this case, there are two parameters: ``items_per_block`` and ``items_per_thread``.
-Since ``items_per_thread`` is also the name of template parameter (line 8), it is passed to the kernel as compile-time constant to the kernel via this parameter.
-The value of ``items_per_block`` is not passed to the kernel but is used by subsequent pragmas.
+In this case, there are two parameters: ``threads_per_block`` and ``items_per_thread``.
+Since ``items_per_thread`` is also the name of template parameter (line 9), it is passed to the kernel as compile-time constant to the kernel via this parameter.
+The value of ``threads_per_block`` is not passed to the kernel but is used by subsequent pragmas.
 
 .. literalinclude:: vector_add_annotated.cu
    :lines: 3-3
    :lineno-start: 3
 
 The ``set`` directives defines a constant.
-In this case, the constant ``items_per_block`` is defined as the product of ``items_per_block`` and ``items_per_block``.
+In this case, the constant ``items_per_block`` is defined as the product of ``threads_per_block`` and ``items_per_thread``.
 
 .. literalinclude:: vector_add_annotated.cu
    :lines: 4-6
