@@ -12,9 +12,17 @@ namespace kernel_launcher {
 namespace internal {
 
 struct Context {
-    std::unordered_map<std::string, ArgExpr> runtime_args;
-    std::unordered_map<std::string, Value> compile_args;
-    std::unordered_map<std::string, Expr> config_args;
+    // Runtime arguments of the kernel
+    std::unordered_map<std::string, ArgExpr> kernel_args;
+
+    // Parameters from configuration space
+    std::unordered_map<std::string, TunableParam> config_args;
+
+    // Compile-time arguments passed by the user
+    std::unordered_map<std::string, Value> comptime_args;
+
+    // User-defined parameters using `#pragma set(foo=1+2)`
+    std::unordered_map<std::string, Expr> user_args;
 };
 
 static Expr parse_expr(TokenStream& stream, const Context& ctx, int prec = 0);
@@ -90,16 +98,24 @@ static Expr parse_ident(Token t, TokenStream& stream, const Context& ctx) {
 
     // Is it a compile-time parameter?
     {
-        auto it = ctx.compile_args.find(name);
-        if (it != ctx.compile_args.end()) {
+        auto it = ctx.comptime_args.find(name);
+        if (it != ctx.comptime_args.end()) {
+            return it->second;
+        }
+    }
+
+    // Is it a user-defined parameter?
+    {
+        auto it = ctx.user_args.find(name);
+        if (it != ctx.user_args.end()) {
             return it->second;
         }
     }
 
     // Is it a runtime parameter?
     {
-        auto it = ctx.runtime_args.find(name);
-        if (it != ctx.runtime_args.end()) {
+        auto it = ctx.kernel_args.find(name);
+        if (it != ctx.kernel_args.end()) {
             return it->second;
         }
     }
@@ -262,14 +278,16 @@ struct DummyEval: Eval {
 };
 
 static Value parse_comptime_expr(TokenStream& stream, const Context& ctx) {
+    Token before = stream.peek();
     Expr e = parse_expr(stream, ctx);
+    Token after = stream.peek();
 
     try {
         return e.eval(DummyEval {});
     } catch (const std::exception& err) {
-        throw std::runtime_error(
-            "error while evaluating expression '" + e.to_string()
-            + "': " + err.what());
+        auto msg =
+            std::string("error while evaluating expression: ") + err.what();
+        stream.throw_unexpected_token(before.begin, after.begin, msg);
     }
 }
 
@@ -284,8 +302,8 @@ static void parse_buffer_directive(
         Expr length = parse_expr(stream, ctx);
         stream.consume(TokenKind::BracketR);
 
-        auto it = ctx.runtime_args.find(stream.span(var_token));
-        if (it == ctx.runtime_args.end()) {
+        auto it = ctx.kernel_args.find(stream.span(var_token));
+        if (it == ctx.kernel_args.end()) {
             stream.throw_unexpected_token(
                 var_token,
                 "this is not the name of a kernel argument");
@@ -321,12 +339,6 @@ static void parse_tune_directive(
         stream.throw_unexpected_token(var_token, "variable redefined");
     }
 
-    if (ctx.compile_args.count(var) > 0) {
-        stream.throw_unexpected_token(
-            var_token,
-            "variable already passed as compile-time value");
-    }
-
     auto param = builder.add(var, values, priors, values.front());
     ctx.config_args.insert({var, param});
 }
@@ -336,11 +348,11 @@ static void parse_set_directive(TokenStream& stream, Context& ctx) {
     stream.consume(TokenKind::ParenL);
     Token var_token = stream.consume(TokenKind::Ident);
     stream.consume('=');
-    Expr expr = parse_expr(stream, ctx);
+    Expr expr = parse_expr(stream, ctx).resolve(DummyEval {});
     stream.consume(TokenKind::ParenR);
     std::string var = stream.span(var_token);
 
-    ctx.config_args.insert({var, expr});
+    ctx.user_args.insert({var, expr});
 }
 
 static void parse_tuning_key_directive(
@@ -407,7 +419,7 @@ KernelBuilder builder_from_annotated_kernel(
 
     for (size_t i = 0; i < def.fun_params.size(); i++) {
         std::string name = stream.span(def.fun_params[i].name);
-        ctx.runtime_args.insert({name, ArgExpr(uint8_t(i))});
+        ctx.kernel_args.insert({name, ArgExpr(uint8_t(i))});
     }
 
     if (template_args.size() > def.template_params.size()) {
@@ -420,7 +432,7 @@ KernelBuilder builder_from_annotated_kernel(
 
     for (size_t i = 0; i < template_args.size(); i++) {
         std::string name = stream.span(def.template_params[i].name);
-        ctx.compile_args.insert({name, template_args[i]});
+        ctx.comptime_args.insert({name, template_args[i]});
     }
 
     for (const auto& directive : def.directives) {
@@ -432,10 +444,12 @@ KernelBuilder builder_from_annotated_kernel(
         std::string name = stream.span(param.name);
         Expr e = nullptr;
 
-        if (ctx.compile_args.count(name) > 0) {
-            e = ctx.compile_args.at(name);
-        } else if (ctx.config_args.count(name) > 0) {
+        if (ctx.config_args.count(name) > 0) {
             e = ctx.config_args.at(name);
+        } else if (ctx.comptime_args.count(name) > 0) {
+            e = ctx.comptime_args.at(name);
+        } else if (ctx.user_args.count(name) > 0) {
+            e = ctx.user_args.at(name);
         } else {
             stream.throw_unexpected_token(
                 param.name,

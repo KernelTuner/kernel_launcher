@@ -114,10 +114,15 @@ struct TokenStream {
         return span(begin.begin, end.end);
     }
 
-    std::pair<int, int> extract_line_column(Token t) const;
+    [[noreturn]] void throw_unexpected_token(
+        size_t begin,
+        size_t end,
+        const std::string& reason = "") const;
 
     [[noreturn]] void
-    throw_unexpected_token(Token t, const std::string& reason = "") const;
+    throw_unexpected_token(Token t, const std::string& reason = "") const {
+        throw_unexpected_token(t.begin, t.end, reason);
+    }
 
   private:
     std::string file_;

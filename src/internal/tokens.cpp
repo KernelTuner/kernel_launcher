@@ -272,22 +272,6 @@ bool TokenStream::matches(Token t, const char* needle) const {
     return *needle == '\0';
 }
 
-std::pair<int, int> TokenStream::extract_line_column(Token t) const {
-    int lineno = 1;
-    int colno = 1;
-
-    for (size_t i = 0; i < text_.size() && i < t.begin; i++) {
-        if (text_[i] == '\n') {
-            lineno++;
-            colno = 1;
-        } else {
-            colno++;
-        }
-    }
-
-    return {lineno, colno};
-}
-
 static std::string clean_string(const std::string& input) {
     std::stringstream output;
 
@@ -355,7 +339,7 @@ TokenStream::throw_expecting_token(Token t, const char* c) const {
 }
 
 static std::string
-underlined_token(size_t begin, size_t end, const std::string& text) {
+underlined_span(size_t begin, size_t end, const std::string& text) {
     size_t begin_line = begin;
     while (begin_line > 0 && text[begin_line - 1] != '\n') {
         begin_line--;
@@ -389,19 +373,38 @@ underlined_token(size_t begin, size_t end, const std::string& text) {
     return msg.str();
 }
 
-void TokenStream::throw_unexpected_token(Token t, const std::string& reason)
-    const {
-    auto line_col = extract_line_column(t);
+static std::pair<int, int>
+extract_line_column(size_t offset, const std::string& text) {
+    int lineno = 1;
+    int colno = 1;
+
+    for (size_t i = 0; i < text.size() && i < offset; i++) {
+        if (text[i] == '\n') {
+            lineno++;
+            colno = 1;
+        } else {
+            colno++;
+        }
+    }
+
+    return {lineno, colno};
+}
+
+void TokenStream::throw_unexpected_token(
+    size_t begin,
+    size_t end,
+    const std::string& reason) const {
+    auto line_col = extract_line_column(begin, text_);
 
     std::stringstream msg;
     msg << "error:" << file_ << ":" << line_col.first << ":" << line_col.second
-        << ": found invalid token \"" << clean_string(span(t)) << "\"";
+        << ": found invalid token \"" << clean_string(span(begin, end)) << "\"";
 
     if (!reason.empty()) {
         msg << ", " << reason;
     }
 
-    std::string snippet = underlined_token(t.begin, t.end, text_);
+    std::string snippet = underlined_span(begin, end, text_);
     if (!snippet.empty()) {
         msg << "\n" << snippet;
     }
