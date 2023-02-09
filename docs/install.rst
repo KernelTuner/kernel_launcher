@@ -1,5 +1,5 @@
-Installation Guide
-==================
+Installation
+============
 
 There are three ways of using *Kernel Launcher*:
 

@@ -40,7 +40,7 @@ def build_index_page(groups):
             children.append(filename)
 
             filename = filename.replace(".rst", "")
-            body += f"* :doc:`{symbol} <{filename}>`\n"
+            body += f"* :doc:`{name} <{filename}>`\n"
 
         body += "\n"
 
@@ -93,9 +93,10 @@ groups = {
         "capture_file_exists",
     ],
     "Registry": [
-        "default_registry",
         "KernelRegistry",
         "IKernelDescriptor",
+        "default_registry",
+        "launch",
         #"KernelDescriptor",
     ],
     "Compilation": [
