@@ -54,7 +54,7 @@ TEST_CASE("tokenizer exhaustive") {
     using internal::TokenKind;
 
     std::string input = R"(
-        == <= >= && || << >> ::
+        == != <= >= && || << >> ::
         { } [ ] ( ) , < > + = - * / ! ~ & | ^ %
         123 4.5
         "test" "a\"b" 'c'
@@ -62,27 +62,28 @@ TEST_CASE("tokenizer exhaustive") {
     )";
 
     std::vector<std::pair<std::string, TokenKind>> expected = {
-        {"==", TokenKind::Punct},         {"<=", TokenKind::Punct},
-        {">=", TokenKind::Punct},         {"&&", TokenKind::Punct},
-        {"||", TokenKind::Punct},         {"<<", TokenKind::Punct},
-        {">>", TokenKind::Punct},         {"::", TokenKind::Punct},
-        {"{", TokenKind::BraceL},         {"}", TokenKind::BraceR},
-        {"[", TokenKind::BracketL},       {"]", TokenKind::BracketR},
-        {"(", TokenKind::ParenL},         {")", TokenKind::ParenR},
-        {",", TokenKind::Comma},          {"<", TokenKind::AngleL},
-        {">", TokenKind::AngleR},         {"+", TokenKind::Punct},
-        {"=", TokenKind::Punct},          {"-", TokenKind::Punct},
-        {"*", TokenKind::Punct},          {"/", TokenKind::Punct},
-        {"!", TokenKind::Punct},          {"~", TokenKind::Punct},
-        {"&", TokenKind::Punct},          {"|", TokenKind::Punct},
-        {"^", TokenKind::Punct},          {"%", TokenKind::Punct},
-        {"123", TokenKind::Number},       {"4", TokenKind::Number},
-        {".", TokenKind::Unknown},        {"5", TokenKind::Number},
-        {R"("test")", TokenKind::String}, {R"("a\"b")", TokenKind::String},
-        {"'c'", TokenKind::String},       {"foo", TokenKind::Ident},
-        {"$foo", TokenKind::Ident},       {"foo_bar", TokenKind::Ident},
-        {"_bar", TokenKind::Ident},       {"_", TokenKind::Ident},
-        {"bar1", TokenKind::Ident},       {"", TokenKind::EndOfFile}};
+        {"==", TokenKind::Punct},         {"!=", TokenKind::Punct},
+        {"<=", TokenKind::Punct},         {">=", TokenKind::Punct},
+        {"&&", TokenKind::Punct},         {"||", TokenKind::Punct},
+        {"<<", TokenKind::Punct},         {">>", TokenKind::Punct},
+        {"::", TokenKind::Punct},         {"{", TokenKind::BraceL},
+        {"}", TokenKind::BraceR},         {"[", TokenKind::BracketL},
+        {"]", TokenKind::BracketR},       {"(", TokenKind::ParenL},
+        {")", TokenKind::ParenR},         {",", TokenKind::Comma},
+        {"<", TokenKind::AngleL},         {">", TokenKind::AngleR},
+        {"+", TokenKind::Punct},          {"=", TokenKind::Punct},
+        {"-", TokenKind::Punct},          {"*", TokenKind::Punct},
+        {"/", TokenKind::Punct},          {"!", TokenKind::Punct},
+        {"~", TokenKind::Punct},          {"&", TokenKind::Punct},
+        {"|", TokenKind::Punct},          {"^", TokenKind::Punct},
+        {"%", TokenKind::Punct},          {"123", TokenKind::Number},
+        {"4", TokenKind::Number},         {".", TokenKind::Unknown},
+        {"5", TokenKind::Number},         {R"("test")", TokenKind::String},
+        {R"("a\"b")", TokenKind::String}, {"'c'", TokenKind::String},
+        {"foo", TokenKind::Ident},        {"$foo", TokenKind::Ident},
+        {"foo_bar", TokenKind::Ident},    {"_bar", TokenKind::Ident},
+        {"_", TokenKind::Ident},          {"bar1", TokenKind::Ident},
+        {"", TokenKind::EndOfFile}};
 
     auto stream = internal::TokenStream("<stdin>", input);
 
