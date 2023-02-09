@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _set_global_wisdom_directory:
+
+set_global_wisdom_directory
+===========================
+.. doxygenfunction:: kernel_launcher::set_global_wisdom_directory

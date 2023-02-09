@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _ConfigSpace:
+
+ConfigSpace
+===========
+.. doxygenstruct:: kernel_launcher::ConfigSpace

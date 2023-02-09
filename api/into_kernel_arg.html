@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>into_kernel_arg &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="load_best_config" href="load_best_config.html" />
+    <link rel="prev" title="export_tuning_file" href="export_tuning_file.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Compiler.html">Compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ConfigSpace.html">ConfigSpace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaArch.html">CudaArch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaContextHandle.html">CudaContextHandle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaDevice.html">CudaDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaException.html">CudaException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaSpan.html">CudaSpan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DefaultLoader.html">DefaultLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DefaultOracle.html">DefaultOracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FileLoader.html">FileLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ICompiler.html">ICompiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IKernelDescriptor.html">IKernelDescriptor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IntoKernelArg.html">IntoKernelArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernel.html">Kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelArg.html">KernelArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelBuilder.html">KernelBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelInstance.html">KernelInstance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelRegistry.html">KernelRegistry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelSource.html">KernelSource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NvrtcCompiler.html">NvrtcCompiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NvrtcException.html">NvrtcException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Oracle.html">Oracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ProblemSize.html">ProblemSize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TemplateArg.html">TemplateArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TunableParam.html">TunableParam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TypeInfo.html">TypeInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Value.html">Value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Variable.html">Variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomKernel.html">WisdomKernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomRecord.html">WisdomRecord</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">into_kernel_arg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">into_kernel_arg</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/into_kernel_arg.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="into-kernel-arg">
+<span id="id1"></span><h1>into_kernel_arg<a class="headerlink" href="#into-kernel-arg" title="Permalink to this heading"></a></h1>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher15into_kernel_argE9KernelArgRR1T">
+<span id="_CPPv3I0EN15kernel_launcher15into_kernel_argERR1T"></span><span id="_CPPv2I0EN15kernel_launcher15into_kernel_argERR1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="arg_8h_1a0adf00591213f9b2214dbbbc458cc55c"></span><a class="reference internal" href="KernelArg.html#_CPPv4N15kernel_launcher9KernelArgE" title="kernel_launcher::KernelArg"><span class="n"><span class="pre">KernelArg</span></span></a><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">into_kernel_arg</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher15into_kernel_argE9KernelArgRR1T" title="kernel_launcher::into_kernel_arg::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher15into_kernel_argE9KernelArgRR1T" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="export_tuning_file.html" class="btn btn-neutral float-left" title="export_tuning_file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="load_best_config.html" class="btn btn-neutral float-right" title="load_best_config" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

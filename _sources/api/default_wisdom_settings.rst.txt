@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _default_wisdom_settings:
+
+default_wisdom_settings
+=======================
+.. doxygenfunction:: kernel_launcher::default_wisdom_settings

@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _Value:
+
+Value
+=====
+.. doxygenstruct:: kernel_launcher::Value

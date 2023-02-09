@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _default_registry:
+
+default_registry
+================
+.. doxygenfunction:: kernel_launcher::default_registry

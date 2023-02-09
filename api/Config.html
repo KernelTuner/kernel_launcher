@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ConfigSpace" href="ConfigSpace.html" />
+    <link rel="prev" title="Compiler" href="Compiler.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Compiler.html">Compiler</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ConfigSpace.html">ConfigSpace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaArch.html">CudaArch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaContextHandle.html">CudaContextHandle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaDevice.html">CudaDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaException.html">CudaException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaSpan.html">CudaSpan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DefaultLoader.html">DefaultLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DefaultOracle.html">DefaultOracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FileLoader.html">FileLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ICompiler.html">ICompiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IKernelDescriptor.html">IKernelDescriptor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IntoKernelArg.html">IntoKernelArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernel.html">Kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelArg.html">KernelArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelBuilder.html">KernelBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelInstance.html">KernelInstance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelRegistry.html">KernelRegistry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelSource.html">KernelSource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NvrtcCompiler.html">NvrtcCompiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NvrtcException.html">NvrtcException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Oracle.html">Oracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ProblemSize.html">ProblemSize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TemplateArg.html">TemplateArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TunableParam.html">TunableParam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TypeInfo.html">TypeInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Value.html">Value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Variable.html">Variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomKernel.html">WisdomKernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomRecord.html">WisdomRecord</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Config</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/Config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="config">
+<span id="id1"></span><h1>Config<a class="headerlink" href="#config" title="Permalink to this heading"></a></h1>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6ConfigE">
+<span id="_CPPv3N15kernel_launcher6ConfigE"></span><span id="_CPPv2N15kernel_launcher6ConfigE"></span><span id="kernel_launcher::Config"></span><span class="target" id="structkernel__launcher_1_1Config"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Config</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Eval</span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher6ConfigE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A particular configuration from a <code class="docutils literal notranslate"><span class="pre">ConfigSpace</span></code>. This class is essentially a table that maps <code class="docutils literal notranslate"><span class="pre">TunableParam</span></code>s to <code class="docutils literal notranslate"><a class="reference internal" href="Value.html#structkernel__launcher_1_1Value"><span class="std std-ref"><span class="pre">Value</span></span></a></code>s. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher6Config6insertE12TunableParam5Value">
+<span id="_CPPv3N15kernel_launcher6Config6insertE12TunableParam5Value"></span><span id="_CPPv2N15kernel_launcher6Config6insertE12TunableParam5Value"></span><span id="kernel_launcher::Config::insert__TunableParam.Value"></span><span class="target" id="structkernel__launcher_1_1Config_1a35e8e5594c4a00f023f30fb256e84b5e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="TunableParam.html#_CPPv4N15kernel_launcher12TunableParamE" title="kernel_launcher::TunableParam"><span class="n"><span class="pre">TunableParam</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">k</span></span>, <a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher6Config6insertE12TunableParam5Value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Insert a <code class="docutils literal notranslate"><span class="pre">TunableParam</span></code> with the associated <code class="docutils literal notranslate"><a class="reference internal" href="Value.html#structkernel__launcher_1_1Value"><span class="std std-ref"><span class="pre">Value</span></span></a></code>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6ConfigixERKNSt6stringE">
+<span id="_CPPv3NK15kernel_launcher6ConfigixERKNSt6stringE"></span><span id="_CPPv2NK15kernel_launcher6ConfigixERKNSt6stringE"></span><span id="kernel_launcher::Config::subscript-operator__ssCRC"></span><span class="target" id="structkernel__launcher_1_1Config_1a0473257d7b097876181215e170a10815"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6ConfigixERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value that corresponds to the parameter with the given name. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6ConfigixERK12TunableParam">
+<span id="_CPPv3NK15kernel_launcher6ConfigixERK12TunableParam"></span><span id="_CPPv2NK15kernel_launcher6ConfigixERK12TunableParam"></span><span id="kernel_launcher::Config::subscript-operator__TunableParamCRC"></span><span class="target" id="structkernel__launcher_1_1Config_1a33bdd80cd0df7fb2a5951a5e1cf7e3f0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="TunableParam.html#_CPPv4N15kernel_launcher12TunableParamE" title="kernel_launcher::TunableParam"><span class="n"><span class="pre">TunableParam</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6ConfigixERK12TunableParam" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value that corresponds to the given parameter. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6ConfigixERK9ParamExpr">
+<span id="_CPPv3NK15kernel_launcher6ConfigixERK9ParamExpr"></span><span id="_CPPv2NK15kernel_launcher6ConfigixERK9ParamExpr"></span><span id="kernel_launcher::Config::subscript-operator__ParamExprCRC"></span><span class="target" id="structkernel__launcher_1_1Config_1a921a8f69868a5d3b9c0cd265b8a641d2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ParamExpr</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6ConfigixERK9ParamExpr" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value that corresponds to the given parameter. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher6Config4sizeEv">
+<span id="_CPPv3NK15kernel_launcher6Config4sizeEv"></span><span id="_CPPv2NK15kernel_launcher6Config4sizeEv"></span><span id="kernel_launcher::Config::sizeC"></span><span class="target" id="structkernel__launcher_1_1Config_1a26f921187f989324f0d272d16b108ffc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher6Config4sizeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the number of parameters in this configuration. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Compiler.html" class="btn btn-neutral float-left" title="Compiler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ConfigSpace.html" class="btn btn-neutral float-right" title="ConfigSpace" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

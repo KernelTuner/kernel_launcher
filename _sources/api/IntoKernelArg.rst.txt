@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _IntoKernelArg:
+
+IntoKernelArg
+=============
+.. doxygenstruct:: kernel_launcher::IntoKernelArg

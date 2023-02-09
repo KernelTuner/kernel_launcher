@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WisdomSettings &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="add_global_capture_pattern" href="add_global_capture_pattern.html" />
+    <link rel="prev" title="WisdomRecord" href="WisdomRecord.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Compiler.html">Compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ConfigSpace.html">ConfigSpace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaArch.html">CudaArch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaContextHandle.html">CudaContextHandle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaDevice.html">CudaDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaException.html">CudaException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CudaSpan.html">CudaSpan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DefaultLoader.html">DefaultLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DefaultOracle.html">DefaultOracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FileLoader.html">FileLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ICompiler.html">ICompiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IKernelDescriptor.html">IKernelDescriptor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IntoKernelArg.html">IntoKernelArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernel.html">Kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelArg.html">KernelArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelBuilder.html">KernelBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelInstance.html">KernelInstance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelRegistry.html">KernelRegistry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelSource.html">KernelSource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NvrtcCompiler.html">NvrtcCompiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NvrtcException.html">NvrtcException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Oracle.html">Oracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ProblemSize.html">ProblemSize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TemplateArg.html">TemplateArg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TunableParam.html">TunableParam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TypeInfo.html">TypeInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Value.html">Value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Variable.html">Variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomKernel.html">WisdomKernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WisdomRecord.html">WisdomRecord</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">WisdomSettings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
+      <li class="breadcrumb-item active">WisdomSettings</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/WisdomSettings.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wisdomsettings">
+<span id="id1"></span><h1>WisdomSettings<a class="headerlink" href="#wisdomsettings" title="Permalink to this heading"></a></h1>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher14WisdomSettingsE">
+<span id="_CPPv3N15kernel_launcher14WisdomSettingsE"></span><span id="_CPPv2N15kernel_launcher14WisdomSettingsE"></span><span id="kernel_launcher::WisdomSettings"></span><span class="target" id="structkernel__launcher_1_1WisdomSettings"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WisdomSettings</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher14WisdomSettingsE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Describes how to load the configuration for a <code class="docutils literal notranslate"><a class="reference internal" href="WisdomKernel.html#structkernel__launcher_1_1WisdomKernel"><span class="std std-ref"><span class="pre">WisdomKernel</span></span></a></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePb">
+<span id="_CPPv3NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePb"></span><span id="_CPPv2NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePb"></span><span id="kernel_launcher::WisdomSettings::load_config__ssCR.ConfigSpaceCR.ProblemSize.CudaDevice.bPC"></span><span class="target" id="structkernel__launcher_1_1WisdomSettings_1ad8c2f14ed7d1e2eb6733413b88bd46aa"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Config.html#_CPPv4N15kernel_launcher6ConfigE" title="kernel_launcher::Config"><span class="n"><span class="pre">Config</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">load_config</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tuning_key</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="ConfigSpace.html#_CPPv4N15kernel_launcher11ConfigSpaceE" title="kernel_launcher::ConfigSpace"><span class="n"><span class="pre">ConfigSpace</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">space</span></span>, <a class="reference internal" href="ProblemSize.html#_CPPv4N15kernel_launcher11ProblemSizeE" title="kernel_launcher::ProblemSize"><span class="n"><span class="pre">ProblemSize</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">problem_size</span></span>, <a class="reference internal" href="CudaDevice.html#_CPPv4N15kernel_launcher10CudaDeviceE" title="kernel_launcher::CudaDevice"><span class="n"><span class="pre">CudaDevice</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">device</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">should_capture_out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePb" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Load the configuration for the given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tuning_key</strong> – The tuning key of the kernel. </p></li>
+<li><p><strong>space</strong> – The configuration space of the kernel. </p></li>
+<li><p><strong>problem_size</strong> – The current problem size. </p></li>
+<li><p><strong>device</strong> – The current device. </p></li>
+<li><p><strong>should_capture_out</strong> – Optional. Indicates if kernel must be captured. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">
+<span id="_CPPv3NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE"></span><span id="_CPPv2NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE"></span><span id="kernel_launcher::WisdomSettings::capture_kernel__ssCR.KernelBuilderCR.ProblemSize.std::vector:TypeInfo:CR.std::vector:std::vector:uint8_t::CR.std::vector:std::vector:uint8_t::CRC"></span><span class="target" id="structkernel__launcher_1_1WisdomSettings_1a5d7893703dc2c45eade21d398ee88706"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">capture_kernel</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tuning_key</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">builder</span></span>, <a class="reference internal" href="ProblemSize.html#_CPPv4N15kernel_launcher11ProblemSizeE" title="kernel_launcher::ProblemSize"><span class="n"><span class="pre">ProblemSize</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">problem_size</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="TypeInfo.html#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param_types</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint8_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">inputs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint8_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">outputs</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE" title="Permalink to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tuning_key</strong> – </p></li>
+<li><p><strong>builder</strong> – </p></li>
+<li><p><strong>problem_size</strong> – </p></li>
+<li><p><strong>param_types</strong> – </p></li>
+<li><p><strong>inputs</strong> – </p></li>
+<li><p><strong>outputs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="WisdomRecord.html" class="btn btn-neutral float-left" title="WisdomRecord" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="add_global_capture_pattern.html" class="btn btn-neutral float-right" title="add_global_capture_pattern" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

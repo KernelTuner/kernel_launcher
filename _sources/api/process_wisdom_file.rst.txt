@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _process_wisdom_file:
+
+process_wisdom_file
+===================
+.. doxygenfunction:: kernel_launcher::process_wisdom_file

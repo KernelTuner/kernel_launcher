@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _load_best_config:
+
+load_best_config
+================
+.. doxygenfunction:: kernel_launcher::load_best_config

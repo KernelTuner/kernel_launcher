@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _CudaContextHandle:
+
+CudaContextHandle
+=================
+.. doxygenstruct:: kernel_launcher::CudaContextHandle

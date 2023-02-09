@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _tuning_file_exists:
+
+tuning_file_exists
+==================
+.. doxygenfunction:: kernel_launcher::tuning_file_exists

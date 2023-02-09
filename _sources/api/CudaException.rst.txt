@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _CudaException:
+
+CudaException
+=============
+.. doxygenstruct:: kernel_launcher::CudaException

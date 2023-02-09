@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _cuda_copy:
+
+cuda_copy
+=========
+.. doxygenfunction:: kernel_launcher::cuda_copy

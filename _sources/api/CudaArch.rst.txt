@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _CudaArch:
+
+CudaArch
+========
+.. doxygenstruct:: kernel_launcher::CudaArch

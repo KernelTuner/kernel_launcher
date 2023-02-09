@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _add_global_capture_pattern:
+
+add_global_capture_pattern
+==========================
+.. doxygenfunction:: kernel_launcher::add_global_capture_pattern
