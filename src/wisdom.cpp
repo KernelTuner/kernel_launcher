@@ -513,7 +513,7 @@ void DefaultOracle::capture_kernel(
     const std::vector<TypeInfo>& param_types,
     const std::vector<std::vector<uint8_t>>& inputs,
     const std::vector<std::vector<uint8_t>>& outputs) const {
-    export_tuning_file(
+    export_capture_file(
         capture_dir_,
         tuning_key,
         builder,
@@ -546,7 +546,7 @@ bool DefaultOracle::should_capture_kernel(
         return false;
     }
 
-    if (tuning_file_exists(capture_dir_, tuning_key, problem_size)) {
+    if (capture_file_exists(capture_dir_, tuning_key, problem_size)) {
         return false;
     }
 

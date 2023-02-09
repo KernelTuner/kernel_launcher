@@ -93,6 +93,12 @@ struct Compiler: ICompiler {
         return bool(inner_);
     }
 
+    /**
+     * Construct an instance of `Compiler` around an instance of type `C`
+     * that should derive from `ICompiler`.
+     *
+     * @tparam C Type should derive from `ICompiler`.
+     */
     template<typename C>
     Compiler(C&& compiler) :
         inner_(std::make_shared<typename std::decay<C>::type>(
@@ -137,7 +143,8 @@ struct NvrtcCompiler: ICompiler {
 };
 
 /**
- * Retrieve the default compiler that is used to compile kernels.
+ * Retrieve the default compiler that is used to compile kernels. Use
+ * `set_global_default_compiler` to change the default compiler.
  */
 Compiler default_compiler();
 

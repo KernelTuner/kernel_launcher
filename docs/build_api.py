@@ -3,13 +3,17 @@ def rst_comment():
     bars = "=" * len(text)
     return f"..\n  {bars}\n  {text}\n  {bars}\n\n"
 
-def build_doxygen_page(symbol, directive):
-    content = rst_comment()
-    content += f".. _{symbol}:\n\n"
-    content += symbol + "\n" + "=" * len(symbol) + "\n"
-    content += f".. {directive}:: kernel_launcher::{symbol}\n"
 
-    filename = f"api/{symbol}.rst"
+def build_doxygen_page(name, items):
+    content = rst_comment()
+    content += f".. _{name}:\n\n"
+    content += name + "\n" + "=" * len(name) + "\n"
+
+    for item in items:
+        directive = "doxygenstruct" if item[0].isupper() else "doxygenfunction"
+        content += f".. {directive}:: kernel_launcher::{item}\n"
+
+    filename = f"api/{name}.rst"
     print(f"writing to {filename}")
 
     with open(filename, "w") as f:
@@ -26,8 +30,13 @@ def build_index_page(groups):
         body += f".. raw:: html\n\n   <h2>{groupname}</h2>\n\n"
 
         for symbol in symbols:
-            directive = "doxygenstruct" if symbol[0].isupper() else "doxygenfunction"
-            filename = build_doxygen_page(symbol, directive)
+            if isinstance(symbol, str):
+                name = symbol
+                items = [symbol]
+            else:
+                name, items = symbol
+
+            filename = build_doxygen_page(name, items)
             children.append(filename)
 
             filename = filename.replace(".rst", "")
@@ -74,15 +83,14 @@ groups = {
         "WisdomRecord",
         "Oracle",
         "DefaultOracle",
-        "append_global_wisdom_directory",
-        "default_wisdom_settings",
-        "export_tuning_file",
         "load_best_config",
         "process_wisdom_file",
-        "set_global_wisdom_directory",
-        "tuning_file_exists",
+        "default_wisdom_settings",
+        "append_global_wisdom_directory",
         "set_global_capture_directory",
         "add_global_capture_pattern",
+        "export_capture_file",
+        "capture_file_exists",
     ],
     "Registry": [
         "default_registry",
@@ -105,7 +113,7 @@ groups = {
         "CudaException",
         "CudaSpan",
         "cuda_check",
-        "cuda_copy",
+        ("cuda_copy", ["cuda_copy(CudaSpan<T>, CudaSpan<const T>)", "cuda_copy(const T*, T*, size_t)"]),
         "cuda_span",
     ],
     "Utilities": [
@@ -116,6 +124,8 @@ groups = {
         "TemplateArg",
         "TunableParam",
         "TypeInfo",
+        ("type_of", ["type_of()", "type_of(const T&)"]),
+        ("type_name", ["type_name()", "type_name(const T&)"]),
         "Value",
         "Variable",
         "KernelArg",
