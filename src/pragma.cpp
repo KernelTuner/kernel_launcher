@@ -6,7 +6,7 @@ namespace kernel_launcher {
 
 KernelBuilder build_pragma_kernel(
     const KernelSource& source,
-    const std::string& name,
+    const std::string& kernel_name,
     const std::vector<Value>& template_args,
     const FileLoader& fs) {
     // Read file
@@ -21,7 +21,7 @@ KernelBuilder build_pragma_kernel(
     auto processed_source = KernelSource(filename, result.processed_source);
 
     for (const auto& kernel : result.kernels) {
-        if (stream.matches(kernel.name, name)) {
+        if (stream.matches(kernel.name, kernel_name)) {
             return internal::builder_from_annotated_kernel(
                 stream,
                 processed_source,
@@ -31,14 +31,15 @@ KernelBuilder build_pragma_kernel(
     }
 
     throw std::runtime_error(
-        "kernel '" + name + "' was not found in file \'" + filename + "\'");
+        "kernel '" + kernel_name + "' was not found in file \'" + filename
+        + "\'");
 }
 
 PragmaKernel::PragmaKernel(
     std::string path,
-    std::string name,
+    std::string kernel_name,
     std::vector<Value> template_args) :
-    kernel_name_(std::move(name)),
+    kernel_name_(std::move(kernel_name)),
     template_args_(std::move(template_args)) {
     // Resolve absolute file path
     const char* abs_path = realpath(path.c_str(), nullptr);

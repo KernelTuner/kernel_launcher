@@ -1,9 +1,9 @@
 #include <unistd.h>
+
 #include <vector>
 
 // This is just to check that `kernel_annotated.cu` is still valid C++/CUDA code
 #include "kernel_annotated.cu"
-
 #include "kernel_launcher.h"
 #include "kernel_launcher/pragma.h"
 
