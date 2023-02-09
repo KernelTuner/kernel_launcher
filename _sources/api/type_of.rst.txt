@@ -7,4 +7,5 @@
 
 type_of
 =======
-.. doxygenfunction:: kernel_launcher::type_of
+.. doxygenfunction:: kernel_launcher::type_of()
+.. doxygenfunction:: kernel_launcher::type_of(const T&)

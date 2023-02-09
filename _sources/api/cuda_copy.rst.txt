@@ -7,4 +7,5 @@
 
 cuda_copy
 =========
-.. doxygenfunction:: kernel_launcher::cuda_copy
+.. doxygenfunction:: kernel_launcher::cuda_copy(CudaSpan<T>, CudaSpan<const T>)
+.. doxygenfunction:: kernel_launcher::cuda_copy(const T*, T*, size_t)

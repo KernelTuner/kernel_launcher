@@ -7,4 +7,5 @@
 
 type_name
 =========
-.. doxygenfunction:: kernel_launcher::type_name
+.. doxygenfunction:: kernel_launcher::type_name()
+.. doxygenfunction:: kernel_launcher::type_name(const T&)

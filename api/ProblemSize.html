@@ -134,7 +134,56 @@
 <dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ProblemSizeE">
 <span id="_CPPv3N15kernel_launcher11ProblemSizeE"></span><span id="_CPPv2N15kernel_launcher11ProblemSizeE"></span><span id="kernel_launcher::ProblemSize"></span><span class="target" id="structkernel__launcher_1_1ProblemSize"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProblemSize</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ProblemSizeE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>3-dimensional vector that describes the <code class="docutils literal notranslate"><span class="pre">dimensions</span></code> of a compute-problem. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ProblemSize11ProblemSizeE8uint32_t8uint32_t8uint32_t">
+<span id="_CPPv3N15kernel_launcher11ProblemSize11ProblemSizeE8uint32_t8uint32_t8uint32_t"></span><span id="_CPPv2N15kernel_launcher11ProblemSize11ProblemSizeE8uint32_t8uint32_t8uint32_t"></span><span id="kernel_launcher::ProblemSize::ProblemSize__uint32_t.uint32_t.uint32_tCE"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1a643012acd99bb15bfa991a9c7773ca0b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProblemSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">x</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">y</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">z</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ProblemSize11ProblemSizeE8uint32_t8uint32_t8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher11ProblemSizecv4dim3Ev">
+<span id="_CPPv3NK15kernel_launcher11ProblemSizecv4dim3Ev"></span><span id="_CPPv2NK15kernel_launcher11ProblemSizecv4dim3Ev"></span><span id="kernel_launcher::ProblemSize::castto-dim3-operatorCCE"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1ad548349e74c8425e7763b33ede04ad1d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="w"> </span><span class="n"><span class="pre">dim3</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher11ProblemSizecv4dim3Ev" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Convert this <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1ProblemSize"><span class="std std-ref"><span class="pre">ProblemSize</span></span></a></code> to a <code class="docutils literal notranslate"><span class="pre">dim3</span></code>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ProblemSizeixE6size_t">
+<span id="_CPPv3N15kernel_launcher11ProblemSizeixE6size_t"></span><span id="_CPPv2N15kernel_launcher11ProblemSizeixE6size_t"></span><span id="kernel_launcher::ProblemSize::subscript-operator__sCE"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1ac5a88267a103fe8e723e67603f417fb7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">i</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ProblemSizeixE6size_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the <code class="docutils literal notranslate"><span class="pre">i</span></code>-th component. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher11ProblemSizeixE6size_t">
+<span id="_CPPv3NK15kernel_launcher11ProblemSizeixE6size_t"></span><span id="_CPPv2NK15kernel_launcher11ProblemSizeixE6size_t"></span><span id="kernel_launcher::ProblemSize::subscript-operator__sCCE"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1abb417550cba80a09efff957cd96d3385"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">i</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher11ProblemSizeixE6size_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the <code class="docutils literal notranslate"><span class="pre">i</span></code>-th component. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ProblemSize1xE">
+<span id="_CPPv3N15kernel_launcher11ProblemSize1xE"></span><span id="_CPPv2N15kernel_launcher11ProblemSize1xE"></span><span id="kernel_launcher::ProblemSize::x__uint32_t"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1a4609dcfd393f50dcf25da53c72c920db"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ProblemSize1xE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>X axis. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ProblemSize1yE">
+<span id="_CPPv3N15kernel_launcher11ProblemSize1yE"></span><span id="_CPPv2N15kernel_launcher11ProblemSize1yE"></span><span id="kernel_launcher::ProblemSize::y__uint32_t"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1a5a57d83ab706976ffe8256bde8d5f887"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">y</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ProblemSize1yE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Y axis. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher11ProblemSize1zE">
+<span id="_CPPv3N15kernel_launcher11ProblemSize1zE"></span><span id="_CPPv2N15kernel_launcher11ProblemSize1zE"></span><span id="kernel_launcher::ProblemSize::z__uint32_t"></span><span class="target" id="structkernel__launcher_1_1ProblemSize_1a1dd71be3a8423ea99cd5a14ef2e22b38"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">z</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher11ProblemSize1zE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Z axis. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
 
 </section>
 

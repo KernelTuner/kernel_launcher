@@ -117,7 +117,7 @@ API Reference
 * :doc:`CudaException <api/CudaException>`
 * :doc:`CudaSpan <api/CudaSpan>`
 * :doc:`cuda_check <api/cuda_check>`
-* :doc:`cuda_copy <api/cuda_copy>`
+* :doc:`('cuda_copy', ['cuda_copy(CudaSpan<T>, CudaSpan<const T>)', 'cuda_copy(const T*, T*, size_t)']) <api/cuda_copy>`
 * :doc:`cuda_span <api/cuda_span>`
 
 .. raw:: html
@@ -130,8 +130,8 @@ API Reference
 * :doc:`TemplateArg <api/TemplateArg>`
 * :doc:`TunableParam <api/TunableParam>`
 * :doc:`TypeInfo <api/TypeInfo>`
-* :doc:`type_of <api/type_of>`
-* :doc:`type_name <api/type_name>`
+* :doc:`('type_of', ['type_of()', 'type_of(const T&)']) <api/type_of>`
+* :doc:`('type_name', ['type_name()', 'type_name(const T&)']) <api/type_name>`
 * :doc:`Value <api/Value>`
 * :doc:`Variable <api/Variable>`
 * :doc:`KernelArg <api/KernelArg>`
