@@ -333,13 +333,20 @@ static void parse_tune_directive(
 
     stream.consume(TokenKind::ParenR);
 
+    Value default_value = values[0];
+    if (stream.next_if("default")) {
+        stream.consume(TokenKind::ParenL);
+        default_value = parse_comptime_expr(stream, ctx);
+        stream.consume(TokenKind::ParenR);
+    }
+
     std::string var = stream.span(var_token);
 
     if (ctx.config_args.count(var) > 0) {
         stream.throw_unexpected_token(var_token, "variable redefined");
     }
 
-    auto param = builder.add(var, values, priors, values.front());
+    auto param = builder.add(var, values, priors, default_value);
     ctx.config_args.insert({var, param});
 }
 

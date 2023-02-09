@@ -105,7 +105,7 @@ namespace bar {
 #ifdef SOMECONSTANT
 #endif
 
-#pragma kernel_tuner tune(block_size=32, 64, 128, 256)
+#pragma kernel_tuner tune(block_size=32, 64, 128, 256) default(128)
 #pragma kernel_tuner problem_size(n)
 __global__ void baz(int n, const float* a) {
     if (threadIdx.x < 10) {
@@ -135,7 +135,7 @@ namespace bar {
 #ifdef SOMECONSTANT
 #endif
 
-/*#pragma kernel_tuner tune(block_size=32, 64, 128, 256)
+/*#pragma kernel_tuner tune(block_size=32, 64, 128, 256) default(128)
 #pragma kernel_tuner problem_size(n)
 */__global__ void baz(int n, const float* a) {
     if (threadIdx.x < 10) {
