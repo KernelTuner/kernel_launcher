@@ -52,12 +52,14 @@ void compile_impl(
     CudaContextHandle context,
     std::vector<TypeInfo> param_types,
     bool* should_capture = nullptr) {
+    Timer config_timer;
     Config config = impl->settings_.load_config(
         tuning_key,
         impl->builder_,
         problem_size,
         context.device(),
         should_capture);
+    config_timer.print_elapsed("load_config");
 
     // Assign result to temporary variable since compile may throw
     auto instance =
@@ -131,6 +133,8 @@ static void assert_types_equal(
 }
 
 void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
+    Timer start_time;
+
     if (!impl_) {
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
@@ -147,6 +151,7 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
         }
 
         bool should_capture = false;
+        Timer compile_time;
         compile_impl(
             impl_.get(),
             tuning_key,
@@ -154,6 +159,7 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
             CudaContextHandle::current(),
             param_types,
             &should_capture);
+        compile_time.print_elapsed("compile_impl");
 
         if (should_capture) {
             std::vector<std::vector<uint8_t>> inputs;
@@ -176,6 +182,7 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
             }
 
             try {
+                Timer capture_time;
                 impl_->settings_.capture_kernel(
                     tuning_key,
                     impl_->builder_,
@@ -183,18 +190,19 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
                     param_types,
                     inputs,
                     outputs);
+                capture_time.print_elapsed("capture");
             } catch (const std::exception& err) {
                 log_warning()
                     << "error ignored while writing tuning file for \""
                     << tuning_key << "\": " << err.what();
             }
-
-            return;
+            start_time.print_elapsed("launch");
         }
     }
 
     assert_types_equal(args, impl_->param_types_);
     impl_->instance_.launch(stream, problem_size, args);
+    start_time.print_elapsed("wisdom_launch");
 }
 
 }  // namespace kernel_launcher

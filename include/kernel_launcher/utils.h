@@ -3,6 +3,7 @@
 
 #include <cuda_runtime_api.h>
 
+#include <chrono>
 #include <functional>
 #include <iosfwd>
 #include <iostream>
@@ -346,6 +347,25 @@ template<typename T, typename... Rest>
 inline hash_t hash_fields(const T& first, const Rest&... rest) {
     return hash_combine(std::hash<T> {}(first), hash_fields(rest...));
 }
+
+struct Timer {
+    Timer() : before_(std::chrono::high_resolution_clock::now()) {}
+
+    double elapsed_sec() const {
+        auto diff = std::chrono::high_resolution_clock::now() - before_;
+        return 1e-9
+            * double(std::chrono::duration_cast<std::chrono::nanoseconds>(diff)
+                         .count());
+    }
+
+    void print_elapsed(const char* part) const {
+        double t = elapsed_sec();
+        log_info() << part << "=" << t << " sec" << std::endl;
+    }
+
+  private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> before_;
+};
 
 }  // namespace kernel_launcher
 

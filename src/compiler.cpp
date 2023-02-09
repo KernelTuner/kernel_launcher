@@ -44,8 +44,16 @@ void KernelDef::add_compiler_option(std::string option) {
 CudaModule ICompiler::compile(CudaContextHandle ctx, KernelDef def) const {
     std::string lowered_name;
     std::string ptx;
+
+    Timer ptx_timer;
     compile_ptx(std::move(def), ctx.device().arch(), ptx, lowered_name);
-    return {ptx.c_str(), lowered_name.c_str()};
+    ptx_timer.print_elapsed("compile_ptx");
+
+    Timer module_timer;
+    CudaModule module = {ptx.c_str(), lowered_name.c_str()};
+    module_timer.print_elapsed("load_module");
+
+    return module;
 }
 
 void Compiler::compile_ptx(

@@ -102,7 +102,9 @@ void KernelInstance::launch(
         ptrs[i] = args[i].as_void_ptr();
     }
 
+    Timer launch_timer;
     module_.launch(stream, grid_size, block_size, smem, ptrs.data());
+    launch_timer.print_elapsed("module_launch");
 }
 
 void KernelInstance::launch(
