@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>set_global_wisdom_directory &mdash; kernel-launcher 0.1 documentation</title>
+  <title>type_name &mdash; kernel-launcher 0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tuning_file_exists" href="tuning_file_exists.html" />
+    <link rel="next" title="type_of" href="type_of.html" />
     <link rel="prev" title="set_global_default_compiler" href="set_global_default_compiler.html" /> 
 </head>
 
@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -118,9 +119,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
-      <li class="breadcrumb-item active">set_global_wisdom_directory</li>
+      <li class="breadcrumb-item active">type_name</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/set_global_wisdom_directory.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/type_name.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -128,13 +129,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="set-global-wisdom-directory">
-<span id="id1"></span><h1>set_global_wisdom_directory<a class="headerlink" href="#set-global-wisdom-directory" title="Permalink to this heading"></a></h1>
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher27set_global_wisdom_directoryENSt6stringE">
-<span id="_CPPv3N15kernel_launcher27set_global_wisdom_directoryENSt6stringE"></span><span id="_CPPv2N15kernel_launcher27set_global_wisdom_directoryENSt6stringE"></span><span id="kernel_launcher::set_global_wisdom_directory__ss"></span><span class="target" id="wisdom_8h_1a0e7e50af865ecca873c5293c2dbdddbe"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">set_global_wisdom_directory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher27set_global_wisdom_directoryENSt6stringE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
-
+  <section id="type-name">
+<span id="id1"></span><h1>type_name<a class="headerlink" href="#type-name" title="Permalink to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “kernel_launcher::type_name” with arguments None in doxygen xml output for project “Kernel Launcher” from directory: ./_doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="w"> </span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">type_name</span><span class="p">()</span>
+<span class="o">-</span><span class="w"> </span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">type_name</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">&amp;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </section>
 
 
@@ -142,7 +148,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="set_global_default_compiler.html" class="btn btn-neutral float-left" title="set_global_default_compiler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tuning_file_exists.html" class="btn btn-neutral float-right" title="tuning_file_exists" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="type_of.html" class="btn btn-neutral float-right" title="type_of" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

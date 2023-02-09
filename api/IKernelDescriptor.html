@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -133,7 +134,36 @@
 <dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher17IKernelDescriptorE">
 <span id="_CPPv3N15kernel_launcher17IKernelDescriptorE"></span><span id="_CPPv2N15kernel_launcher17IKernelDescriptorE"></span><span id="kernel_launcher::IKernelDescriptor"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IKernelDescriptor</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher17IKernelDescriptorE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>This interface is used to implement an abstract representation for a kernel. For example, one may implement a <code class="docutils literal notranslate"><span class="pre">MatrixMultiplyDescriptor</span></code> that represents a kernel for matrix multiplication. The <code class="docutils literal notranslate"><span class="pre">build</span></code> method should return the <code class="docutils literal notranslate"><a class="reference internal" href="KernelBuilder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code> that be used to build the specific kernel.</p>
+<p>The interface is used in combination with <code class="docutils literal notranslate"><a class="reference internal" href="KernelRegistry.html#structkernel__launcher_1_1KernelRegistry"><span class="std std-ref"><span class="pre">KernelRegistry</span></span></a></code> to look up if this kernel has already been compiled. The registry is essentially a hash table that maps <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1IKernelDescriptor"><span class="std std-ref"><span class="pre">IKernelDescriptor</span></span></a></code> objects to <code class="docutils literal notranslate"><span class="pre">KernelInstance</span></code> objects. This is why this descriptor class must implement <code class="docutils literal notranslate"><span class="pre">equals</span></code> and <code class="docutils literal notranslate"><span class="pre">hash</span></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17IKernelDescriptor5buildEv">
+<span id="_CPPv3NK15kernel_launcher17IKernelDescriptor5buildEv"></span><span id="_CPPv2NK15kernel_launcher17IKernelDescriptor5buildEv"></span><span id="kernel_launcher::IKernelDescriptor::buildC"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor_1ae636a7db8682e92eb8eb5fb82cefd74c"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">build</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17IKernelDescriptor5buildEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Should return the <code class="docutils literal notranslate"><a class="reference internal" href="KernelBuilder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code> that can be used to build the kernel associated with this descriptor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor">
+<span id="_CPPv3NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor"></span><span id="_CPPv2NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor"></span><span id="kernel_launcher::IKernelDescriptor::equals__IKernelDescriptorCRC"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor_1a576439353853aca5a9a7b921b1cfa6b7"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">equals</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher17IKernelDescriptorE" title="kernel_launcher::IKernelDescriptor"><span class="n"><span class="pre">IKernelDescriptor</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">that</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Check if this descriptor is equal to another descriptor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17IKernelDescriptor4hashEv">
+<span id="_CPPv3NK15kernel_launcher17IKernelDescriptor4hashEv"></span><span id="_CPPv2NK15kernel_launcher17IKernelDescriptor4hashEv"></span><span id="kernel_launcher::IKernelDescriptor::hashC"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor_1a821081c4b21aac43742ed8003bd864c6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">hash_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hash</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17IKernelDescriptor4hashEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Return a hash of this descriptor. This is used to test for equality of two descriptors:</p>
+<p><ul class="simple">
+<li><p>Two descriptors that return the same hash MAY be identical.</p></li>
+<li><p>Two descriptors that return different hashes MUST be different.</p></li>
+</ul>
+</p>
+<p>This method is optional; its default implementation just returns <code class="docutils literal notranslate"><span class="pre">0</span></code>. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
 
 </section>
 

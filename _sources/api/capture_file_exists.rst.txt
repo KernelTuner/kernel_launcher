@@ -3,8 +3,8 @@
   This file has been auto-generated. DO NOT MODIFY ITS CONTENT
   ============================================================
 
-.. _set_global_wisdom_directory:
+.. _capture_file_exists:
 
-set_global_wisdom_directory
-===========================
-.. doxygenfunction:: kernel_launcher::set_global_wisdom_directory
+capture_file_exists
+===================
+.. doxygenfunction:: kernel_launcher::capture_file_exists

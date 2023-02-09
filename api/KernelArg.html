@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -133,7 +134,56 @@
 <dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher9KernelArgE">
 <span id="_CPPv3N15kernel_launcher9KernelArgE"></span><span id="_CPPv2N15kernel_launcher9KernelArgE"></span><span id="kernel_launcher::KernelArg"></span><span class="target" id="structkernel__launcher_1_1KernelArg"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">KernelArg</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher9KernelArgE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>An argument that will be passed to a kernel. A <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> can either be:</p>
+<p><ul class="simple">
+<li><p>A scalar such as <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">double</span></code>, etc.</p></li>
+<li><p>An array consisting of a pointer value (e.g., <code class="docutils literal notranslate"><span class="pre">int*</span></code>, <code class="docutils literal notranslate"><span class="pre">float*</span></code>) and a length that indicates the number of elements of the array’s type.</p></li>
+</ul>
+</p>
+<p>This class contains method to construct <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> and to convert it back into C++ value. Use <code class="docutils literal notranslate"><span class="pre">into_kernel_arg</span></code> to convert a value into <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK15kernel_launcher9KernelArg2toE1Tv">
+<span id="_CPPv3I0ENK15kernel_launcher9KernelArg2toEv"></span><span id="_CPPv2I0ENK15kernel_launcher9KernelArg2toEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelArg_1a8bdb22dcea718c55e5c7fe4229651e16"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0ENK15kernel_launcher9KernelArg2toE1Tv" title="kernel_launcher::KernelArg::to::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">to</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK15kernel_launcher9KernelArg2toE1Tv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Convert this <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> to a value of type <code class="docutils literal notranslate"><span class="pre">T</span></code>. Throws an exception if this value is not of type <code class="docutils literal notranslate"><span class="pre">T</span></code>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher9KernelArg8to_valueEv">
+<span id="_CPPv3NK15kernel_launcher9KernelArg8to_valueEv"></span><span id="_CPPv2NK15kernel_launcher9KernelArg8to_valueEv"></span><span id="kernel_launcher::KernelArg::to_valueC"></span><span class="target" id="structkernel__launcher_1_1KernelArg_1a626b3679fd66bf5ff6bd26cb081ba2fd"></span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">to_value</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher9KernelArg8to_valueEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Convert this <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> to a <code class="docutils literal notranslate"><a class="reference internal" href="Value.html#structkernel__launcher_1_1Value"><span class="std std-ref"><span class="pre">Value</span></span></a></code>. This is only valid for integer types (<code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">long</span></code>, <code class="docutils literal notranslate"><span class="pre">short</span></code>, etc) and floating-point types (<code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">double</span></code>, etc). Throws an exception if the inner type of this <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> cannot is not an integer or floating-point type. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher9KernelArg17to_value_or_emptyEv">
+<span id="_CPPv3NK15kernel_launcher9KernelArg17to_value_or_emptyEv"></span><span id="_CPPv2NK15kernel_launcher9KernelArg17to_value_or_emptyEv"></span><span id="kernel_launcher::KernelArg::to_value_or_emptyC"></span><span class="target" id="structkernel__launcher_1_1KernelArg_1a9b97b22b4e3f8af397a0ab3d892fe282"></span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">to_value_or_empty</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher9KernelArg17to_value_or_emptyEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Identical to <code class="docutils literal notranslate"><span class="pre">to_value</span></code>, except returns an empty <code class="docutils literal notranslate"><a class="reference internal" href="Value.html#structkernel__launcher_1_1Value"><span class="std std-ref"><span class="pre">Value</span></span></a></code> on error instead of throwing an exception. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher9KernelArg4typeEv">
+<span id="_CPPv3NK15kernel_launcher9KernelArg4typeEv"></span><span id="_CPPv2NK15kernel_launcher9KernelArg4typeEv"></span><span id="kernel_launcher::KernelArg::typeC"></span><span class="target" id="structkernel__launcher_1_1KernelArg_1ae34fa603cd9168d4965ef9a96f3e1326"></span><a class="reference internal" href="TypeInfo.html#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher9KernelArg4typeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Internal type of this object. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher9KernelArg11from_scalarE9KernelArg1T">
+<span id="_CPPv3I0EN15kernel_launcher9KernelArg11from_scalarE1T"></span><span id="_CPPv2I0EN15kernel_launcher9KernelArg11from_scalarE1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelArg_1a80bb00987d6aef4ffbac4520dbed01f9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher9KernelArgE" title="kernel_launcher::KernelArg"><span class="n"><span class="pre">KernelArg</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">from_scalar</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher9KernelArg11from_scalarE9KernelArg1T" title="kernel_launcher::KernelArg::from_scalar::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher9KernelArg11from_scalarE9KernelArg1T" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct a <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> from a scalar. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher9KernelArg10from_arrayE9KernelArgP1T6size_t">
+<span id="_CPPv3I0EN15kernel_launcher9KernelArg10from_arrayEP1T6size_t"></span><span id="_CPPv2I0EN15kernel_launcher9KernelArg10from_arrayEP1T6size_t"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1KernelArg_1a1b52305f47194bc95e75221a493e5d0a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher9KernelArgE" title="kernel_launcher::KernelArg"><span class="n"><span class="pre">KernelArg</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">from_array</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher9KernelArg10from_arrayE9KernelArgP1T6size_t" title="kernel_launcher::KernelArg::from_array::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">value</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nelements</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher9KernelArg10from_arrayE9KernelArgP1T6size_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct a <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code> from an array. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
 
 </section>
 

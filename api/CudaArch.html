@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -139,7 +140,19 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher8CudaArch8CudaArchEii">
 <span id="_CPPv3N15kernel_launcher8CudaArch8CudaArchEii"></span><span id="_CPPv2N15kernel_launcher8CudaArch8CudaArchEii"></span><span id="kernel_launcher::CudaArch::CudaArch__i.i"></span><span class="target" id="structkernel__launcher_1_1CudaArch_1a206af0877479443889c431e239c5be41"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CudaArch</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">major</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">minor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher8CudaArch8CudaArchEii" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Create new <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1CudaArch"><span class="std std-ref"><span class="pre">CudaArch</span></span></a></code> object. </p>
+<dd><p>Create new <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1CudaArch"><span class="std std-ref"><span class="pre">CudaArch</span></span></a></code> object from <code class="docutils literal notranslate"><span class="pre">major</span></code> and <code class="docutils literal notranslate"><span class="pre">minor</span></code> version </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher8CudaArch8CudaArchEi">
+<span id="_CPPv3N15kernel_launcher8CudaArch8CudaArchEi"></span><span id="_CPPv2N15kernel_launcher8CudaArch8CudaArchEi"></span><span id="kernel_launcher::CudaArch::CudaArch__i"></span><span class="target" id="structkernel__launcher_1_1CudaArch_1a7cc1f131d37e16bc60bca611a15fe3d5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CudaArch</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">version</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher8CudaArch8CudaArchEi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Create new <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1CudaArch"><span class="std std-ref"><span class="pre">CudaArch</span></span></a></code> object from compound version number (such as 82) </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8CudaArch3getEv">
+<span id="_CPPv3NK15kernel_launcher8CudaArch3getEv"></span><span id="_CPPv2NK15kernel_launcher8CudaArch3getEv"></span><span id="kernel_launcher::CudaArch::getC"></span><span class="target" id="structkernel__launcher_1_1CudaArch_1a85d801df850ae66afb152c6c269deee9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8CudaArch3getEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the compund version (for example, <code class="docutils literal notranslate"><span class="pre">82</span></code> for version <code class="docutils literal notranslate"><span class="pre">8.2</span></code>) </p>
 </dd></dl>
 
 <dl class="cpp function">

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>export_tuning_file &mdash; kernel-launcher 0.1 documentation</title>
+  <title>type_of &mdash; kernel-launcher 0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="into_kernel_arg" href="into_kernel_arg.html" />
-    <link rel="prev" title="default_wisdom_settings" href="default_wisdom_settings.html" /> 
+    <link rel="next" title="Environment Variables" href="../env_vars.html" />
+    <link rel="prev" title="type_name" href="type_name.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -118,9 +119,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
-      <li class="breadcrumb-item active">export_tuning_file</li>
+      <li class="breadcrumb-item active">type_of</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/export_tuning_file.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/type_of.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -128,21 +129,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="export-tuning-file">
-<span id="id1"></span><h1>export_tuning_file<a class="headerlink" href="#export-tuning-file" title="Permalink to this heading"></a></h1>
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher18export_tuning_fileERKNSt6stringERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">
-<span id="_CPPv3N15kernel_launcher18export_tuning_fileERKNSt6stringERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE"></span><span id="_CPPv2N15kernel_launcher18export_tuning_fileERKNSt6stringERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE"></span><span id="kernel_launcher::export_tuning_file__ssCR.ssCR.KernelBuilderCR.ProblemSize.std::vector:TypeInfo:CR.std::vector:std::vector:uint8_t::CR.std::vector:std::vector:uint8_t::CR"></span><span class="target" id="export_8h_1a1ee83cc40e9e9d3d61c97b1263fc0970"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">export_tuning_file</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">directory</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tuning_key</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">builder</span></span>, <a class="reference internal" href="ProblemSize.html#_CPPv4N15kernel_launcher11ProblemSizeE" title="kernel_launcher::ProblemSize"><span class="n"><span class="pre">ProblemSize</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">problem_size</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="TypeInfo.html#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">param_types</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint8_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">inputs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint8_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">outputs</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher18export_tuning_fileERKNSt6stringERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
-
+  <section id="type-of">
+<span id="id1"></span><h1>type_of<a class="headerlink" href="#type-of" title="Permalink to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “kernel_launcher::type_of” with arguments None in doxygen xml output for project “Kernel Launcher” from directory: ./_doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="w"> </span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">TypeInfo</span><span class="w"> </span><span class="n">type_of</span><span class="p">()</span>
+<span class="o">-</span><span class="w"> </span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">TypeInfo</span><span class="w"> </span><span class="n">type_of</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">&amp;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="default_wisdom_settings.html" class="btn btn-neutral float-left" title="default_wisdom_settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="into_kernel_arg.html" class="btn btn-neutral float-right" title="into_kernel_arg" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="type_name.html" class="btn btn-neutral float-left" title="type_name" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../env_vars.html" class="btn btn-neutral float-right" title="Environment Variables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

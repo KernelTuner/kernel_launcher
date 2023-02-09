@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -134,6 +135,54 @@
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher10CudaDeviceE">
 <span id="_CPPv3N15kernel_launcher10CudaDeviceE"></span><span id="_CPPv2N15kernel_launcher10CudaDeviceE"></span><span id="kernel_launcher::CudaDevice"></span><span class="target" id="structkernel__launcher_1_1CudaDevice"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CudaDevice</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher10CudaDeviceE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Wrapper around <code class="docutils literal notranslate"><span class="pre">CUdevice</span></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher10CudaDevice4nameEv">
+<span id="_CPPv3NK15kernel_launcher10CudaDevice4nameEv"></span><span id="_CPPv2NK15kernel_launcher10CudaDevice4nameEv"></span><span id="kernel_launcher::CudaDevice::nameC"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1aa48a963cea3460e175b95fa8959a8e77"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher10CudaDevice4nameEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the name of the current device </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher10CudaDevice9attributeE18CUdevice_attribute">
+<span id="_CPPv3NK15kernel_launcher10CudaDevice9attributeE18CUdevice_attribute"></span><span id="_CPPv2NK15kernel_launcher10CudaDevice9attributeE18CUdevice_attribute"></span><span id="kernel_launcher::CudaDevice::attribute__CUdevice_attributeC"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1a54b3ffc4292d799ea4db2338dcc68dc8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">attribute</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">CUdevice_attribute</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">key</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher10CudaDevice9attributeE18CUdevice_attribute" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the value of this device for the given attribute. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher10CudaDevice7ordinalEv">
+<span id="_CPPv3NK15kernel_launcher10CudaDevice7ordinalEv"></span><span id="_CPPv2NK15kernel_launcher10CudaDevice7ordinalEv"></span><span id="kernel_launcher::CudaDevice::ordinalC"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1afce2863fdabc78be1f476a0290f3525d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ordinal</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher10CudaDevice7ordinalEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the ordinal number associated with this device in CUDA. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher10CudaDevice4uuidEv">
+<span id="_CPPv3NK15kernel_launcher10CudaDevice4uuidEv"></span><span id="_CPPv2NK15kernel_launcher10CudaDevice4uuidEv"></span><span id="kernel_launcher::CudaDevice::uuidC"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1ac6b1d0c07352e95e5e0192a6b00998e2"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uuid</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher10CudaDevice4uuidEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the device’s 128-bit UUID as a string in hexadecimal notation. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher10CudaDevice3getEv">
+<span id="_CPPv3NK15kernel_launcher10CudaDevice3getEv"></span><span id="_CPPv2NK15kernel_launcher10CudaDevice3getEv"></span><span id="kernel_launcher::CudaDevice::getC"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1ad3189ccbe47cb71c84329b15793cbe19"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">CUdevice</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher10CudaDevice3getEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the underlying <code class="docutils literal notranslate"><span class="pre">CUcontext</span></code>. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher10CudaDevice5countEv">
+<span id="_CPPv3N15kernel_launcher10CudaDevice5countEv"></span><span id="_CPPv2N15kernel_launcher10CudaDevice5countEv"></span><span id="kernel_launcher::CudaDevice::count"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1ac20189bd221521d6cf0908338b1e81b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher10CudaDevice5countEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the number of CUDA-capable devices in the current context. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher10CudaDevice7currentEv">
+<span id="_CPPv3N15kernel_launcher10CudaDevice7currentEv"></span><span id="_CPPv2N15kernel_launcher10CudaDevice7currentEv"></span><span id="kernel_launcher::CudaDevice::current"></span><span class="target" id="structkernel__launcher_1_1CudaDevice_1a283e0a799bbb087d83fc22dfcfd6d030"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher10CudaDeviceE" title="kernel_launcher::CudaDevice"><span class="n"><span class="pre">CudaDevice</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">current</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher10CudaDevice7currentEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the device associated with the current <code class="docutils literal notranslate"><a class="reference internal" href="CudaContextHandle.html#structkernel__launcher_1_1CudaContextHandle"><span class="std std-ref"><span class="pre">CudaContextHandle</span></span></a></code>. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>

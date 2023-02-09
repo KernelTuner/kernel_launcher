@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -133,7 +134,25 @@
 <dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher14KernelRegistryE">
 <span id="_CPPv3N15kernel_launcher14KernelRegistryE"></span><span id="_CPPv2N15kernel_launcher14KernelRegistryE"></span><span id="kernel_launcher::KernelRegistry"></span><span class="target" id="structkernel__launcher_1_1KernelRegistry"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">KernelRegistry</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher14KernelRegistryE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>A registry can be used to cache kernel compilations. Each registry is essentially a table that maps <code class="docutils literal notranslate"><a class="reference internal" href="IKernelDescriptor.html#structkernel__launcher_1_1IKernelDescriptor"><span class="std std-ref"><span class="pre">IKernelDescriptor</span></span></a></code> objects to <code class="docutils literal notranslate"><a class="reference internal" href="WisdomKernel.html#structkernel__launcher_1_1WisdomKernel"><span class="std std-ref"><span class="pre">WisdomKernel</span></span></a></code> objects.</p>
+<p>There is a single global registry that is available with <code class="docutils literal notranslate"><span class="pre">default_registry</span></code>. However, it is also possible to construct a local <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1KernelRegistry"><span class="std std-ref"><span class="pre">KernelRegistry</span></span></a></code>.</p>
+<p>This class is thread-safe. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher14KernelRegistry14KernelRegistryE8Compiler14WisdomSettings">
+<span id="_CPPv3N15kernel_launcher14KernelRegistry14KernelRegistryE8Compiler14WisdomSettings"></span><span id="_CPPv2N15kernel_launcher14KernelRegistry14KernelRegistryE8Compiler14WisdomSettings"></span><span id="kernel_launcher::KernelRegistry::KernelRegistry__Compiler.WisdomSettings"></span><span class="target" id="structkernel__launcher_1_1KernelRegistry_1a1d5b0f409bf4c61c5d727d6a7e0e24f7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">KernelRegistry</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Compiler.html#_CPPv4N15kernel_launcher8CompilerE" title="kernel_launcher::Compiler"><span class="n"><span class="pre">Compiler</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">compiler</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="default_compiler.html#_CPPv4N15kernel_launcher16default_compilerEv" title="kernel_launcher::default_compiler"><span class="n"><span class="pre">default_compiler</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span>, <a class="reference internal" href="WisdomSettings.html#_CPPv4N15kernel_launcher14WisdomSettingsE" title="kernel_launcher::WisdomSettings"><span class="n"><span class="pre">WisdomSettings</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">settings</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="default_wisdom_settings.html#_CPPv4N15kernel_launcher23default_wisdom_settingsEv" title="kernel_launcher::default_wisdom_settings"><span class="n"><span class="pre">default_wisdom_settings</span></span></a><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher14KernelRegistry14KernelRegistryE8Compiler14WisdomSettings" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct new registry. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher14KernelRegistry6lookupE16KernelDescriptor">
+<span id="_CPPv3NK15kernel_launcher14KernelRegistry6lookupE16KernelDescriptor"></span><span id="_CPPv2NK15kernel_launcher14KernelRegistry6lookupE16KernelDescriptor"></span><span id="kernel_launcher::KernelRegistry::lookup__KernelDescriptorC"></span><span class="target" id="structkernel__launcher_1_1KernelRegistry_1a404cac862d1227c62463ef479e6dd048"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernelE" title="kernel_launcher::WisdomKernel"><span class="n"><span class="pre">WisdomKernel</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">lookup</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">KernelDescriptor</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">descriptor</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher14KernelRegistry6lookupE16KernelDescriptor" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Look up the <code class="docutils literal notranslate"><a class="reference internal" href="WisdomKernel.html#structkernel__launcher_1_1WisdomKernel"><span class="std std-ref"><span class="pre">WisdomKernel</span></span></a></code> associated with the given descriptor. This will instantiate a new <code class="docutils literal notranslate"><a class="reference internal" href="WisdomKernel.html#structkernel__launcher_1_1WisdomKernel"><span class="std std-ref"><span class="pre">WisdomKernel</span></span></a></code> if not yet available. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
 
 </section>
 

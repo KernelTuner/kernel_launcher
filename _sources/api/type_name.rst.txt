@@ -1,0 +1,10 @@
+..
+  ============================================================
+  This file has been auto-generated. DO NOT MODIFY ITS CONTENT
+  ============================================================
+
+.. _type_name:
+
+type_name
+=========
+.. doxygenfunction:: kernel_launcher::type_name

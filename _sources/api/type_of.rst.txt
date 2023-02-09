@@ -3,8 +3,8 @@
   This file has been auto-generated. DO NOT MODIFY ITS CONTENT
   ============================================================
 
-.. _tuning_file_exists:
+.. _type_of:
 
-tuning_file_exists
-==================
-.. doxygenfunction:: kernel_launcher::tuning_file_exists
+type_of
+=======
+.. doxygenfunction:: kernel_launcher::type_of

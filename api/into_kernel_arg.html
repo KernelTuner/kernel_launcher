@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="load_best_config" href="load_best_config.html" />
-    <link rel="prev" title="export_tuning_file" href="export_tuning_file.html" /> 
+    <link rel="prev" title="export_capture_file" href="export_capture_file.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -133,7 +134,27 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher15into_kernel_argE9KernelArgRR1T">
 <span id="_CPPv3I0EN15kernel_launcher15into_kernel_argERR1T"></span><span id="_CPPv2I0EN15kernel_launcher15into_kernel_argERR1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="arg_8h_1a0adf00591213f9b2214dbbbc458cc55c"></span><a class="reference internal" href="KernelArg.html#_CPPv4N15kernel_launcher9KernelArgE" title="kernel_launcher::KernelArg"><span class="n"><span class="pre">KernelArg</span></span></a><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">into_kernel_arg</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN15kernel_launcher15into_kernel_argE9KernelArgRR1T" title="kernel_launcher::into_kernel_arg::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher15into_kernel_argE9KernelArgRR1T" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>Convert the given <code class="docutils literal notranslate"><span class="pre">value</span></code> into a <code class="docutils literal notranslate"><a class="reference internal" href="KernelArg.html#structkernel__launcher_1_1KernelArg"><span class="std std-ref"><span class="pre">KernelArg</span></span></a></code>. This is done by calling <code class="docutils literal notranslate"><a class="reference internal" href="IntoKernelArg.html#structkernel__launcher_1_1IntoKernelArg"><span class="std std-ref"><span class="pre">IntoKernelArg</span></span></a><span class="pre">&lt;T&gt;::convert(value)</span></code> which, by default, just calls <code class="docutils literal notranslate"><a class="reference internal" href="KernelArg.html#structkernel__launcher_1_1KernelArg_1a80bb00987d6aef4ffbac4520dbed01f9"><span class="std std-ref"><span class="pre">KernelArg::from_scalar</span></span></a><span class="pre">&lt;T&gt;(value)</span></code>.</p>
+<p>It is possible to overload this function by specializing <code class="docutils literal notranslate"><a class="reference internal" href="IntoKernelArg.html#structkernel__launcher_1_1IntoKernelArg"><span class="std std-ref"><span class="pre">IntoKernelArg</span></span></a></code>. For example:</p>
+<p><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="nn">kernel_launcher</span><span class="w"> </span><span class="p">{</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;&gt;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">IntoKernelArg</span><span class="o">&lt;</span><span class="n">mypackage</span><span class="o">::</span><span class="n">MyIntegerType</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">KernelArg</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">mypackage</span><span class="o">::</span><span class="n">MyIntegerType</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">KernelArg</span><span class="o">::</span><span class="n">from_scalar</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">to_int</span><span class="p">());</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;&gt;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">IntoKernelArg</span><span class="o">&lt;</span><span class="n">mypackage</span><span class="o">::</span><span class="n">MyArrayType</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">KernelArg</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">mypackage</span><span class="o">::</span><span class="n">MyArrayType</span><span class="w"> </span><span class="n">arr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">KernelArg</span><span class="o">::</span><span class="n">from_array</span><span class="p">(</span><span class="n">arr</span><span class="p">.</span><span class="n">ptr</span><span class="p">(),</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="n">length</span><span class="p">());</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
 
 </section>
 
@@ -141,7 +162,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="export_tuning_file.html" class="btn btn-neutral float-left" title="export_tuning_file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="export_capture_file.html" class="btn btn-neutral float-left" title="export_capture_file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="load_best_config.html" class="btn btn-neutral float-right" title="load_best_config" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

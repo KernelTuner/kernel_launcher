@@ -43,20 +43,21 @@ API Reference
    api/WisdomSettings.rst
    api/add_global_capture_pattern.rst
    api/append_global_wisdom_directory.rst
+   api/capture_file_exists.rst
    api/cuda_check.rst
    api/cuda_copy.rst
    api/cuda_span.rst
    api/default_compiler.rst
    api/default_registry.rst
    api/default_wisdom_settings.rst
-   api/export_tuning_file.rst
+   api/export_capture_file.rst
    api/into_kernel_arg.rst
    api/load_best_config.rst
    api/process_wisdom_file.rst
    api/set_global_capture_directory.rst
    api/set_global_default_compiler.rst
-   api/set_global_wisdom_directory.rst
-   api/tuning_file_exists.rst
+   api/type_name.rst
+   api/type_of.rst
 
 .. raw:: html
 
@@ -78,15 +79,14 @@ API Reference
 * :doc:`WisdomRecord <api/WisdomRecord>`
 * :doc:`Oracle <api/Oracle>`
 * :doc:`DefaultOracle <api/DefaultOracle>`
-* :doc:`append_global_wisdom_directory <api/append_global_wisdom_directory>`
-* :doc:`default_wisdom_settings <api/default_wisdom_settings>`
-* :doc:`export_tuning_file <api/export_tuning_file>`
 * :doc:`load_best_config <api/load_best_config>`
 * :doc:`process_wisdom_file <api/process_wisdom_file>`
-* :doc:`set_global_wisdom_directory <api/set_global_wisdom_directory>`
-* :doc:`tuning_file_exists <api/tuning_file_exists>`
+* :doc:`default_wisdom_settings <api/default_wisdom_settings>`
+* :doc:`append_global_wisdom_directory <api/append_global_wisdom_directory>`
 * :doc:`set_global_capture_directory <api/set_global_capture_directory>`
 * :doc:`add_global_capture_pattern <api/add_global_capture_pattern>`
+* :doc:`export_capture_file <api/export_capture_file>`
+* :doc:`capture_file_exists <api/capture_file_exists>`
 
 .. raw:: html
 
@@ -130,6 +130,8 @@ API Reference
 * :doc:`TemplateArg <api/TemplateArg>`
 * :doc:`TunableParam <api/TunableParam>`
 * :doc:`TypeInfo <api/TypeInfo>`
+* :doc:`type_of <api/type_of>`
+* :doc:`type_name <api/type_name>`
 * :doc:`Value <api/Value>`
 * :doc:`Variable <api/Variable>`
 * :doc:`KernelArg <api/KernelArg>`

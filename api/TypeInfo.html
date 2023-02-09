@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -133,7 +134,81 @@
 <dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher8TypeInfoE">
 <span id="_CPPv3N15kernel_launcher8TypeInfoE"></span><span id="_CPPv2N15kernel_launcher8TypeInfoE"></span><span id="kernel_launcher::TypeInfo"></span><span class="target" id="structkernel__launcher_1_1TypeInfo"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeInfo</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher8TypeInfoE" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>Runtime specification of a compile time type. Use the function <code class="docutils literal notranslate"><span class="pre">type_of&lt;T&gt;()</span></code> to obtain an instance of <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1TypeInfo"><span class="std std-ref"><span class="pre">TypeInfo</span></span></a></code> for some type <code class="docutils literal notranslate"><span class="pre">T</span></code>.</p>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">type_of&lt;int&gt;().</span><a class="reference internal" href="#structkernel__launcher_1_1TypeInfo_1a862649396a2ae2ff0f9cb04a0c808c48"><span class="std std-ref"><span class="pre">name()</span></span></a></code> should return <code class="docutils literal notranslate"><span class="pre">&quot;int&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">type_of&lt;float*&gt;().</span><a class="reference internal" href="#structkernel__launcher_1_1TypeInfo_1af02bcb982227291ca87b5f3ad01b234c"><span class="std std-ref"><span class="pre">is_pointer()</span></span></a></code> should return <code class="docutils literal notranslate"><span class="pre">true</span></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo4nameEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo4nameEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo4nameEv"></span><span id="kernel_launcher::TypeInfo::nameC"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1a862649396a2ae2ff0f9cb04a0c808c48"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo4nameEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Canonical name of this type in C++. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo4sizeEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo4sizeEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo4sizeEv"></span><span id="kernel_launcher::TypeInfo::sizeCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1a8be6654127bfcda15faf19e116d35f8a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo4sizeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Storage size of this type in bytes. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo9alignmentEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo9alignmentEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo9alignmentEv"></span><span id="kernel_launcher::TypeInfo::alignmentCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1accba777c62abd222e65ec0f1008c70e2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">alignment</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo9alignmentEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Alignment of this type in bytes. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo10is_pointerEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo10is_pointerEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo10is_pointerEv"></span><span id="kernel_launcher::TypeInfo::is_pointerCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1af02bcb982227291ca87b5f3ad01b234c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_pointer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo10is_pointerEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Is this type a pointer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo8is_constEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo8is_constEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo8is_constEv"></span><span id="kernel_launcher::TypeInfo::is_constCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1a31cd4c97ff928a6f73599337d370585d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_const</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo8is_constEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Is this type <code class="docutils literal notranslate"><span class="pre">const</span></code>. For example, <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">int</span></code> and <code class="docutils literal notranslate"><span class="pre">float*</span> <span class="pre">const</span></code> are constant, but <code class="docutils literal notranslate"><span class="pre">int</span></code> and <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">float*</span></code> are not constant. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo8is_emptyEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo8is_emptyEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo8is_emptyEv"></span><span id="kernel_launcher::TypeInfo::is_emptyCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1a0f3afc4aec3b063f15a9020fb6caf936"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_empty</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo8is_emptyEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Check if this type is empty, i.e., a class with no non-static fields. Similar to <code class="docutils literal notranslate"><span class="pre">std::is_empty</span></code> but callable at runtime. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo21is_trivially_copyableEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo21is_trivially_copyableEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo21is_trivially_copyableEv"></span><span id="kernel_launcher::TypeInfo::is_trivially_copyableCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1a48709b60c26776f7104f5760943906a6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_trivially_copyable</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo21is_trivially_copyableEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Check if this type is trivial copyable, i.e., no ctor or dtor. Similar to <code class="docutils literal notranslate"><span class="pre">std::is_trivially_copyable</span></code> but callable at runtime. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo14remove_pointerEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo14remove_pointerEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo14remove_pointerEv"></span><span id="kernel_launcher::TypeInfo::remove_pointerCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1ab42df6a7df9cc03adc04328f2902fce3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">remove_pointer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo14remove_pointerEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>If this type is a pointer, returns the type pointed to by this type. Similar to <code class="docutils literal notranslate"><span class="pre">std::remove_pointer</span></code> but callable at runtime. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo12remove_constEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo12remove_constEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo12remove_constEv"></span><span id="kernel_launcher::TypeInfo::remove_constCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1ada8bf382b6c02750744033fb0c896732"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">remove_const</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo12remove_constEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>If this type is <code class="docutils literal notranslate"><span class="pre">const</span></code>, returns the type without <code class="docutils literal notranslate"><span class="pre">const</span></code>. Similar to <code class="docutils literal notranslate"><span class="pre">std::remove_const</span></code> but callable at runtime. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher8TypeInfo9add_constEv">
+<span id="_CPPv3NK15kernel_launcher8TypeInfo9add_constEv"></span><span id="_CPPv2NK15kernel_launcher8TypeInfo9add_constEv"></span><span id="kernel_launcher::TypeInfo::add_constCCE"></span><span class="target" id="structkernel__launcher_1_1TypeInfo_1a98c6c19fe465d07ddf368727cd076695"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_const</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher8TypeInfo9add_constEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>If this type is not <code class="docutils literal notranslate"><span class="pre">const</span></code>, returns the type with <code class="docutils literal notranslate"><span class="pre">const</span></code>. Similar to <code class="docutils literal notranslate"><span class="pre">std::add_const</span></code> but callable at runtime. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN15kernel_launcher8TypeInfo2ofE8TypeInfov">
+<span id="_CPPv3I0EN15kernel_launcher8TypeInfo2ofEv"></span><span id="_CPPv2I0EN15kernel_launcher8TypeInfo2ofEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structkernel__launcher_1_1TypeInfo_1ade541985c4a1403114b472e06eb6c20e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher8TypeInfoE" title="kernel_launcher::TypeInfo"><span class="n"><span class="pre">TypeInfo</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">of</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN15kernel_launcher8TypeInfo2ofE8TypeInfov" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1TypeInfo"><span class="std std-ref"><span class="pre">TypeInfo</span></span></a></code> for type <code class="docutils literal notranslate"><span class="pre">T</span></code>. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
 
 </section>
 

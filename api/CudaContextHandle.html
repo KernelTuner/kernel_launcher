@@ -82,20 +82,21 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_span.html">cuda_span</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_compiler.html">default_compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_registry.html">default_registry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="default_wisdom_settings.html">default_wisdom_settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="export_tuning_file.html">export_tuning_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_capture_file.html">export_capture_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="into_kernel_arg.html">into_kernel_arg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="load_best_config.html">load_best_config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="process_wisdom_file.html">process_wisdom_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_capture_directory.html">set_global_capture_directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="set_global_default_compiler.html">set_global_default_compiler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="set_global_wisdom_directory.html">set_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tuning_file_exists.html">tuning_file_exists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_name.html">type_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_of.html">type_of</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
@@ -134,6 +135,30 @@
 <dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher17CudaContextHandleE">
 <span id="_CPPv3N15kernel_launcher17CudaContextHandleE"></span><span id="_CPPv2N15kernel_launcher17CudaContextHandleE"></span><span id="kernel_launcher::CudaContextHandle"></span><span class="target" id="structkernel__launcher_1_1CudaContextHandle"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CudaContextHandle</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher17CudaContextHandleE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Wrapper around <code class="docutils literal notranslate"><span class="pre">CUcontext</span></code>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17CudaContextHandle6deviceEv">
+<span id="_CPPv3NK15kernel_launcher17CudaContextHandle6deviceEv"></span><span id="_CPPv2NK15kernel_launcher17CudaContextHandle6deviceEv"></span><span id="kernel_launcher::CudaContextHandle::deviceC"></span><span class="target" id="structkernel__launcher_1_1CudaContextHandle_1a35f74c7080d05a0319899109635b185d"></span><a class="reference internal" href="CudaDevice.html#_CPPv4N15kernel_launcher10CudaDeviceE" title="kernel_launcher::CudaDevice"><span class="n"><span class="pre">CudaDevice</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">device</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17CudaContextHandle6deviceEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the <code class="docutils literal notranslate"><a class="reference internal" href="CudaDevice.html#structkernel__launcher_1_1CudaDevice"><span class="std std-ref"><span class="pre">CudaDevice</span></span></a></code> associated with this context. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17CudaContextHandle3getEv">
+<span id="_CPPv3NK15kernel_launcher17CudaContextHandle3getEv"></span><span id="_CPPv2NK15kernel_launcher17CudaContextHandle3getEv"></span><span id="kernel_launcher::CudaContextHandle::getC"></span><span class="target" id="structkernel__launcher_1_1CudaContextHandle_1ab85aa20b8e6b775e3198a63339741795"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">CUcontext</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17CudaContextHandle3getEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the underlying <code class="docutils literal notranslate"><span class="pre">CUcontext</span></code>. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher17CudaContextHandle7currentEv">
+<span id="_CPPv3N15kernel_launcher17CudaContextHandle7currentEv"></span><span id="_CPPv2N15kernel_launcher17CudaContextHandle7currentEv"></span><span id="kernel_launcher::CudaContextHandle::current"></span><span class="target" id="structkernel__launcher_1_1CudaContextHandle_1a1c34fe2bad1653d05468eb297a8d8b9c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher17CudaContextHandleE" title="kernel_launcher::CudaContextHandle"><span class="n"><span class="pre">CudaContextHandle</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">current</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher17CudaContextHandle7currentEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the current CUDA context or throws an error if CUDA has not been initialized yet. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 </section>
