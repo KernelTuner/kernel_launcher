@@ -61,6 +61,7 @@ static Expr process_function_call(
     }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 static Expr parse_ident(Token t, TokenStream& stream, const Context& ctx) {
     if (stream.next_if(TokenKind::ParenL)) {
         std::vector<Expr> args;
@@ -119,6 +120,13 @@ static Expr parse_ident(Token t, TokenStream& stream, const Context& ctx) {
             return it->second;
         }
     }
+
+#define CHECK_DEVICE_ATTRIBUTE(attr) \
+    if (name == "DEVICE_" #attr) {   \
+        return DEVICE_##attr;        \
+    }
+
+    KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(CHECK_DEVICE_ATTRIBUTE)
 
     stream.throw_unexpected_token(t, "unknown variable name");
 }
@@ -205,6 +213,7 @@ static Expr parse_prim(TokenStream& stream, const Context& ctx) {
     }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 static Expr parse_binop(TokenStream& stream, const Context& ctx, int prec) {
     // TODO: == != <= >= && || %
     Expr lhs = parse_prim(stream, ctx);
