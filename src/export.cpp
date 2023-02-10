@@ -437,7 +437,7 @@ static std::string tuning_key_to_file_name(
     return path_join(directory, file);
 }
 
-bool tuning_file_exists(
+bool capture_file_exists(
     const std::string& directory,
     const std::string& tuning_key,
     ProblemSize problem_size) {
@@ -446,7 +446,7 @@ bool tuning_file_exists(
     return (bool)std::ifstream(file_name);
 }
 
-void export_tuning_file(
+void export_capture_file(
     const std::string& directory,
     const std::string& tuning_key,
     const KernelBuilder& builder,

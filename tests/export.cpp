@@ -71,7 +71,7 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
             c_ref[i] = a[i] + b[i];
         }
 
-        export_tuning_file(
+        export_capture_file(
             tmp_dir,
             "vector_add_key",
             builder,
@@ -123,7 +123,7 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
             }
         }
 
-        export_tuning_file(
+        export_capture_file(
             tmp_dir,
             "matmul_key",
             builder,
