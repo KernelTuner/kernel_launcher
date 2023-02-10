@@ -354,22 +354,23 @@ struct DeviceAttributeExpr: BaseExpr, Variable {
 };
 
 #define KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(F) \
-    F(MAX_THREADS_PER_BLOCK)                        \
+    F(COMPUTE_CAPABILITY_MAJOR)                     \
+    F(COMPUTE_CAPABILITY_MINOR)                     \
+    F(MAX_BLOCKS_PER_MULTIPROCESSOR)                \
     F(MAX_BLOCK_DIM_X)                              \
     F(MAX_BLOCK_DIM_Y)                              \
     F(MAX_BLOCK_DIM_Z)                              \
     F(MAX_GRID_DIM_X)                               \
     F(MAX_GRID_DIM_Y)                               \
     F(MAX_GRID_DIM_Z)                               \
-    F(MAX_SHARED_MEMORY_PER_BLOCK)                  \
-    F(WARP_SIZE)                                    \
     F(MAX_REGISTERS_PER_BLOCK)                      \
-    F(MULTIPROCESSOR_COUNT)                         \
-    F(MAX_THREADS_PER_MULTIPROCESSOR)               \
-    F(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)         \
     F(MAX_REGISTERS_PER_MULTIPROCESSOR)             \
-    F(COMPUTE_CAPABILITY_MAJOR)                     \
-    F(COMPUTE_CAPABILITY_MINOR)
+    F(MAX_SHARED_MEMORY_PER_BLOCK)                  \
+    F(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)         \
+    F(MAX_THREADS_PER_BLOCK)                        \
+    F(MAX_THREADS_PER_MULTIPROCESSOR)               \
+    F(MULTIPROCESSOR_COUNT)                         \
+    F(WARP_SIZE)
 
 #define KERNEL_LAUNCHER_DEFINE_DEVICE_ATTRIBUTE(name) \
     static DeviceAttributeExpr DEVICE_##name = CU_DEVICE_ATTRIBUTE_##name;
