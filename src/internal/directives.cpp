@@ -25,7 +25,7 @@ struct Context {
     std::unordered_map<std::string, Expr> user_args;
 };
 
-static Expr parse_expr(TokenStream& stream, const Context& ctx, int prec = 0);
+static Expr parse_expr(TokenStream& stream, const Context& ctx);
 
 static Expr process_function_call(
     Token t,
@@ -195,45 +195,66 @@ static Expr parse_prim(TokenStream& stream, const Context& ctx) {
         }
         return ScalarExpr(l);
     } else if (stream.matches(t, '-')) {
-        return -parse_expr(stream, ctx);
+        return -parse_prim(stream, ctx);
     } else if (stream.matches(t, '+')) {
-        return +parse_expr(stream, ctx);
+        return +parse_prim(stream, ctx);
     } else if (stream.matches(t, '!')) {
-        return !parse_expr(stream, ctx);
+        return !parse_prim(stream, ctx);
     } else {
         stream.throw_unexpected_token(t, "expecting expression");
     }
 }
 
-static Expr parse_expr(TokenStream& stream, const Context& ctx, int prec) {
+static Expr parse_binop(TokenStream& stream, const Context& ctx, int prec) {
     // TODO: == != <= >= && || %
     Expr lhs = parse_prim(stream, ctx);
 
     while (true) {
         if (prec < 6 && stream.next_if('*')) {
-            lhs = lhs * parse_expr(stream, ctx, 6);
+            lhs = lhs * parse_binop(stream, ctx, 6);
         } else if (prec < 6 && stream.next_if('/')) {
-            lhs = lhs / parse_expr(stream, ctx, 6);
+            lhs = lhs / parse_binop(stream, ctx, 6);
         } else if (prec < 5 && stream.next_if('+')) {
-            lhs = lhs + parse_expr(stream, ctx, 5);
+            lhs = lhs + parse_binop(stream, ctx, 5);
         } else if (prec < 5 && stream.next_if('-')) {
-            lhs = lhs - parse_expr(stream, ctx, 5);
+            lhs = lhs - parse_binop(stream, ctx, 5);
         } else if (prec < 3 && stream.next_if('<')) {
-            lhs = lhs < parse_expr(stream, ctx, 3);
+            lhs = lhs < parse_binop(stream, ctx, 3);
         } else if (prec < 3 && stream.next_if('>')) {
-            lhs = lhs > parse_expr(stream, ctx, 3);
+            lhs = lhs > parse_binop(stream, ctx, 3);
         } else if (prec < 3 && stream.next_if("<=")) {
-            lhs = lhs <= parse_expr(stream, ctx, 3);
+            lhs = lhs <= parse_binop(stream, ctx, 3);
         } else if (prec < 3 && stream.next_if(">=")) {
-            lhs = lhs >= parse_expr(stream, ctx, 3);
+            lhs = lhs >= parse_binop(stream, ctx, 3);
         } else if (prec < 3 && stream.next_if("!=")) {
-            lhs = lhs != parse_expr(stream, ctx, 3);
+            lhs = lhs != parse_binop(stream, ctx, 3);
         } else if (prec < 3 && stream.next_if("==")) {
-            lhs = lhs == parse_expr(stream, ctx, 3);
+            lhs = lhs == parse_binop(stream, ctx, 3);
+        } else if (prec < 2 && stream.next_if("&&")) {
+            lhs = lhs && parse_binop(stream, ctx, 2);
+        } else if (prec < 1 && stream.next_if("||")) {
+            lhs = lhs || parse_binop(stream, ctx, 1);
         } else {
             return lhs;
         }
     }
+}
+
+static Expr parse_ternary(TokenStream& stream, const Context& ctx) {
+    Expr cond = parse_binop(stream, ctx, 0);
+
+    if (stream.next_if('?')) {
+        Expr if_true = parse_expr(stream, ctx);
+        stream.consume(':');
+        Expr if_false = parse_expr(stream, ctx);
+        return ifelse(std::move(cond), std::move(if_true), std::move(if_false));
+    } else {
+        return cond;
+    }
+}
+
+static Expr parse_expr(TokenStream& stream, const Context& ctx) {
+    return parse_ternary(stream, ctx);
 }
 
 static std::vector<Expr> parse_expr_list(
