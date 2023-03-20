@@ -44,7 +44,7 @@ public:
 
 int main() {
     kl::set_global_wisdom_directory("wisdom/");
-    kl::set_global_capture_directory("tuning/");
+    kl::set_global_capture_directory("captures/");
 
     // Initialize CUDA memory. This is outside the scope of kernel_launcher.
     unsigned int n = 1000000;
