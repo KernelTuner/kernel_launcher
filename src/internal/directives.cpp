@@ -421,19 +421,19 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
             parse_buffer_directive(stream, builder, ctx);
         } else if (name == "tuning_key") {
             parse_tuning_key_directive(stream, builder, ctx);
-        } else if (name == "grid_size") {
+        } else if (name == "grid_size" || name == "grid_dim") {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_size(l[0], l[1], l[2]);
-        } else if (name == "block_size") {
+        } else if (name == "block_size" || name == "block_dim") {
             auto l = parse_expr_list3(stream, ctx);
             builder.block_size(l[0], l[1], l[2]);
-        } else if (name == "grid_divisor") {
+        } else if (name == "grid_divisor" || name == "grid_divisors") {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_divisors(l[0], l[1], l[2]);
-        } else if (name == "problem_size") {
+        } else if (name == "problem_size" || name == "problem_dim") {
             auto l = parse_expr_list3(stream, ctx);
             builder.problem_size(l[0], l[1], l[2]);
-        } else if (name == "restriction") {
+        } else if (name == "restriction" || name == "restrictions") {
             for (const auto& expr : parse_expr_list(stream, ctx)) {
                 builder.restriction(expr);
             }
