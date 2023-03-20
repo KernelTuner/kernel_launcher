@@ -79,9 +79,15 @@
   <section id="environment-variables">
 <h1>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this heading"></a></h1>
 <p><cite>Kernel Launcher</cite> recognizes the following environment variables:</p>
-<ul>
-<li><p><strong>KERNEL_LAUNCHER_CAPTURE</strong> (default: <code class="docutils literal notranslate"><span class="pre">0</span></code>):
-Kernels for which a tuning specification will be exported on the first call to the kernel.
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Key</p></td>
+<td><p>Default</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_CAPTURE</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">_</span></code></p></td>
+<td><p>Kernels for which a tuning specification will be exported on the first call to the kernel.
 The value should a comma-seperated list of kernel names.
 Additionally, an <code class="docutils literal notranslate"><span class="pre">*</span></code> can be used as a wild card.</p>
 <p>Examples:</p>
@@ -91,27 +97,39 @@ Additionally, an <code class="docutils literal notranslate"><span class="pre">*<
 <li><p><code class="docutils literal notranslate"><span class="pre">*_matrix_*</span></code>: matches kernels that contains <code class="docutils literal notranslate"><span class="pre">matrix</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">*</span></code>: matches all kernels.</p></li>
 </ul>
-</li>
-<li><p><strong>KERNEL_LAUNCHER_CAPTURE_FORCE</strong>:
-Same as the previous variable.
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_CAPTURE _FORCE</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">_</span></code></p></td>
+<td><p>Same as the previous variable.
 However, while <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE</span></code> skips kernels that have already been tuned
-(i.e., a wisdom file was found), the <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE_FORCE</span></code> will always force
-tuning specifications to be exported regardless of whether wisdom files are available.</p></li>
-<li><p><strong>KERNEL_LAUNCHER_DIR</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
-The directory were the tuning specifications will be stored. Defaults to the current working directory.</p></li>
-<li><p><strong>KERNEL_LAUNCHER_WISDOM</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
-The default directory where wisdom files are located. Defaults to the current working directory.</p></li>
-<li><p><strong>KERNEL_LAUNCHER_LOG</strong> (default: <code class="docutils literal notranslate"><span class="pre">info</span></code>):
-Controls how much logging information is printed to stderr. There are three possible options:</p>
+(i.e., a wisdom file was found), the <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE_FORCE</span></code> will force to always
+capture kernels regardless of whether wisdom files are available.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_LOG</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">info</span></code></p></td>
+<td><p>Controls how much logging information is printed to stderr. There are three possible options:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">debug</span></code>: Everything is logged.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>: Only warnings and high-level information is logged.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">warn</span></code>: Only warnings are logged.</p></li>
 </ul>
-</li>
-<li><p><strong>KERNEL_LAUNCHER_INCLUDE</strong> (default: <code class="docutils literal notranslate"><span class="pre">.</span></code>):
-List of comma-seperate directories that are considered while compiling kernels when searching for header files.</p></li>
-</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_DIR</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
+<td><p>The directory were the tuning specifications will be stored. Defaults to the current working directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_WISDOM</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
+<td><p>The default directory where wisdom files are located. Defaults to the current working directory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_INCLUDE</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
+<td><p>List of comma-seperate directories that are considered while compiling kernels when searching for header files.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 
