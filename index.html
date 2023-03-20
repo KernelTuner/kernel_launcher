@@ -12,7 +12,6 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -81,12 +80,19 @@
 <section id="kernel-launcher">
 <h1>Kernel Launcher<a class="headerlink" href="#kernel-launcher" title="Permalink to this heading"></a></h1>
 <a class="reference internal image-reference" href="_images/logo.png"><img alt="kernel launcher" src="_images/logo.png" style="width: 670px;" /></a>
-<p><em>Kernel Launcher</em> is a C++ library that makes it easy to dynamically compile <em>CUDA</em> kernels at run time (using <a class="reference external" href="https://docs.nvidia.com/cuda/nvrtc/index.html">NVRTC</a>) and call them in easy type-safe way using C++ magic.
-There are two reasons for using run-time compilation:</p>
+<p><strong>Kernel Launcher</strong> is a C++ library that makes it easy to dynamically compile <em>CUDA</em> kernels at runtime (using <a class="reference external" href="https://docs.nvidia.com/cuda/nvrtc/index.html">NVRTC</a>) and launching them in a type-safe manner using C++ magic. There are two main reasons for using runtime compilation:</p>
 <ul class="simple">
-<li><p>Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration can only be determined at runtime since it depends dynamic factors such as the type of GPU and the problem size.</p></li>
+<li><p>Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration  depends on dynamic factors such as the GPU type and problem size.</p></li>
 <li><p>Improve performance by injecting runtime values as compile-time constant values into kernel code (dimensions, array strides, weights, etc.).</p></li>
 </ul>
+</section>
+<section id="kernel-tuner-integration">
+<h1>Kernel Tuner Integration<a class="headerlink" href="#kernel-tuner-integration" title="Permalink to this heading"></a></h1>
+<a class="reference internal image-reference" href="_images/kernel_tuner_integration.png"><img alt="kernel launcher integration" src="_images/kernel_tuner_integration.png" style="width: 670px;" /></a>
+<p>Kernel Launcher’s tight integration with <a class="reference external" href="https://kerneltuner.github.io/">Kernel Tuner</a> results in highly-tuned kernels, as visualized above.
+Kernel Launcher <strong>captures</strong> kernel launches within your application, which are then <strong>tuned</strong> by Kernel Tuner and saved as <strong>wisdom</strong> files.
+These files are processed by Kernel Launcher during execution to <strong>compile</strong> the tuned kernel at runtime.</p>
+<p>See <a class="reference internal" href="examples/wisdom.html"><span class="doc">Wisdom Files</span></a> for an example of how this works in practise.</p>
 </section>
 <section id="basic-example">
 <h1>Basic Example<a class="headerlink" href="#basic-example" title="Permalink to this heading"></a></h1>

@@ -12,7 +12,6 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
@@ -147,7 +146,7 @@ In these cases, it is possible to use the <code class="docutils literal notransl
 <span class="linenos">44</span>
 <span class="linenos">45</span><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="linenos">46</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">set_global_wisdom_directory</span><span class="p">(</span><span class="s">&quot;wisdom/&quot;</span><span class="p">);</span>
-<span class="linenos">47</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">set_global_capture_directory</span><span class="p">(</span><span class="s">&quot;tuning/&quot;</span><span class="p">);</span>
+<span class="linenos">47</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">set_global_capture_directory</span><span class="p">(</span><span class="s">&quot;captures/&quot;</span><span class="p">);</span>
 <span class="linenos">48</span>
 <span class="linenos">49</span><span class="w">    </span><span class="c1">// Initialize CUDA memory. This is outside the scope of kernel_launcher.</span>
 <span class="linenos">50</span><span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000000</span><span class="p">;</span>
