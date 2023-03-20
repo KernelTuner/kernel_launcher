@@ -1,11 +1,11 @@
-#pragma kernel_tuner tune(threads_per_block=32, 64, 128, 256, 512, 1024)
-#pragma kernel_tuner tune(items_per_thread=1, 2, 4, 8)
-#pragma kernel_tuner set(items_per_block=threads_per_block * items_per_thread)
-#pragma kernel_tuner problem_size(n)
-#pragma kernel_tuner block_size(threads_per_block)
-#pragma kernel_tuner grid_divisor(items_per_block)
-#pragma kernel_tuner buffers(C[n], A[n], B[n])
-#pragma kernel_tuner tuning_key("vector_add_" + T)
+#pragma kernel tune(threads_per_block=32, 64, 128, 256, 512, 1024)
+#pragma kernel tune(items_per_thread=1, 2, 4, 8)
+#pragma kernel set(items_per_block=threads_per_block * items_per_thread)
+#pragma kernel problem_size(n)
+#pragma kernel block_size(threads_per_block)
+#pragma kernel grid_divisor(items_per_block)
+#pragma kernel buffers(C[n], A[n], B[n])
+#pragma kernel tuning_key("vector_add_" + T)
 template <typename T, int items_per_thread=1>
 __global__
 void vector_add(int n, T* C, const T* A, const T* B) {

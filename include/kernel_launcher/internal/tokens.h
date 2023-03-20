@@ -1,6 +1,7 @@
 #ifndef KERNEL_LAUNCHER_TOKENIZER_H
 #define KERNEL_LAUNCHER_TOKENIZER_H
 
+#include <array>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -71,6 +72,17 @@ struct TokenStream {
         return t.kind == kind;
     }
 
+    template<typename T, size_t N>
+    bool matches(Token t, const std::array<T, N>& options) const {
+        for (const auto& option : options) {
+            if (matches(t, option)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     template<typename T>
     bool next_if(T&& pattern) {
         if (!matches(peek(), std::forward<T>(pattern))) {
@@ -92,6 +104,13 @@ struct TokenStream {
     [[noreturn]] void throw_expecting_token(Token t, char c) const {
         char str[2] = {c, '\0'};
         throw_expecting_token(t, str);
+    }
+
+    template<typename T, size_t N>
+    [[noreturn]] void
+    throw_expecting_token(Token t, const std::array<T, N>& patterns) const {
+        static_assert(N > 0, "number of patterns cannot be zero");
+        throw_expecting_token(t, patterns[0]);
     }
 
     template<typename T>

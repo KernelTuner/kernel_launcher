@@ -69,12 +69,14 @@ static std::vector<FunctionParam> parse_kernel_params(TokenStream& stream) {
 static bool extract_kernel_tuner_directives(
     TokenStream& stream,
     std::vector<Token>& directives_out) {
-    static constexpr const char* PRAGMA_NAME = "kernel_tuner";
+    static constexpr const std::array<const char*, 2> PRAGMA_NAMES = {
+        "kernel",
+        "kernel_tuner"};
 
     // Check if directive starts with correct pragma. If not, this is
     // not a relevant pragma and we do not need to parse it.
     Token t = stream.peek();
-    bool is_relevant = stream.next_if("pragma") && stream.next_if(PRAGMA_NAME);
+    bool is_relevant = stream.next_if("pragma") && stream.next_if(PRAGMA_NAMES);
     stream.seek(t);
 
     if (!is_relevant) {
@@ -84,7 +86,7 @@ static bool extract_kernel_tuner_directives(
     // Parse all pragmas
     do {
         stream.consume("pragma");
-        stream.consume(PRAGMA_NAME);
+        stream.consume(PRAGMA_NAMES);
         t = stream.next();
         directives_out.push_back(t);
 
