@@ -456,7 +456,7 @@ KernelBuilder builder_from_annotated_kernel(
 
     for (size_t i = 0; i < def.fun_params.size(); i++) {
         std::string name = stream.span(def.fun_params[i].name);
-        ctx.kernel_args.insert({name, ArgExpr(uint8_t(i))});
+        ctx.kernel_args.insert({name, ArgExpr(uint8_t(i), name)});
     }
 
     if (template_args.size() > def.template_params.size()) {
