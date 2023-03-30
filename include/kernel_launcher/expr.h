@@ -245,7 +245,13 @@ struct ArgBuffer {
 };
 
 struct ArgExpr: BaseExpr, Variable {
+    constexpr ArgExpr() noexcept = default;
     constexpr ArgExpr(uint8_t i) noexcept : index_(i) {};
+
+    ArgExpr(uint8_t i, const char* name) noexcept;
+    ArgExpr(uint8_t i, const std::string& name) noexcept :
+        ArgExpr(i, name.c_str()) {};
+
     std::string to_string() const override;
     Value eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
@@ -271,7 +277,8 @@ struct ArgExpr: BaseExpr, Variable {
     }
 
   private:
-    uint8_t index_;
+    uint8_t index_ = std::numeric_limits<uint8_t>::max();
+    const std::string* name_ = nullptr;
 };
 
 static ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5,
@@ -294,6 +301,10 @@ namespace detail {
         static type call() {
             return {Is...};
         }
+
+        static type call(std::string* names) {
+            return {{Is, std::move(names[Is])}...};
+        }
     };
 }  // namespace detail
 
@@ -305,7 +316,7 @@ using args_type =
  * Given a template parameter `N`, returns a tuple of size `N` that contains
  * `ArgExpr` for each element. This function can be used in combination with
  * `std::tie` or structured binding to quickly assign names to argument
- * expression. For example, to bind four arguments to the names `n`, `A`,
+ * expression. For example, to bind four arguments to the variables `n`, `A`,
  * `B`, and `C`:
  *
  * ```
@@ -323,6 +334,33 @@ using args_type =
 template<size_t N>
 inline args_type<N> args() {
     return detail::ArgsHelper<std::make_index_sequence<N>>::call();
+}
+
+/**
+ * Given `N` argument names, returns a tuple of size `N` that contains
+ * `ArgExpr` for each element. This function can be used in combination with
+ * `std::tie` or structured binding to quickly assign names to argument
+ * expression. For example, to bind four arguments to the variables `n`, `A`,
+ * `B`, and `C` with the corresponding names:
+ *
+ * ```
+ * auto [n, A, B, C] = kernel_launcher::args("n", "A", "B", "C");
+ * ```
+ *
+ * The above example only works in C++17 or higher. For, C++11 or higher, one
+ * can use `std::tie` as follows:
+ *
+ * ```
+ * ArgExpr n, A, B, C;
+ * std::tie(n, A, B, C) = kernel_launcher::args("n", "A", "B", "C");
+ * ```
+ */
+template<typename... Ts>
+inline args_type<sizeof...(Ts)> args(Ts&&... names) {
+    static constexpr size_t N = sizeof...(Ts);
+    std::string strings[N] = {names...};
+
+    return detail::ArgsHelper<std::make_index_sequence<N>>::call(strings);
 }
 
 struct DeviceAttributeExpr: BaseExpr, Variable {

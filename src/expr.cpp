@@ -68,16 +68,34 @@ Expr ProblemExpr::resolve(const Eval& eval) const {
     return ProblemExpr(axis_);
 }
 
+ArgExpr::ArgExpr(uint8_t i, const char* name) noexcept : index_(i) {
+    if (name != nullptr && name[0] != '\0') {
+        name_ = &intern_string(name);
+    }
+}
+
 std::string ArgExpr::to_string() const {
-    return "$argument_" + std::to_string(index_);
+    if (name_ != nullptr) {
+        return "$" + *name_;
+    } else {
+        return "$argument_" + std::to_string(index_);
+    }
 }
 
 Value ArgExpr::eval(const Eval& eval) const {
     Value out;
 
     if (!eval.lookup(*this, out)) {
-        throw std::runtime_error(
-            "cannot find argument " + std::to_string(index_));
+        std::string msg;
+
+        if (name_ != nullptr) {
+            msg = "cannot find argument " + *name_ + " (argument at index "
+                + std::to_string(index_) + ")";
+        } else {
+            msg = "cannot find argument at index" + std::to_string(index_);
+        }
+
+        throw std::runtime_error(msg);
     }
 
     return out;
