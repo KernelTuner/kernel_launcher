@@ -98,6 +98,8 @@ struct KernelArg {
     std::vector<uint8_t> to_bytes() const;
     void* as_void_ptr() const;
 
+    friend std::ostream& operator<<(std::ostream&, const KernelArg&);
+
   private:
     TypeInfo type_;
     bool scalar_;

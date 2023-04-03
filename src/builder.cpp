@@ -102,6 +102,35 @@ void KernelInstance::launch(
         ptrs[i] = args[i].as_void_ptr();
     }
 
+    if (log_debug_enabled()) {
+        auto p = problem_size;
+        auto b = block_size;
+        auto g = grid_size;
+
+        log_debug() << "launching kernel " << module_.function_name() << "\n";
+        log_debug() << " - device: " << CudaDevice::current().name() << "\n";
+        log_debug() << " - problem size: ["  //
+                    << p.x << ", " << p.y << ", " << p.z << "]\n";
+        log_debug() << " - grid size: ["  //
+                    << g.x << ", " << g.y << ", " << g.z << "]\n";
+        log_debug() << " - block size: ["  //
+                    << b.x << ", " << b.y << ", " << b.z << "]\n";
+
+        if (smem > 0) {
+            log_debug() << " - shared memory: " << smem << " bytes\n";
+        }
+
+        if (stream != nullptr) {
+            log_debug() << " - stream: " << stream << "\n";
+        }
+
+        log_debug() << " - using " << args.size() << " arguments:\n";
+
+        for (const auto& arg : args) {
+            log_debug() << " - - " << arg << "\n";
+        }
+    }
+
     module_.launch(stream, grid_size, block_size, smem, ptrs.data());
 }
 

@@ -14,6 +14,10 @@
 
 namespace kernel_launcher {
 
+bool log_debug_enabled();
+bool log_info_enabled();
+bool log_warning_enabled();
+
 std::ostream& log_debug();
 std::ostream& log_info();
 std::ostream& log_warning();

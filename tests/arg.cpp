@@ -1,8 +1,12 @@
+#include <sstream>
+
 #include "catch.hpp"
 #include "kernel_launcher/kernel.h"
 #include "test_utils.h"
 
 using namespace kernel_launcher;
+
+struct MyObject {};
 
 TEST_CASE("test KernelArg") {
     SECTION("scalar int") {
@@ -108,5 +112,31 @@ TEST_CASE("test KernelArg") {
             KernelArg::from_array(input.data(), input.size()).to_array(2));
         CHECK_THROWS(
             KernelArg::from_array(input.data(), input.size()).to_array(5));
+    }
+
+    SECTION("operator<<") {
+        std::stringstream stream;
+
+        SECTION("scalar primitive") {
+            stream << KernelArg::from_scalar(int(5));
+            CHECK(stream.str() == "scalar 5 (type: int)");
+        }
+
+        SECTION("scalar arbitrary") {
+            stream << KernelArg::from_scalar(MyObject {});
+            CHECK(stream.str() == "scalar <...> (type: MyObject)");
+        }
+
+        SECTION("scalar pointer") {
+            int* ptr = reinterpret_cast<int*>(0x123);
+            stream << KernelArg::from_scalar(ptr);
+            CHECK(stream.str() == "array 0x123 (type: int*)");
+        }
+
+        SECTION("array") {
+            int* ptr = reinterpret_cast<int*>(0x123);
+            stream << KernelArg::from_array(ptr, 5);
+            CHECK(stream.str() == "array 0x123 of length 5 (type: int*)");
+        }
     }
 }

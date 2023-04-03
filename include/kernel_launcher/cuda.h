@@ -38,7 +38,10 @@ void cuda_check(CUresult result, const char* msg);
  * Wrapper around `CUfunction` and the accompanying `CUmodule`.
  */
 struct CudaModule {
-    CudaModule(const char* image, const char* fun_name);
+    CudaModule(
+        const char* image,
+        const char* lowered_name,
+        const char* human_name = nullptr);
     ~CudaModule();
     CudaModule() = default;
     CudaModule(const CudaModule&) = delete;
@@ -51,6 +54,7 @@ struct CudaModule {
     CudaModule& operator=(CudaModule&& that) noexcept {
         std::swap(that.module_, module_);
         std::swap(that.fun_ptr_, fun_ptr_);
+        std::swap(that.fun_name_, fun_name_);
         return *this;
     }
 
@@ -61,6 +65,10 @@ struct CudaModule {
         uint32_t shared_mem,
         void** args) const;
 
+    const std::string& function_name() const {
+        return fun_name_;
+    }
+
     CUfunction function() const {
         return fun_ptr_;
     }
@@ -70,6 +78,7 @@ struct CudaModule {
     }
 
   private:
+    std::string fun_name_;
     CUfunction fun_ptr_ = nullptr;
     CUmodule module_ = nullptr;
 };
