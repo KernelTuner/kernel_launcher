@@ -21,7 +21,7 @@ struct Context {
     // Compile-time arguments passed by the user
     std::unordered_map<std::string, Value> comptime_args;
 
-    // User-defined parameters using `#pragma set(foo=1+2)`
+    // User-defined parameters from `#pragma kernel set(foo=1+2)`
     std::unordered_map<std::string, Expr> user_args;
 };
 
@@ -313,6 +313,8 @@ static Value parse_comptime_expr(TokenStream& stream, const Context& ctx) {
     Token after = stream.peek();
 
     try {
+        // We can use `DummyEval` to evaluate the expression since compile-time
+        // expression should not contain any variables.
         return e.eval(DummyEval {});
     } catch (const std::exception& err) {
         auto msg =
@@ -383,13 +385,20 @@ static void parse_tune_directive(
 static void parse_set_directive(TokenStream& stream, Context& ctx) {
     // '(' IDENT '=' EXPR ')'
     stream.consume(TokenKind::ParenL);
-    Token var_token = stream.consume(TokenKind::Ident);
-    stream.consume('=');
-    Expr expr = parse_expr(stream, ctx).resolve(DummyEval {});
-    stream.consume(TokenKind::ParenR);
-    std::string var = stream.span(var_token);
+    do {
+        Token var_token = stream.consume(TokenKind::Ident);
+        std::string var = stream.span(var_token);
+        if (ctx.comptime_args.count(var) > 0) {
+            stream.throw_unexpected_token(var_token, "variable redefined");
+        }
 
-    ctx.user_args.insert({var, expr});
+        stream.consume('=');
+
+        Expr expr = parse_expr(stream, ctx);
+        ctx.user_args.insert({var, expr});
+    } while (stream.next_if(TokenKind::Comma));
+
+    stream.consume(TokenKind::ParenR);
 }
 
 static void parse_tuning_key_directive(
@@ -491,7 +500,7 @@ KernelBuilder builder_from_annotated_kernel(
             stream.throw_unexpected_token(
                 param.name,
                 "this template parameter is not defined, please add "
-                "`#pragma kernel_tuner tune("
+                "`#pragma kernel tune("
                     + name + "=...)`");
         }
 
