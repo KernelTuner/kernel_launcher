@@ -204,12 +204,20 @@ struct KernelBuilderSerializerHack {
 
         result["name"] = builder.kernel_name_;
         result["compile_flags"] = expr_list_to_json(builder.compile_flags_);
-        result["block_size"] = expr_list_to_json(builder.block_size_);
-        result["grid_size"] = expr_list_to_json(builder.grid_size_);
         result["shared_memory"] = expr_to_json(builder.shared_mem_);
         result["template_args"] = expr_list_to_json(builder.template_args_);
         result["defines"] = std::move(defines);
         result["headers"] = std::move(headers);
+
+        result["block_size"] = expr_list_to_json(std::array<Expr, 3> {
+            builder.determine_block_size(0),
+            builder.determine_block_size(1),
+            builder.determine_block_size(2)});
+
+        result["grid_size"] = expr_list_to_json(std::array<Expr, 3> {
+            builder.determine_block_size(0),
+            builder.determine_block_size(1),
+            builder.determine_block_size(2)});
 
         return result;
     }
