@@ -239,8 +239,19 @@ inline ProblemExpr problem_size(size_t axis = 0) {
     return axis;
 }
 
+struct ArgBuffer {
+    uint8_t index;
+    TypedExpr<size_t> length;
+};
+
 struct ArgExpr: BaseExpr, Variable {
+    constexpr ArgExpr() noexcept = default;
     constexpr ArgExpr(uint8_t i) noexcept : index_(i) {};
+
+    ArgExpr(uint8_t i, const char* name) noexcept;
+    ArgExpr(uint8_t i, const std::string& name) noexcept :
+        ArgExpr(i, name.c_str()) {};
+
     std::string to_string() const override;
     Value eval(const Eval& eval) const override;
     Expr resolve(const Eval& eval) const override;
@@ -261,8 +272,13 @@ struct ArgExpr: BaseExpr, Variable {
         return index_;
     }
 
+    ArgBuffer operator[](TypedExpr<size_t> len) const {
+        return {index_, std::move(len)};
+    }
+
   private:
-    uint8_t index_;
+    uint8_t index_ = std::numeric_limits<uint8_t>::max();
+    const std::string* name_ = nullptr;
 };
 
 static ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5,
@@ -270,6 +286,81 @@ static ArgExpr arg0 = 0, arg1 = 1, arg2 = 2, arg3 = 3, arg4 = 4, arg5 = 5,
 
 inline ArgExpr arg(uint8_t i) {
     return i;
+}
+
+namespace detail {
+    template<typename T>
+    struct ArgsHelper;
+
+    template<size_t... Is>
+    struct ArgsHelper<std::index_sequence<Is...>> {
+        using type = std::tuple<typename std::enable_if<
+            Is <= std::numeric_limits<uint8_t>::max(),
+            ArgExpr>::type...>;
+
+        static type call() {
+            return {Is...};
+        }
+
+        static type call(std::string* names) {
+            return {{Is, std::move(names[Is])}...};
+        }
+    };
+}  // namespace detail
+
+template<size_t N>
+using args_type =
+    typename detail::ArgsHelper<std::make_index_sequence<N>>::type;
+
+/**
+ * Given a template parameter `N`, returns a tuple of size `N` that contains
+ * `ArgExpr` for each element. This function can be used in combination with
+ * `std::tie` or structured binding to quickly assign names to argument
+ * expression. For example, to bind four arguments to the variables `n`, `A`,
+ * `B`, and `C`:
+ *
+ * ```
+ * auto [n, A, B, C] = kernel_launcher::args<4>();
+ * ```
+ *
+ * The above example only works in C++17 or higher. For, C++11 or higher, one
+ * can use `std::tie` as follows:
+ *
+ * ```
+ * ArgExpr n, A, B, C;
+ * std::tie(n, A, B, C) = kernel_launcher::args<4>();
+ * ```
+ */
+template<size_t N>
+inline args_type<N> args() {
+    return detail::ArgsHelper<std::make_index_sequence<N>>::call();
+}
+
+/**
+ * Given `N` argument names, returns a tuple of size `N` that contains
+ * `ArgExpr` for each element. This function can be used in combination with
+ * `std::tie` or structured binding to quickly assign names to argument
+ * expression. For example, to bind four arguments to the variables `n`, `A`,
+ * `B`, and `C` with the corresponding names:
+ *
+ * ```
+ * auto [n, A, B, C] = kernel_launcher::args("n", "A", "B", "C");
+ * ```
+ *
+ * The above example only works in C++17 or higher. For, C++11 or higher, one
+ * can use `std::tie` as follows:
+ *
+ * ```
+ * ArgExpr n, A, B, C;
+ * std::tie(n, A, B, C) = kernel_launcher::args("n", "A", "B", "C");
+ * ```
+ */
+template<typename... Ts>
+inline args_type<sizeof...(Ts)> args(Ts&&... names) {
+    static constexpr size_t N = sizeof...(Ts);
+    std::string strings[N] = {names...};
+
+    return detail::ArgsHelper<std::make_index_sequence<N>>::call(strings);
 }
 
 struct DeviceAttributeExpr: BaseExpr, Variable {
@@ -301,22 +392,23 @@ struct DeviceAttributeExpr: BaseExpr, Variable {
 };
 
 #define KERNEL_LAUNCHER_DEVICE_ATTRIBUTES_FORALL(F) \
-    F(MAX_THREADS_PER_BLOCK)                        \
+    F(COMPUTE_CAPABILITY_MAJOR)                     \
+    F(COMPUTE_CAPABILITY_MINOR)                     \
+    F(MAX_BLOCKS_PER_MULTIPROCESSOR)                \
     F(MAX_BLOCK_DIM_X)                              \
     F(MAX_BLOCK_DIM_Y)                              \
     F(MAX_BLOCK_DIM_Z)                              \
     F(MAX_GRID_DIM_X)                               \
     F(MAX_GRID_DIM_Y)                               \
     F(MAX_GRID_DIM_Z)                               \
-    F(MAX_SHARED_MEMORY_PER_BLOCK)                  \
-    F(WARP_SIZE)                                    \
     F(MAX_REGISTERS_PER_BLOCK)                      \
-    F(MULTIPROCESSOR_COUNT)                         \
-    F(MAX_THREADS_PER_MULTIPROCESSOR)               \
-    F(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)         \
     F(MAX_REGISTERS_PER_MULTIPROCESSOR)             \
-    F(COMPUTE_CAPABILITY_MAJOR)                     \
-    F(COMPUTE_CAPABILITY_MINOR)
+    F(MAX_SHARED_MEMORY_PER_BLOCK)                  \
+    F(MAX_SHARED_MEMORY_PER_MULTIPROCESSOR)         \
+    F(MAX_THREADS_PER_BLOCK)                        \
+    F(MAX_THREADS_PER_MULTIPROCESSOR)               \
+    F(MULTIPROCESSOR_COUNT)                         \
+    F(WARP_SIZE)
 
 #define KERNEL_LAUNCHER_DEFINE_DEVICE_ATTRIBUTE(name) \
     static DeviceAttributeExpr DEVICE_##name = CU_DEVICE_ATTRIBUTE_##name;

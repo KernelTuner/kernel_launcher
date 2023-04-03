@@ -34,11 +34,14 @@ kl::KernelBuilder build_vector_add() {
         threads_per_block * blocks_per_sm
         <= kl::DEVICE_MAX_THREADS_PER_MULTIPROCESSOR);
 
+    auto [n, C, A, B] = kl::args<4>();
+
     // Set options
-    builder.problem_size(kl::arg0)
-        .template_args(threads_per_block, items_per_thread, strategy)
+    builder.template_args(threads_per_block, items_per_thread, strategy)
         .block_size(threads_per_block)
-        .grid_divisors(items_per_block);
+        .grid_divisors(items_per_block)
+        .problem_size(n)
+        .buffers(C[n], A[n], B[n]);
 
     return builder;
 }
@@ -80,11 +83,7 @@ int main(int argc, char* argv[]) {
     kl::WisdomKernel vector_add(build_vector_add());
 
     // Call kernel
-    vector_add(
-        n,
-        kl::cuda_span(C_dev, n),
-        kl::cuda_span<const float>(A_dev, n),
-        kl::cuda_span<const float>(B_dev, n));
+    vector_add(n, C_dev, (const float*)A_dev, (const float*)B_dev);
 
     // Copy results back
     cuda_check(cudaMemcpy(

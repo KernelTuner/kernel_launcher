@@ -189,7 +189,8 @@ struct DefaultOracle: Oracle {
 };
 
 /**
- * Describes how to load the configuration for a `WisdomKernel`.
+ * Describes how to load the configuration for a `WisdomKernel`. The most
+ * important method is `load_config` which loads a configuration for a kernel.
  */
 struct WisdomSettings {
     WisdomSettings();
@@ -265,7 +266,7 @@ struct WisdomSettings {
 WisdomSettings default_wisdom_settings();
 
 /**
- * Append directory where to search for wisdom files for the `WisdomSettings`
+ * Append directory where to search for wisdom files by the `WisdomSettings`
  * returned by `default_wisdom_settings`.
  */
 void append_global_wisdom_directory(std::string);

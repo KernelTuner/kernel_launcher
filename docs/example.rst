@@ -1,6 +1,6 @@
 .. _example:
 
-Tutorial
+Guides
 ===============
 
 .. toctree::

@@ -154,6 +154,10 @@ struct Value {
      * Convert this value to a `double`.
      */
     double to_double() const;
+
+    /**
+     * Convert this value to a `float`.
+     */
     float to_float() const;
 
     /**
@@ -342,6 +346,9 @@ struct Variable {
     }
 };
 
+/**
+ * A tunable parameter that is returned by `ConfigSpace`.
+ */
 struct TunableParam: Variable {
   private:
     struct Impl {
@@ -379,12 +386,18 @@ struct TunableParam: Variable {
         return *this = v;
     }
 
+    /**
+     * Construct a new parameter.
+     */
     TunableParam(
         std::string name,
         std::vector<Value> values,
         std::vector<double> priors,
         Value default_value);
 
+    /**
+     * Construct a new parameter.
+     */
     TunableParam(
         std::string name,
         std::vector<Value> values,
@@ -395,18 +408,30 @@ struct TunableParam: Variable {
             std::vector<double>(values.size(), 1.0),
             std::move(default_value)) {}
 
+    /**
+     * The name of this parameter.
+     */
     const std::string& name() const {
         return inner_->name_;
     }
 
+    /**
+     * The default value of this parameter.
+     */
     const Value& default_value() const {
         return inner_->default_value_;
     }
 
+    /**
+     * The allowed values for this parameter.
+     */
     const std::vector<Value>& values() const {
         return inner_->values_;
     }
 
+    /**
+     * Checks if `needle` is in the values returned by `values()`.
+     */
     bool has_value(const Value& needle) const {
         bool found = false;
 
@@ -424,14 +449,23 @@ struct TunableParam: Variable {
         return inner_->priors_;
     }
 
+    /**
+     * Short-hand for `values().at(i)`.
+     */
     const Value& at(size_t i) const {
         return values().at(i);
     }
 
+    /**
+     * Short-hand for `values().at(i)`.
+     */
     const Value& operator[](size_t i) const {
         return at(i);
     }
 
+    /**
+     * Short-hand for `values().size()`.
+     */
     size_t size() const {
         return values().size();
     }

@@ -5,6 +5,25 @@
 
 #include "kernel_launcher/kernel.h"
 
+struct point3 {
+    unsigned long long x;
+    unsigned long long y;
+    unsigned long long z;
+
+    bool operator==(point3 v) const {
+        return x == v.x && y == v.y && z == v.z;
+    }
+};
+
+namespace kernel_launcher {
+template<>
+struct IntoKernelArg<point3> {
+    static KernelArg convert(point3 value) {
+        return KernelArg::from_scalar<point3>(value);
+    }
+};
+}  // namespace kernel_launcher
+
 inline std::string assets_directory() {
     std::string assets_dir = __FILE__;
     assets_dir = assets_dir.substr(0, assets_dir.rfind('/'));
@@ -42,7 +61,7 @@ inline kernel_launcher::KernelBuilder build_vector_add_kernel() {
     builder
         .problem_size(arg0)
         .define("ELEMENTS_PER_THREAD", et)
-        .template_args(type_of<int>())
+        .template_type<int>()
         .block_size(tb)
         .grid_divisors(eb);
     return builder;

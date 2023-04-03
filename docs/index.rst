@@ -21,13 +21,26 @@ Kernel Launcher
    :width: 670
    :alt: kernel launcher
 
+**Kernel Launcher** is a C++ library that makes it easy to dynamically compile *CUDA* kernels at runtime (using `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_) and launching them in a type-safe manner using C++ magic. There are two main reasons for using runtime compilation:
 
-*Kernel Launcher* is a C++ library that makes it easy to dynamically compile *CUDA* kernels at run time (using `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_) and call them in easy type-safe way using C++ magic.
-There are two reasons for using run-time compilation:
-
-* Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration can only be determined at runtime since it depends dynamic factors such as the type of GPU and the problem size.
+* Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration  depends on dynamic factors such as the GPU type and problem size.
 
 * Improve performance by injecting runtime values as compile-time constant values into kernel code (dimensions, array strides, weights, etc.).
+
+
+Kernel Tuner Integration
+========================
+
+.. image:: /kernel_tuner_integration.png
+   :width: 670
+   :alt: kernel launcher integration
+
+
+Kernel Launcher's tight integration with `Kernel Tuner <https://kerneltuner.github.io/>`_ results in highly-tuned kernels, as visualized above. 
+Kernel Launcher **captures** kernel launches within your application, which are then **tuned** by Kernel Tuner and saved as **wisdom** files. 
+These files are processed by Kernel Launcher during execution to **compile** the tuned kernel at runtime.
+
+See :doc:`examples/wisdom` for an example of how this works in practise.
 
 
 

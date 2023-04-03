@@ -40,11 +40,23 @@ inline bool write_file(
     return write_file(path, content.data(), content.size(), overwrite);
 }
 
+/**
+ * Interface for object's that can load a file's contents given the file's name.
+ * The `DefaultLoader` simply loads the file from the local file system.
+ */
 struct FileLoader {
     virtual ~FileLoader() = default;
+
+    /**
+     * Return the content of a file given its name. Implementations of this
+     * interface are free to resolve the file path in any way possible.
+     */
     virtual std::string load(const std::string& file_name) const = 0;
 };
 
+/**
+ * A `FileLoader` that simply loads a file from the local file system.
+ */
 struct DefaultLoader: FileLoader {
     explicit DefaultLoader(
         const std::vector<std::string>& dirs,

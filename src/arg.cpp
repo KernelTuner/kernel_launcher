@@ -28,6 +28,20 @@ KernelArg::KernelArg(TypeInfo type, void* ptr, size_t nelements) {
 }
 
 KernelArg::KernelArg(const KernelArg& that) : KernelArg() {
+    *this = that;
+}
+
+KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
+    *this = std::move(that);
+}
+
+KernelArg::~KernelArg() {
+    if (is_scalar() && !is_inline_scalar(type_)) {
+        delete[](char*) data_.large_scalar;
+    }
+}
+
+KernelArg& KernelArg::operator=(const KernelArg& that) {
     type_ = that.type_;
     scalar_ = that.scalar_;
 
@@ -39,18 +53,15 @@ KernelArg::KernelArg(const KernelArg& that) : KernelArg() {
         data_.large_scalar = new char[type_.size()];
         ::memcpy(data_.large_scalar, that.data_.large_scalar, type_.size());
     }
+
+    return *this;
 }
 
-KernelArg::~KernelArg() {
-    if (is_scalar() && !is_inline_scalar(type_)) {
-        delete[](char*) data_.large_scalar;
-    }
-}
-
-KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
+KernelArg& KernelArg::operator=(KernelArg&& that) noexcept {
     std::swap(this->data_, that.data_);
     std::swap(this->type_, that.type_);
     std::swap(this->scalar_, that.scalar_);
+    return *this;
 }
 
 Value KernelArg::to_value_or_empty() const {
@@ -83,6 +94,28 @@ Value KernelArg::to_value_or_empty() const {
     IMPL_FOR_VALUE(double);
 
     return {};
+}
+
+KernelArg KernelArg::to_array(size_t nelements) const {
+    if (is_array()) {
+        if (nelements > data_.array.nelements) {
+            throw std::runtime_error(
+                "array of type " + type_.remove_pointer().name()
+                + " cannot be be resized to " + std::to_string(nelements)
+                + " elements, it only has "
+                + std::to_string(data_.array.nelements) + " elements");
+        }
+
+        return {type_, data_.array.ptr, nelements};
+    } else {
+        if (!type_.is_pointer()) {
+            throw std::runtime_error(
+                "argument is not a pointer type and cannot be converted into an array: "
+                + type_.name());
+        }
+
+        return {type_, *(void**)as_void_ptr(), nelements};
+    }
 }
 
 Value KernelArg::to_value() const {

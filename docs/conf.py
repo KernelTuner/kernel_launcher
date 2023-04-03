@@ -14,11 +14,15 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 from sphinx.builders.html import StandaloneHTMLBuilder
-import subprocess, os
+import subprocess, os, sys
 
 
 # Doxygen
 subprocess.call('doxygen Doxyfile.in', shell=True)
+
+
+# Generate API
+subprocess.call(f'{sys.executable} build_api.py', shell=True)
 
 
 # -- Project information -----------------------------------------------------

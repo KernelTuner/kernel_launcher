@@ -10,12 +10,20 @@
 
 namespace kernel_launcher {
 
-bool tuning_file_exists(
+/**
+ * Returns `true` if there is already a capture available for the given
+ * `tuning_key` and `problem_size` in the given `directory`.
+ */
+bool capture_file_exists(
     const std::string& directory,
     const std::string& tuning_key,
     ProblemSize problem_size);
 
-void export_tuning_file(
+/**
+ * Export a capture for the given `tuning_key` and `problem_size` to the
+ * given `directory`.
+ */
+void export_capture_file(
     const std::string& directory,
     const std::string& tuning_key,
     const KernelBuilder& builder,

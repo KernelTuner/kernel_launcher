@@ -146,3 +146,34 @@ TEST_CASE("test Expr") {
         cast<Value>(xe.parameter());
     }
 }
+
+TEST_CASE("test ArgExpr") {
+    // nameless argument
+    static ArgExpr first = 0;
+    CHECK(first.get() == 0);
+    CHECK(first.to_string() == "$argument_0");
+
+    // argument with name
+    ArgExpr second = {1, "second"};
+    CHECK(second.get() == 1);
+    CHECK(second.to_string() == "$second");
+
+    // Unnamed argument list
+    ArgExpr a, b, c;
+    std::tie(a, b, c) = args<3>();
+    CHECK(a.get() == 0);
+    CHECK(b.get() == 1);
+    CHECK(c.get() == 2);
+    CHECK(a.to_string() == "$argument_0");
+    CHECK(b.to_string() == "$argument_1");
+    CHECK(c.to_string() == "$argument_2");
+
+    // Named argument list
+    std::tie(a, b, c) = args("a", "b", "c");
+    CHECK(a.get() == 0);
+    CHECK(b.get() == 1);
+    CHECK(c.get() == 2);
+    CHECK(a.to_string() == "$a");
+    CHECK(b.to_string() == "$b");
+    CHECK(c.to_string() == "$c");
+}

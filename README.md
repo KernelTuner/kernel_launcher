@@ -4,7 +4,7 @@
 
 
 [![github](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/KernelTuner/kernel_launcher/)
-![GitHub branch checks state](https://img.shields.io/github/workflow/status/KernelTuner/kernel_launcher/Build%20documentation)
+![GitHub branch checks state](https://img.shields.io/github/actions/workflow/status/KernelTuner/kernel_launcher/docs.yml)
 ![GitHub](https://img.shields.io/github/license/KernelTuner/kernel_launcher)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/KernelTuner/kernel_launcher)
 ![GitHub Repo stars](https://img.shields.io/github/stars/KernelTuner/kernel_launcher?style=social)

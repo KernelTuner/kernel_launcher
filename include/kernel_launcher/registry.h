@@ -9,10 +9,40 @@
 
 namespace kernel_launcher {
 
+/**
+ * This interface is used to implement an abstract representation for a kernel.
+ * For example, one may implement a `MatrixMultiplyDescriptor` that represents
+ * a kernel for matrix multiplication. The `build` method should return the
+ * `KernelBuilder` that be used to build the specific kernel.
+ *
+ * The interface is used in combination with `KernelRegistry` to look up if this
+ * kernel has already been compiled. The registry is essentially a hash table
+ * that maps `IKernelDescriptor` objects to `KernelInstance` objects. This is
+ * why this descriptor class must implement `equals` and `hash`.
+ */
 struct IKernelDescriptor {
     virtual ~IKernelDescriptor() = default;
+
+    /**
+     * Should return the `KernelBuilder` that can be used to build the kernel
+     * associated with this descriptor.
+     */
     virtual KernelBuilder build() const = 0;
+
+    /**
+     * Check if this descriptor is equal to another descriptor.
+     */
     virtual bool equals(const IKernelDescriptor& that) const = 0;
+
+    /**
+     * Return a hash of this descriptor. This is used to test for equality of
+     * two descriptors:
+     *
+     * * Two descriptors that return the same hash MAY be identical.
+     * * Two descriptors that return different hashes MUST be different.
+     *
+     * This method is optional; its default implementation just returns `0`.
+     */
     virtual hash_t hash() const {
         return 0;
     }
@@ -65,13 +95,31 @@ struct hash<kernel_launcher::KernelDescriptor> {
 }  // namespace std
 
 namespace kernel_launcher {
+
+/**
+ * A registry can be used to cache kernel compilations. Each registry is
+ * essentially a table that maps `IKernelDescriptor` objects to
+ * `WisdomKernel` objects.
+ *
+ * There is a single global registry that is available with `default_registry`.
+ * However, it is also possible to construct a local `KernelRegistry`.
+ *
+ * This class is thread-safe.
+ */
 struct KernelRegistry {
+    /**
+     * Construct new registry.
+     */
     explicit KernelRegistry(
         Compiler compiler = default_compiler(),
         WisdomSettings settings = default_wisdom_settings()) :
         compiler_(std::move(compiler)),
         settings_(std::move(settings)) {}
 
+    /**
+     * Look up the `WisdomKernel` associated with the given descriptor. This
+     * will instantiate a new `WisdomKernel` if not yet available.
+     */
     WisdomKernel& lookup(KernelDescriptor descriptor) const {
         return lookup_internal(std::move(descriptor));
     }
@@ -92,6 +140,10 @@ struct KernelRegistry {
         cache_ = {};
 };
 
+/**
+ * Returns the global `KernelRegistry` for the program. See `KernelRegistry`
+ * for more information.
+ */
 const KernelRegistry& default_registry();
 
 template<typename... Args>

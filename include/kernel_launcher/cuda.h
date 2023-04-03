@@ -12,14 +12,17 @@
     ::kernel_launcher::cuda_check(expr, #expr)
 
 namespace kernel_launcher {
+
+/**
+ * Exception thrown when a CUDA function returns a non-zero error code.
+ */
 struct CudaException: std::runtime_error {
     CudaException(CUresult err, std::string msg) :
         std::runtime_error(msg),
         err_(err) {}
 
     /**
-     *
-     * @return
+     * The `CUresult` of this error.
      */
     CUresult error() const {
         return err_;
@@ -78,12 +81,19 @@ struct CudaModule {
  */
 struct CudaArch {
     /**
-     * Create new `CudaArch` object.
+     * Create new `CudaArch` object from `major` and `minor` version
      */
     CudaArch(int major, int minor) : major_(major), minor_(minor) {}
+
+    /**
+     * Create new `CudaArch` object from compound version number (such as 82)
+     */
     CudaArch(int version) : major_(version / 10), minor_(version % 10) {}
     CudaArch() : CudaArch(0, 0) {}
 
+    /**
+     * Returns the compund version (for example, `82` for version `8.2`)
+     */
     int get() const {
         return major_ * 10 + minor_;
     }
@@ -122,14 +132,40 @@ struct CudaDevice {
     CudaDevice() = default;
     explicit CudaDevice(CUdevice d);
 
+    /**
+     * Returns the number of CUDA-capable devices in the current context.
+     */
     static int count();
+
+    /**
+     * Returns the device associated with the current `CudaContextHandle`.
+     */
     static CudaDevice current();
+
+    /**
+     * Returns the name of the current device
+     */
     std::string name() const;
+
+    /**
+     * Returns the value of this device for the given attribute.
+     */
     int attribute(CUdevice_attribute key) const;
+
+    /**
+     * Returns the ordinal number associated with this device in CUDA.
+     */
     int ordinal() const;
+
+    /**
+     * Returns the device's 128-bit UUID as a string in hexadecimal notation.
+     */
     std::string uuid() const;
     CudaArch arch() const;
 
+    /**
+     * Returns the underlying `CUcontext`.
+     */
     CUdevice get() const {
         return device_;
     }
@@ -148,9 +184,23 @@ struct CudaDevice {
 struct CudaContextHandle {
     CudaContextHandle() = default;
     CudaContextHandle(CUcontext c) : context_(c) {};
+
+    /**
+     * Returns the current CUDA context or throws an error if CUDA has not
+     * been initialized yet.
+     */
     static CudaContextHandle current();
+
+    /**
+     * Returns the `CudaDevice` associated with this context.
+     */
     CudaDevice device() const;
+
     void with(std::function<void()> f) const;
+
+    /**
+     * Returns the underlying `CUcontext`.
+     */
     CUcontext get() const {
         return context_;
     }

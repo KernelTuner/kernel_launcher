@@ -71,7 +71,7 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
             c_ref[i] = a[i] + b[i];
         }
 
-        export_tuning_file(
+        export_capture_file(
             tmp_dir,
             "vector_add_key",
             builder,
@@ -80,14 +80,14 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
              type_of<float*>(),
              type_of<const float*>(),
              type_of<const float*>()},
-            {KernelArg::for_scalar(int(n)).to_bytes(),
-             KernelArg::for_array(c.data(), c.size()).to_bytes(),
-             KernelArg::for_array(a.data(), a.size()).to_bytes(),
-             KernelArg::for_array(b.data(), b.size()).to_bytes()},
-            {KernelArg::for_scalar(int(n)).to_bytes(),
-             KernelArg::for_array(c_ref.data(), c_ref.size()).to_bytes(),
-             KernelArg::for_array(a.data(), a.size()).to_bytes(),
-             KernelArg::for_array(b.data(), b.size()).to_bytes()});
+            {KernelArg::from_scalar(int(n)).to_bytes(),
+             KernelArg::from_array(c.data(), c.size()).to_bytes(),
+             KernelArg::from_array(a.data(), a.size()).to_bytes(),
+             KernelArg::from_array(b.data(), b.size()).to_bytes()},
+            {KernelArg::from_scalar(int(n)).to_bytes(),
+             KernelArg::from_array(c_ref.data(), c_ref.size()).to_bytes(),
+             KernelArg::from_array(a.data(), a.size()).to_bytes(),
+             KernelArg::from_array(b.data(), b.size()).to_bytes()});
 
         compare_exports("vector_add_key_1024", tmp_dir, assets_dir);
     }
@@ -123,7 +123,7 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
             }
         }
 
-        export_tuning_file(
+        export_capture_file(
             tmp_dir,
             "matmul_key",
             builder,
@@ -132,14 +132,14 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
              type_of<float*>(),
              type_of<const float*>(),
              type_of<const float*>()},
-            {KernelArg::for_scalar(int(n)).to_bytes(),
-             KernelArg::for_array(c.data(), c.size()).to_bytes(),
-             KernelArg::for_array(a.data(), a.size()).to_bytes(),
-             KernelArg::for_array(b.data(), b.size()).to_bytes()},
-            {KernelArg::for_scalar(int(n)).to_bytes(),
-             KernelArg::for_array(c_ref.data(), c_ref.size()).to_bytes(),
-             KernelArg::for_array(a.data(), a.size()).to_bytes(),
-             KernelArg::for_array(b.data(), b.size()).to_bytes()});
+            {KernelArg::from_scalar(int(n)).to_bytes(),
+             KernelArg::from_array(c.data(), c.size()).to_bytes(),
+             KernelArg::from_array(a.data(), a.size()).to_bytes(),
+             KernelArg::from_array(b.data(), b.size()).to_bytes()},
+            {KernelArg::from_scalar(int(n)).to_bytes(),
+             KernelArg::from_array(c_ref.data(), c_ref.size()).to_bytes(),
+             KernelArg::from_array(a.data(), a.size()).to_bytes(),
+             KernelArg::from_array(b.data(), b.size()).to_bytes()});
 
         compare_exports("matmul_key_1024x1024", tmp_dir, assets_dir);
     }

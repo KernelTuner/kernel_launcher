@@ -23,7 +23,7 @@ kl::KernelBuilder build_kernel() {
 
 int main() {
     kl::set_global_wisdom_directory("wisdom/");
-    kl::set_global_capture_directory("tuning/");
+    kl::set_global_capture_directory("captures/");
 
     // Define the kernel.
     kl::KernelBuilder builder = build_kernel();

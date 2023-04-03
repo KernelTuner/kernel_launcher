@@ -199,7 +199,7 @@ struct ConfigSpace {
 
     /**
      * Add a restriction to this configuration space. A configuration is
-     * only considered valid this expression yields `true`.
+     * only considered valid if this expression yields `true`.
      */
     void restriction(TypedExpr<bool> e);
 

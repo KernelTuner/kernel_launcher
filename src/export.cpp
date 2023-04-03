@@ -204,12 +204,20 @@ struct KernelBuilderSerializerHack {
 
         result["name"] = builder.kernel_name_;
         result["compile_flags"] = expr_list_to_json(builder.compile_flags_);
-        result["block_size"] = expr_list_to_json(builder.block_size_);
-        result["grid_size"] = expr_list_to_json(builder.grid_size_);
         result["shared_memory"] = expr_to_json(builder.shared_mem_);
         result["template_args"] = expr_list_to_json(builder.template_args_);
         result["defines"] = std::move(defines);
         result["headers"] = std::move(headers);
+
+        result["block_size"] = expr_list_to_json(std::array<Expr, 3> {
+            builder.determine_block_size(0),
+            builder.determine_block_size(1),
+            builder.determine_block_size(2)});
+
+        result["grid_size"] = expr_list_to_json(std::array<Expr, 3> {
+            builder.determine_block_size(0),
+            builder.determine_block_size(1),
+            builder.determine_block_size(2)});
 
         return result;
     }
@@ -340,7 +348,10 @@ static json kernel_args_to_json(
         entry["type"] = dtype.name();
 
         if (dtype.is_pointer()) {
-            if (inputs[i].size() % dtype.size() != 0) {
+            // Data type of primitive scalar type for pointer
+            TypeInfo prim_type = dtype.remove_pointer();
+
+            if (inputs[i].size() % prim_type.size() != 0) {
                 throw std::invalid_argument("invalid input argument");
             }
 
@@ -434,7 +445,7 @@ static std::string tuning_key_to_file_name(
     return path_join(directory, file);
 }
 
-bool tuning_file_exists(
+bool capture_file_exists(
     const std::string& directory,
     const std::string& tuning_key,
     ProblemSize problem_size) {
@@ -443,7 +454,7 @@ bool tuning_file_exists(
     return (bool)std::ifstream(file_name);
 }
 
-void export_tuning_file(
+void export_capture_file(
     const std::string& directory,
     const std::string& tuning_key,
     const KernelBuilder& builder,
