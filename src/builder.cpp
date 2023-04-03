@@ -39,7 +39,7 @@ struct DeviceAttrEval: Eval {
 
     bool lookup(const Variable& v, Value& out) const override {
         if (const auto* that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
-            out = CudaDevice::current().attribute(that->get());
+            out = device_.attribute(that->get());
             return true;
         }
 
