@@ -215,9 +215,9 @@ struct KernelBuilderSerializerHack {
             builder.determine_block_size(2)});
 
         result["grid_size"] = expr_list_to_json(std::array<Expr, 3> {
-            builder.determine_block_size(0),
-            builder.determine_block_size(1),
-            builder.determine_block_size(2)});
+            builder.determine_grid_size(0),
+            builder.determine_grid_size(1),
+            builder.determine_grid_size(2)});
 
         return result;
     }
