@@ -446,7 +446,6 @@ KernelInstance KernelBuilder::compile(
     const ICompiler& compiler,
     CudaContextHandle ctx) const {
     DeviceAttrEval eval = {ctx.device(), config};
-    CudaModule module = compiler.compile(ctx, build(eval, param_types));
 
     if (!is_valid(eval)) {
         std::stringstream ss;
@@ -466,6 +465,7 @@ KernelInstance KernelBuilder::compile(
 
     TypedExpr<uint32_t> shared_mem = shared_mem_.resolve(eval);
 
+    CudaModule module = compiler.compile(ctx, build(eval, param_types));
     return {
         std::move(module),
         std::move(block_size),
