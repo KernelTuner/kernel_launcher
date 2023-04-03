@@ -46,9 +46,8 @@ struct DummyStream: std::ostream {
     DummyStream() = default;
 };
 
-static std::ostream& log_level(LogLevel level) {
+bool log_enabled(LogLevel level) {
     static constexpr const char* ENV_KEY = "KERNEL_LAUNCHER_LOG";
-    static DummyStream dummy_stream;
     static LogLevel min_level = LogLevel::Unknown;
 
     if (min_level == LogLevel::Unknown) {
@@ -70,7 +69,25 @@ static std::ostream& log_level(LogLevel level) {
         }
     }
 
-    if (level < min_level) {
+    return level >= min_level;
+}
+
+bool log_debug_enabled() {
+    return log_enabled(LogLevel::Debug);
+}
+
+bool log_info_enabled() {
+    return log_enabled(LogLevel::Info);
+}
+
+bool log_warning_enabled() {
+    return log_enabled(LogLevel::Warning);
+}
+
+static std::ostream& log_level(LogLevel level) {
+    static DummyStream dummy_stream;
+
+    if (!log_enabled(level)) {
         return dummy_stream;
     }
 

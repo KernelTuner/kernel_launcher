@@ -42,10 +42,11 @@ void KernelDef::add_compiler_option(std::string option) {
 }
 
 CudaModule ICompiler::compile(CudaContextHandle ctx, KernelDef def) const {
+    std::string human_name = def.name;
     std::string lowered_name;
     std::string ptx;
     compile_ptx(std::move(def), ctx.device().arch(), ptx, lowered_name);
-    return {ptx.c_str(), lowered_name.c_str()};
+    return {ptx.c_str(), lowered_name.c_str(), human_name.c_str()};
 }
 
 void Compiler::compile_ptx(

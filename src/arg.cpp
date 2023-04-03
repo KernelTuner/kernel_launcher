@@ -207,4 +207,31 @@ void* KernelArg::as_void_ptr() const {
     }
 }
 
+std::ostream& operator<<(std::ostream& os, const KernelArg& arg) {
+    // There are four possible representations:
+    // - pointer which is an array (length is known)
+    // - pointer which is not an array (length is unknown)
+    // - scalars convertible to `Value`
+    // - scalars without a representation
+    if (arg.type().is_pointer()) {
+        void* ptr;
+        ::memcpy(&ptr, arg.as_void_ptr(), sizeof(ptr));
+        os << "array " << ptr;
+
+        if (arg.is_array()) {
+            os << " of length " << arg.data_.array.nelements;
+        }
+    } else {
+        Value v = arg.to_value_or_empty();
+
+        if (!v.is_empty()) {
+            os << "scalar " << v;
+        } else {
+            os << "scalar <...>";
+        }
+    }
+
+    return os << " (type: " << arg.type_.name() << ")";
+}
+
 }  // namespace kernel_launcher
