@@ -117,7 +117,7 @@ struct KernelArg {
  * See `into_kernel_arg(T&&)`.
  */
 template<typename T, typename Enabled = void>
-struct IntoKernelArg;
+struct IntoKernelArg {};
 
 template<>
 struct IntoKernelArg<KernelArg> {
