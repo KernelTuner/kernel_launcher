@@ -118,11 +118,18 @@ TEST_CASE("test string_match") {
 TEST_CASE("test string_split") {
     using v = std::vector<std::string>;
     CHECK(string_split("a,b,c", ',') == v {"a", "b", "c"});
+    CHECK(string_split(",b,c", ',') == v {"", "b", "c"});
     CHECK(string_split("a,,c", ',') == v {"a", "", "c"});
     CHECK(string_split("a,b,", ',') == v {"a", "b", ""});
-    CHECK(string_split(",b,c", ',') == v {"", "b", "c"});
+    CHECK(string_split("a,,", ',') == v {"a", "", ""});
+    CHECK(string_split(",b,", ',') == v {"", "b", ""});
+    CHECK(string_split(",,c", ',') == v {"", "", "c"});
+    CHECK(string_split(",,", ',') == v {"", "", ""});
+    CHECK(string_split(",", ',') == v {"", ""});
     CHECK(string_split("", ',') == v {""});
     CHECK(string_split("aaaaa|bbbbb", '|') == v {"aaaaa", "bbbbb"});
+
+    CHECK(string_split("a|b,c:d", {'|', ',', ':'}) == v {"a", "b", "c", "d"});
 }
 
 TEST_CASE("test ProblemSize") {
