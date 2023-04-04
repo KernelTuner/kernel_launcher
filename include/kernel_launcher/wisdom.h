@@ -124,6 +124,16 @@ struct Oracle {
         const std::vector<std::vector<uint8_t>>& outputs) const = 0;
 };
 
+struct CaptureRule {
+    CaptureRule(std::string pattern, bool force = false) :
+        pattern(std::move(pattern)),
+        force(force) {}
+    CaptureRule(const char* pattern) : CaptureRule(std::string(pattern)) {}
+
+    std::string pattern = "";
+    bool force = false;
+};
+
 struct DefaultOracle: Oracle {
     static DefaultOracle from_env();
 
@@ -131,8 +141,7 @@ struct DefaultOracle: Oracle {
     DefaultOracle(
         std::vector<std::string> wisdom_dirs,
         std::string capture_dir,
-        std::vector<std::string> capture_patterns = {},
-        bool force_capture = false);
+        std::vector<CaptureRule> capture_rules = {});
 
     virtual ~DefaultOracle() = default;
 
@@ -173,19 +182,14 @@ struct DefaultOracle: Oracle {
         return capture_dir_;
     }
 
-    const std::vector<std::string>& capture_patterns() const {
-        return capture_patterns_;
-    }
-
-    bool is_capture_forced() const {
-        return force_capture_;
+    const std::vector<CaptureRule>& capture_rules() const {
+        return capture_rules_;
     }
 
   private:
     std::vector<std::string> wisdom_dirs_;
     std::string capture_dir_;
-    std::vector<std::string> capture_patterns_;
-    bool force_capture_;
+    std::vector<CaptureRule> capture_rules_;
 };
 
 /**
@@ -197,8 +201,7 @@ struct WisdomSettings {
     WisdomSettings(
         std::string wisdom_dir,
         std::string capture_dir,
-        std::vector<std::string> capture_patterns = {},
-        bool force_capture = false);
+        std::vector<CaptureRule> capture_rules = {});
     WisdomSettings(std::shared_ptr<Oracle> oracle);
 
     template<typename T>
@@ -270,6 +273,8 @@ WisdomSettings default_wisdom_settings();
  * returned by `default_wisdom_settings`.
  */
 void append_global_wisdom_directory(std::string);
+
+// Deprecated
 void set_global_wisdom_directory(std::string);
 
 /**
@@ -282,7 +287,7 @@ void set_global_capture_directory(std::string);
  * Add capture pattern to the `WisdomSettings` returned by
  * `default_wisdom_settings`.
  */
-void add_global_capture_pattern(std::string);
+void add_global_capture_pattern(CaptureRule rule);
 
 }  // namespace kernel_launcher
 
