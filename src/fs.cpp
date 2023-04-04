@@ -109,31 +109,32 @@ static void add_env_directories(std::vector<std::string>& result) {
         return;
     }
 
-    while (true) {
-        if (paths[0] == '\0') {
-            break;
-        }
+    size_t index = 0;
+    bool is_done = false;
 
-        if (paths[0] == ';') {
-            paths++;
-            continue;
-        }
-
-        size_t count = 0;
+    while (!is_done) {
+        size_t length = 0;
 
         while (true) {
-            char c = paths[count];
-            if (c == '\0' || c == ';') {
+            char c = paths[index + length];
+            if (c == '\0') {
+                is_done = true;
                 break;
             }
-            count++;
+
+            // allowed seperators are ';', ',' and ':'
+            if (c == ';' || c == ',' || c == ':') {
+                break;
+            }
+
+            length++;
         }
 
-        if (count > 0) {
-            result.emplace_back(paths, count);
+        if (length > 0) {
+            result.emplace_back(&paths[index], length);
         }
 
-        paths += count;
+        index += length + 1;
     }
 }
 
