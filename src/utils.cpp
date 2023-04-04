@@ -218,14 +218,27 @@ bool string_match(const char* pattern, const char* input) {
     return false;
 }
 
-std::vector<std::string> string_split(const char* input, char delim) {
+std::vector<std::string>
+string_split(const char* input, const std::vector<char>& delims) {
     size_t start = 0;
     std::vector<std::string> result;
 
     while (input[start] != '\0') {
         size_t end = start;
 
-        while (input[end] != '\0' && input[end] != delim) {
+        while (input[end] != '\0') {
+            bool is_delim = false;
+
+            for (char delim : delims) {
+                if (input[end] == delim) {
+                    is_delim = true;
+                }
+            }
+
+            if (is_delim) {
+                break;
+            }
+
             end++;
         }
 
@@ -239,6 +252,10 @@ std::vector<std::string> string_split(const char* input, char delim) {
 
     result.emplace_back(input + start);
     return result;
+}
+
+std::vector<std::string> string_split(const char* input, char delim) {
+    return string_split(input, std::vector<char> {delim});
 }
 
 hash_t hash_string(const char* buffer, size_t num_bytes) {

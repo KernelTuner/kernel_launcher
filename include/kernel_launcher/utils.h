@@ -404,6 +404,8 @@ bool safe_int64_mul(int64_t lhs, int64_t rhs, int64_t& output);
 bool safe_int64_div(int64_t lhs, int64_t rhs, int64_t& output);
 
 bool string_match(const char* pattern, const char* input);
+std::vector<std::string>
+string_split(const char* input, const std::vector<char>& delims);
 std::vector<std::string> string_split(const char* input, char delim);
 
 using hash_t = uint64_t;
