@@ -448,7 +448,7 @@ DefaultOracle DefaultOracle::from_env() {
         }
 
         patterns = value;
-        force = strstr(value, "FORCE") != nullptr;
+        force = strstr(key, "FORCE") != nullptr;
     }
 
     if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
@@ -469,8 +469,6 @@ DefaultOracle DefaultOracle::from_env() {
 
     // Print info message on which kernels will be tuned.
     if (!capture_patterns.empty()) {
-        std::stringstream ss;
-
         log_info() << "capture enabled for the following kernels: "
                    << string_comma_join(capture_patterns) << "\n";
     }
