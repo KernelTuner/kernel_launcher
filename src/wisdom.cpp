@@ -402,10 +402,51 @@ DefaultOracle::DefaultOracle(
     capture_dir_(std::move(capture_dir)),
     capture_rules_(std::move(capture_rules)) {}
 
+static std::vector<CaptureRule> determine_capture_rules() {
+    const char* value;
+    std::vector<CaptureRule> result = {};
+
+    // Try the following environment keys
+    const char* env_keys[6] = {
+        "KERNEL_LAUNCHER_CAPTURE_FORCE",
+        "KERNEL_LAUNCHER_CAPTURE",
+        "KERNEL_LAUNCHER_FORCE_CAPTURE",
+        "KERNEL_LAUNCHER_TUNE_FORCE",
+        "KERNEL_LAUNCHER_FORCE_TUNE",
+        "KERNEL_LAUNCHER_TUNE",
+    };
+
+    for (const char* key : env_keys) {
+        // Check if variable exists
+        if ((value = getenv(key)) == nullptr) {
+            continue;
+        }
+
+        bool force = strstr(key, "FORCE") != nullptr;
+        std::string patterns = value;
+
+        // Some patterns are special cased
+        if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
+            patterns = "*";
+        }
+
+        if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
+            patterns = "";
+        }
+
+        for (auto pattern : string_split(patterns.c_str(), {',', '|', ';'})) {
+            if (!pattern.empty()) {
+                result.emplace_back(std::move(pattern), force);
+            }
+        }
+    }
+
+    return result;
+}
+
 DefaultOracle DefaultOracle::from_env() {
     std::vector<std::string> wisdom_dirs = {"."};
     std::string capture_dir = ".";
-    std::vector<CaptureRule> capture_rules = {};
     const char* value;
 
     if ((value = getenv("KERNEL_LAUNCHER_WISDOM")) != nullptr) {
@@ -424,42 +465,7 @@ DefaultOracle DefaultOracle::from_env() {
         capture_dir = value;
     }
 
-    // Try the following environment keys
-    const char* env_keys[6] = {
-        "KERNEL_LAUNCHER_CAPTURE_FORCE",
-        "KERNEL_LAUNCHER_CAPTURE",
-        "KERNEL_LAUNCHER_FORCE_CAPTURE",
-        "KERNEL_LAUNCHER_TUNE_FORCE",
-        "KERNEL_LAUNCHER_FORCE_TUNE",
-        "KERNEL_LAUNCHER_TUNE",
-    };
-
-    for (const char* key : env_keys) {
-        // Check if variable exists
-        if ((value = getenv(key)) == nullptr) {
-            continue;
-        }
-
-        std::string patterns = value;
-        bool force = strstr(key, "FORCE") != nullptr;
-
-        // Some patterns are special cased
-        if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
-            patterns = "*";
-        }
-
-        if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
-            patterns = "";
-        }
-
-        for (auto pattern : string_split(patterns.c_str(), {',', '|', ';'})) {
-            if (pattern.empty()) {
-                continue;
-            }
-
-            capture_rules.emplace_back(std::move(pattern), force);
-        }
-    }
+    auto capture_rules = determine_capture_rules();
 
     // Print info message on which kernels will be tuned.
     if (!capture_rules.empty() && log_info_enabled()) {
