@@ -506,17 +506,17 @@ void DefaultOracle::capture_kernel(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     ProblemSize problem_size,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs) const {
+    const std::vector<KernelArg>& arguments,
+    const std::vector<std::vector<uint8_t>>& input_arrays,
+    const std::vector<std::vector<uint8_t>>& output_arrays) const {
     export_capture_file(
         capture_dir_,
         tuning_key,
         builder,
         problem_size,
-        param_types,
-        inputs,
-        outputs);
+        arguments,
+        input_arrays,
+        output_arrays);
 }
 
 bool DefaultOracle::should_capture_kernel(

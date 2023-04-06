@@ -130,14 +130,59 @@ static void assert_types_equal(
     throw std::runtime_error(msg);
 }
 
+static void launch_captured_impl(
+    WisdomKernelImpl* impl_,
+    cudaStream_t stream,
+    ProblemSize problem_size,
+    const std::vector<KernelArg>& args) {
+    const std::string& tuning_key = impl_->builder_.tuning_key();
+    std::vector<std::vector<uint8_t>> inputs;
+    std::vector<std::vector<uint8_t>> outputs;
+
+    KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
+
+    for (const KernelArg& arg : args) {
+        if (arg.is_array()) {
+            inputs.emplace_back(arg.copy_array());
+        }
+    }
+
+    impl_->instance_.launch(stream, problem_size, args);
+
+    KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
+
+    for (const KernelArg& arg : args) {
+        if (arg.is_array()) {
+            outputs.emplace_back(arg.copy_array());
+        }
+    }
+
+    try {
+        impl_->settings_.capture_kernel(
+            tuning_key,
+            impl_->builder_,
+            problem_size,
+            args,
+            inputs,
+            outputs);
+    } catch (const std::exception& err) {
+        log_warning() << "error ignored while writing tuning file for \""
+                      << tuning_key << "\": " << err.what();
+    }
+}
+
 void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
     if (!impl_) {
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    ProblemSize problem_size = impl_->problem_processor_(args);
-
     std::lock_guard<std::mutex> guard(impl_->mutex_);
+
+    ProblemSize problem_size = impl_->problem_processor_(args);
+    bool should_capture = false;
+
     if (!impl_->compiled_) {
         const std::string& tuning_key = impl_->builder_.tuning_key();
 
@@ -146,7 +191,6 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
             param_types.push_back(arg.type());
         }
 
-        bool should_capture = false;
         compile_impl(
             impl_.get(),
             tuning_key,
@@ -154,47 +198,15 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
             CudaContextHandle::current(),
             param_types,
             &should_capture);
-
-        if (should_capture) {
-            std::vector<std::vector<uint8_t>> inputs;
-            std::vector<std::vector<uint8_t>> outputs;
-
-            KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
-            KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
-
-            for (const KernelArg& arg : args) {
-                inputs.push_back(arg.to_bytes());
-            }
-
-            impl_->instance_.launch(stream, problem_size, args);
-
-            KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
-            KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
-
-            for (const KernelArg& arg : args) {
-                outputs.push_back(arg.to_bytes());
-            }
-
-            try {
-                impl_->settings_.capture_kernel(
-                    tuning_key,
-                    impl_->builder_,
-                    problem_size,
-                    param_types,
-                    inputs,
-                    outputs);
-            } catch (const std::exception& err) {
-                log_warning()
-                    << "error ignored while writing tuning file for \""
-                    << tuning_key << "\": " << err.what();
-            }
-
-            return;
-        }
     }
 
     assert_types_equal(args, impl_->param_types_);
-    impl_->instance_.launch(stream, problem_size, args);
+
+    if (should_capture) {
+        launch_captured_impl(impl_.get(), stream, problem_size, args);
+    } else {
+        impl_->instance_.launch(stream, problem_size, args);
+    }
 }
 
 }  // namespace kernel_launcher

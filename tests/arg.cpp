@@ -140,3 +140,42 @@ TEST_CASE("test KernelArg") {
         }
     }
 }
+
+// These tests are seperate since they require CUDA
+TEST_CASE("test KernelArg::copy_array", "[CUDA]") {
+    CUcontext ctx;
+    KERNEL_LAUNCHER_CUDA_CHECK(cuInit(0));
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
+
+    SECTION("scalar int") {
+        KernelArg v = KernelArg::from_scalar((int)123);
+        CHECK(v.to_bytes() == std::vector<uint8_t> {123, 0, 0, 0});
+        CHECK_THROWS(v.copy_array());
+    }
+
+    SECTION("array int*") {
+        std::vector<int> array {1, 2, 3};
+
+        std::vector<uint8_t> ptr_bytes(sizeof(int*));
+        int* array_ptr = array.data();
+        ::memcpy(ptr_bytes.data(), (uint8_t*)&array_ptr, sizeof(int*));
+
+        KernelArg v = KernelArg::from_array(array.data(), array.size());
+        CHECK(v.to_bytes() == ptr_bytes);
+        CHECK(
+            v.copy_array()
+            == std::vector<uint8_t> {1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0});
+    }
+
+    SECTION("array NULL") {
+        KernelArg v = into_kernel_arg((int*)nullptr);
+        CHECK(v.to_bytes() == std::vector<uint8_t> {0, 0, 0, 0, 0, 0, 0, 0});
+        CHECK_THROWS(v.copy_array());
+    }
+
+    SECTION("array nullptr") {
+        KernelArg v = into_kernel_arg(nullptr);
+        CHECK(v.to_bytes() == std::vector<uint8_t> {0, 0, 0, 0, 0, 0, 0, 0});
+        CHECK_THROWS(v.copy_array());
+    }
+}

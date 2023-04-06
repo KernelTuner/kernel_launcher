@@ -163,35 +163,40 @@ TypeInfo KernelArg::type() const {
 }
 
 std::vector<uint8_t> KernelArg::to_bytes() const {
-    std::vector<uint8_t> result;
+    size_t nbytes = type_.size();
+    std::vector<uint8_t> result(nbytes);
+    ::memcpy(result.data(), as_void_ptr(), nbytes);
+    return result;
+}
 
+std::vector<uint8_t> KernelArg::copy_array() const {
     if (is_array()) {
-        result.resize(type_.remove_pointer().size() * data_.array.nelements);
-        KERNEL_LAUNCHER_CUDA_CHECK(cuMemcpy(
-            reinterpret_cast<CUdeviceptr>(result.data()),
-            reinterpret_cast<CUdeviceptr>(data_.array.ptr),
-            result.size()));
-    } else {
-        // If the type is a pointer, exporting it to bytes will return
-        // the memory address of the pointer and not the data of the buffer it
-        // points to This is likely a bug on the user side. Todo: find a better
-        //  way f handling this error (maybe already in KernelArg ctor?).
-        if (type_.is_pointer()) {
-            throw std::runtime_error("a raw pointer type was provided as "
-                "kernel argument (" + type_.name() + ") which cannot be "
-                "exported since the corresponding buffer size is unknown");
+        size_t nbytes = type_.remove_pointer().size() * data_.array.nelements;
+        std::vector<uint8_t> result(nbytes);
+
+        if (nbytes > 0) {
+            KERNEL_LAUNCHER_CUDA_CHECK(cuMemcpy(
+                reinterpret_cast<CUdeviceptr>(result.data()),
+                reinterpret_cast<CUdeviceptr>(data_.array.ptr),
+                nbytes));
         }
 
-        result.resize(type_.size());
-
-        if (is_inline_scalar(type_)) {
-            ::memcpy(result.data(), data_.small_scalar.data(), type_.size());
-        } else {
-            ::memcpy(result.data(), data_.large_scalar, type_.size());
-        }
+        return result;
     }
 
-    return result;
+    std::string msg;
+
+    if (type_.is_pointer()) {
+        msg = "a raw pointer of type " + type_.name() + " was provided as "
+            "kernel argument which cannot be exported since the "
+            "corresponding buffer size is unknown";
+    } else {
+        msg = "a scalar of type " + type_.name() + " was provided as "
+            "kernel argument which cannot be exported since it is not "
+            "an array";
+    }
+
+    throw std::runtime_error(msg);
 }
 
 KernelArg::KernelArg() : type_(type_of<int>()), scalar_(true) {}

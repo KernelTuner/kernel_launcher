@@ -38,6 +38,13 @@ void compare_exports(
     }
 }
 
+template<typename T>
+std::vector<uint8_t> to_bytes(const std::vector<T>& array) {
+    std::vector<uint8_t> result(array.size() * sizeof(T));
+    ::memcpy(result.data(), array.data(), result.size());
+    return result;
+}
+
 TEST_CASE("test export_tuning_file", "[CUDA]") {
     CUcontext ctx;
     KERNEL_LAUNCHER_CUDA_CHECK(cuInit(0));
@@ -48,12 +55,15 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
 
     // Create temporary directory and clear its contents
     std::filesystem::create_directory(tmp_dir);
-    for (const auto& entry : std::filesystem::directory_iterator(tmp_dir)) {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
 
-        std::filesystem::remove(entry);
+    SECTION("clean up") {
+        for (const auto& entry : std::filesystem::directory_iterator(tmp_dir)) {
+            if (!entry.is_regular_file()) {
+                continue;
+            }
+
+            std::filesystem::remove(entry);
+        }
     }
 
     SECTION("vector add") {
@@ -71,23 +81,20 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
             c_ref[i] = a[i] + b[i];
         }
 
+        std::vector<KernelArg> arguments = {
+            KernelArg::from_scalar(int(n)),
+            KernelArg::from_array((float*)c.data(), c.size()),
+            KernelArg::from_array((const float*)a.data(), a.size()),
+            KernelArg::from_array((const float*)b.data(), b.size())};
+
         export_capture_file(
             tmp_dir,
             "vector_add_key",
             builder,
             {uint32_t(n)},
-            {type_of<int>(),
-             type_of<float*>(),
-             type_of<const float*>(),
-             type_of<const float*>()},
-            {KernelArg::from_scalar(int(n)).to_bytes(),
-             KernelArg::from_array(c.data(), c.size()).to_bytes(),
-             KernelArg::from_array(a.data(), a.size()).to_bytes(),
-             KernelArg::from_array(b.data(), b.size()).to_bytes()},
-            {KernelArg::from_scalar(int(n)).to_bytes(),
-             KernelArg::from_array(c_ref.data(), c_ref.size()).to_bytes(),
-             KernelArg::from_array(a.data(), a.size()).to_bytes(),
-             KernelArg::from_array(b.data(), b.size()).to_bytes()});
+            arguments,
+            {to_bytes(c), to_bytes(a), to_bytes(b)},
+            {to_bytes(c_ref), to_bytes(a), to_bytes(b)});
 
         compare_exports("vector_add_key_1024", tmp_dir, assets_dir);
     }
@@ -123,23 +130,20 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
             }
         }
 
+        std::vector<KernelArg> arguments = {
+            KernelArg::from_scalar(int(n)),
+            KernelArg::from_array((float*)c.data(), c.size()),
+            KernelArg::from_array((const float*)a.data(), a.size()),
+            KernelArg::from_array((const float*)b.data(), b.size())};
+
         export_capture_file(
             tmp_dir,
             "matmul_key",
             builder,
             {uint32_t(n), uint32_t(n)},
-            {type_of<int>(),
-             type_of<float*>(),
-             type_of<const float*>(),
-             type_of<const float*>()},
-            {KernelArg::from_scalar(int(n)).to_bytes(),
-             KernelArg::from_array(c.data(), c.size()).to_bytes(),
-             KernelArg::from_array(a.data(), a.size()).to_bytes(),
-             KernelArg::from_array(b.data(), b.size()).to_bytes()},
-            {KernelArg::from_scalar(int(n)).to_bytes(),
-             KernelArg::from_array(c_ref.data(), c_ref.size()).to_bytes(),
-             KernelArg::from_array(a.data(), a.size()).to_bytes(),
-             KernelArg::from_array(b.data(), b.size()).to_bytes()});
+            arguments,
+            {to_bytes(c), to_bytes(a), to_bytes(b)},
+            {to_bytes(c_ref), to_bytes(a), to_bytes(b)});
 
         compare_exports("matmul_key_1024x1024", tmp_dir, assets_dir);
     }

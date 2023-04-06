@@ -119,9 +119,9 @@ struct Oracle {
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const = 0;
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const = 0;
 };
 
 struct CaptureRule {
@@ -130,7 +130,7 @@ struct CaptureRule {
         force(force) {}
     CaptureRule(const char* pattern) : CaptureRule(std::string(pattern)) {}
 
-    std::string pattern = "";
+    std::string pattern;
     bool force = false;
 };
 
@@ -143,22 +143,22 @@ struct DefaultOracle: Oracle {
         std::string capture_dir,
         std::vector<CaptureRule> capture_rules = {});
 
-    virtual ~DefaultOracle() = default;
+    ~DefaultOracle() override = default;
 
-    virtual Config load_config(
+    Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
         bool* should_capture_out) const override;
 
-    virtual void capture_kernel(
+    void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const override;
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const override;
 
     virtual bool should_capture_kernel(
         const std::string& tuning_key,
@@ -247,16 +247,16 @@ struct WisdomSettings {
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const {
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const {
         return impl_->capture_kernel(
             tuning_key,
             builder,
             problem_size,
-            param_types,
-            inputs,
-            outputs);
+            arguments,
+            input_arrays,
+            output_arrays);
     }
 
   private:

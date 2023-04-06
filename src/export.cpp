@@ -51,13 +51,13 @@ static json value_to_json(const Value& expr) {
 
 //struct SelectExpr: BaseExpr {
 
-static json expr_to_json(const BaseExpr& expr) {
+static json expr_to_json(const BaseExpr& expr, const Eval& eval) {
     if (const ScalarExpr* v = dynamic_cast<const ScalarExpr*>(&expr)) {
         return value_to_json(v->value());
     }
 
     if (const SharedExpr* v = dynamic_cast<const SharedExpr*>(&expr)) {
-        return expr_to_json(v->inner());
+        return expr_to_json(v->inner(), eval);
     }
 
     std::string op;
@@ -68,17 +68,17 @@ static json expr_to_json(const BaseExpr& expr) {
         operands.emplace_back(pe->parameter().name());
     } else if (const auto* ue = dynamic_cast<const UnaryExpr*>(&expr)) {
         op = ue->op_name();
-        operands.emplace_back(expr_to_json(ue->operand()));
+        operands.emplace_back(expr_to_json(ue->operand(), eval));
     } else if (const auto* be = dynamic_cast<const BinaryExpr*>(&expr)) {
         op = be->op_name();
-        operands.emplace_back(expr_to_json(be->left_operand()));
-        operands.emplace_back(expr_to_json(be->right_operand()));
+        operands.emplace_back(expr_to_json(be->left_operand(), eval));
+        operands.emplace_back(expr_to_json(be->right_operand(), eval));
     } else if (const auto* se = dynamic_cast<const SelectExpr*>(&expr)) {
         op = "select";
-        operands.emplace_back(expr_to_json(se->condition()));
+        operands.emplace_back(expr_to_json(se->condition(), eval));
 
         for (const auto& p : se->operands()) {
-            operands.push_back(expr_to_json(p));
+            operands.push_back(expr_to_json(p, eval));
         }
     } else if (
         const auto* de = dynamic_cast<const DeviceAttributeExpr*>(&expr)) {
@@ -87,6 +87,14 @@ static json expr_to_json(const BaseExpr& expr) {
     } else if (const auto* pse = dynamic_cast<const ProblemExpr*>(&expr)) {
         op = "problem_size";
         operands.emplace_back(pse->axis());
+    } else if (const auto* var = dynamic_cast<const Variable*>(&expr)) {
+        Value value;
+        if (eval.lookup(*var, value)) {
+            return value_to_json(value);
+        }
+
+        throw std::runtime_error(
+            "could not serialize unknown variable: " + expr.to_string());
     } else {
         throw std::runtime_error(
             "could not serialize expression: " + expr.to_string());
@@ -96,11 +104,11 @@ static json expr_to_json(const BaseExpr& expr) {
 }
 
 template<typename C>
-static std::vector<json> expr_list_to_json(C collection) {
+static std::vector<json> expr_list_to_json(C collection, const Eval& eval) {
     std::vector<json> result;
 
     for (const auto& entry : collection) {
-        result.push_back(expr_to_json(entry));
+        result.push_back(expr_to_json(entry, eval));
     }
 
     return result;
@@ -156,12 +164,13 @@ static json tunable_param_to_json(const TunableParam& param) {
 }
 
 struct KernelBuilderSerializerHack {
-    static json config_space_to_json(const KernelBuilder& builder) {
+    static json
+    config_space_to_json(const KernelBuilder& builder, const Eval& eval) {
         std::vector<json> restrictions;
-        for (auto e : expr_list_to_json(builder.restrictions_)) {
+        for (auto e : expr_list_to_json(builder.restrictions_, eval)) {
             restrictions.emplace_back(std::move(e));
         }
-        for (auto e : expr_list_to_json(builder.assertions_)) {
+        for (auto e : expr_list_to_json(builder.assertions_, eval)) {
             restrictions.emplace_back(std::move(e));
         }
 
@@ -175,7 +184,8 @@ struct KernelBuilderSerializerHack {
             {"restrictions", std::move(restrictions)}};
     }
 
-    static json builder_to_json(const KernelBuilder& builder) {
+    static json
+    builder_to_json(const KernelBuilder& builder, const Eval& eval) {
         std::vector<json> headers;
         for (const auto& source : builder.preheaders_) {
             json content = nullptr;
@@ -191,8 +201,18 @@ struct KernelBuilderSerializerHack {
 
         json defines = json::object();
         for (const auto& p : builder.defines_) {
-            defines[p.first] = expr_to_json(p.second);
+            defines[p.first] = expr_to_json(p.second, eval);
         }
+
+        std::array<Expr, 3> block_size = {
+            builder.determine_block_size(0),
+            builder.determine_block_size(1),
+            builder.determine_block_size(2)};
+
+        std::array<Expr, 3> grid_size = {
+            builder.determine_grid_size(0),
+            builder.determine_grid_size(1),
+            builder.determine_grid_size(2)};
 
         json result;
         const std::string* content = builder.kernel_source_.content();
@@ -203,21 +223,16 @@ struct KernelBuilderSerializerHack {
         }
 
         result["name"] = builder.kernel_name_;
-        result["compile_flags"] = expr_list_to_json(builder.compile_flags_);
-        result["shared_memory"] = expr_to_json(builder.shared_mem_);
-        result["template_args"] = expr_list_to_json(builder.template_args_);
-        result["defines"] = std::move(defines);
+        result["compile_flags"] =
+            expr_list_to_json(builder.compile_flags_, eval);
+        result["shared_memory"] = expr_to_json(builder.shared_mem_, eval);
+        result["template_args"] =
+            expr_list_to_json(builder.template_args_, eval);
         result["headers"] = std::move(headers);
+        result["defines"] = std::move(defines);
 
-        result["block_size"] = expr_list_to_json(std::array<Expr, 3> {
-            builder.determine_block_size(0),
-            builder.determine_block_size(1),
-            builder.determine_block_size(2)});
-
-        result["grid_size"] = expr_list_to_json(std::array<Expr, 3> {
-            builder.determine_grid_size(0),
-            builder.determine_grid_size(1),
-            builder.determine_grid_size(2)});
+        result["block_size"] = expr_list_to_json(block_size, eval);
+        result["grid_size"] = expr_list_to_json(grid_size, eval);
 
         return result;
     }
@@ -329,51 +344,47 @@ static const DataFile& write_kernel_arg(
 static json kernel_args_to_json(
     const std::string& tuning_key,
     const std::string& data_dir,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs) {
+    const std::vector<KernelArg>& arguments,
+    const std::vector<std::vector<uint8_t>>& input_arrays,
+    const std::vector<std::vector<uint8_t>>& output_arrays) {
     std::vector<DataFile> previous_files;
     std::vector<json> result;
 
-    size_t nargs = param_types.size();
-    if (inputs.size() != nargs
-        || (!outputs.empty() && outputs.size() != nargs)) {
-        throw std::invalid_argument("invalid number of arguments");
-    }
+    size_t array_index = 0;
 
-    for (size_t i = 0; i < nargs; i++) {
-        TypeInfo dtype = param_types[i];
-
+    for (const auto& argument : arguments) {
         json entry;
-        entry["type"] = dtype.name();
+        entry["type"] = argument.type().name();
 
-        if (dtype.is_pointer()) {
+        if (argument.is_array()) {
             // Data type of primitive scalar type for pointer
-            TypeInfo prim_type = dtype.remove_pointer();
+            TypeInfo prim_type = argument.type().remove_pointer();
 
-            if (inputs[i].size() % prim_type.size() != 0) {
-                throw std::invalid_argument("invalid input argument");
+            if (input_arrays.at(array_index).size() % prim_type.size() != 0) {
+                throw std::invalid_argument("invalid input array size");
             }
 
             const DataFile& input_file = write_kernel_arg(
                 tuning_key,
                 data_dir,
-                inputs[i],
+                input_arrays[array_index],
                 previous_files);
 
             entry["kind"] = "array";
             entry["hash"] = input_file.hash;
             entry["file"] = input_file.file_name;
 
-            if (!outputs.empty() && !outputs[i].empty()) {
-                if (inputs[i].size() != outputs[i].size()) {
-                    throw std::invalid_argument("invalid output argument");
+            if (!output_arrays.empty()
+                && !output_arrays.at(array_index).empty()) {
+                if (input_arrays[array_index].size()
+                    != output_arrays[array_index].size()) {
+                    throw std::invalid_argument("invalid output array size");
                 }
 
                 const DataFile& output_file = write_kernel_arg(
                     tuning_key,
                     data_dir,
-                    outputs[i],
+                    output_arrays[array_index],
                     previous_files);
 
                 // Only add the output reference file if it does not match the
@@ -383,13 +394,11 @@ static json kernel_args_to_json(
                     entry["reference_hash"] = output_file.hash;
                 }
             }
-        } else {
-            if (inputs[i].size() != dtype.size()) {
-                throw std::invalid_argument("invalid argument");
-            }
 
+            array_index++;
+        } else {
             entry["kind"] = "scalar";
-            entry["data"] = inputs[i];
+            entry["data"] = argument.to_bytes();
         }
 
         result.emplace_back(std::move(entry));
@@ -398,22 +407,64 @@ static json kernel_args_to_json(
     return result;
 }
 
+struct ArgsEval: Eval {
+    explicit ArgsEval(
+        ProblemSize problem_size,
+        const std::vector<KernelArg>& args) :
+        args_(args),
+        problem_size_(problem_size) {}
+
+    bool lookup(const Variable& v, Value& out) const override {
+        if (const auto* that = dynamic_cast<const ArgExpr*>(&v)) {
+            size_t i = that->get();
+
+            if (i < args_.size()) {
+                out = args_[i].to_value_or_empty();
+
+                if (!out.is_empty()) {
+                    return true;
+                }
+            }
+        }
+
+        if (const auto* that = dynamic_cast<const ProblemExpr*>(&v)) {
+            if (that->axis() < problem_size_.size()) {
+                out = problem_size_[that->axis()];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+  private:
+    const std::vector<KernelArg>& args_;
+    const ProblemSize problem_size_;
+};
+
 static json kernel_to_json(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     const std::string& data_dir,
     ProblemSize problem_size,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs) {
+    const std::vector<KernelArg>& arguments,
+    const std::vector<std::vector<uint8_t>>& input_arrays,
+    const std::vector<std::vector<uint8_t>>& output_arrays) {
+    ArgsEval eval(problem_size, arguments);
+
     json result;
     result["key"] = tuning_key;
     result["environment"] = environment_json();
     result["config_space"] =
-        KernelBuilderSerializerHack::config_space_to_json(builder);
-    result["kernel"] = KernelBuilderSerializerHack::builder_to_json(builder);
-    result["arguments"] =
-        kernel_args_to_json(tuning_key, data_dir, param_types, inputs, outputs);
+        KernelBuilderSerializerHack::config_space_to_json(builder, eval);
+    result["kernel"] =
+        KernelBuilderSerializerHack::builder_to_json(builder, eval);
+    result["arguments"] = kernel_args_to_json(
+        tuning_key,
+        data_dir,
+        arguments,
+        input_arrays,
+        output_arrays);
     result["problem_size"] = std::vector<unsigned int> {
         problem_size.x,
         problem_size.y,
@@ -459,9 +510,9 @@ void export_capture_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     ProblemSize problem_size,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs) {
+    const std::vector<KernelArg>& arguments,
+    const std::vector<std::vector<uint8_t>>& input_arrays,
+    const std::vector<std::vector<uint8_t>>& output_arrays) {
     std::string file_name =
         tuning_key_to_file_name(directory, tuning_key, problem_size);
 
@@ -471,9 +522,9 @@ void export_capture_file(
             builder,
             directory,
             problem_size,
-            param_types,
-            inputs,
-            outputs);
+            arguments,
+            input_arrays,
+            output_arrays);
 
         log_info() << "writing capture to " << file_name << " for kernel "
                    << tuning_key << std::endl;

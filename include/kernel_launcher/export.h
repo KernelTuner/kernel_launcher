@@ -28,9 +28,9 @@ void export_capture_file(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     ProblemSize problem_size,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs = {});
+    const std::vector<KernelArg>& arguments,
+    const std::vector<std::vector<uint8_t>>& input_arrays,
+    const std::vector<std::vector<uint8_t>>& output_arrays = {});
 
 }  // namespace kernel_launcher
 

@@ -98,6 +98,7 @@
         "source": "\n    template <typename T>\n    __global__\n    void vector_add(int n, int *c, const int* a, const int* b) {\n        for (int k = 0; k < ELEMENTS_PER_THREAD; k++) {\n            int index = (blockIdx.x * ELEMENTS_PER_THREAD + k) * blockDim.x + threadIdx.x;\n\n            if (index < n) {\n                c[index] = a[index] + b[index];\n            }\n        }\n    }\n    ",
         "name": "vector_add",
         "compile_flags": [],
+        "headers": [],
         "block_size": [
             {
                 "operator": "parameter",
@@ -115,12 +116,7 @@
                     {
                         "operator": "/",
                         "operands": [
-                            {
-                                "operator": "problem_size",
-                                "operands": [
-                                    0
-                                ]
-                            },
+                            1024,
                             {
                                 "operator": "*",
                                 "operands": [
@@ -146,12 +142,7 @@
                             {
                                 "operator": "%",
                                 "operands": [
-                                    {
-                                        "operator": "problem_size",
-                                        "operands": [
-                                            0
-                                        ]
-                                    },
+                                    1024,
                                     {
                                         "operator": "*",
                                         "operands": [
@@ -176,76 +167,8 @@
                     }
                 ]
             },
-            {
-                "operator": "+",
-                "operands": [
-                    {
-                        "operator": "/",
-                        "operands": [
-                            {
-                                "operator": "problem_size",
-                                "operands": [
-                                    1
-                                ]
-                            },
-                            1
-                        ]
-                    },
-                    {
-                        "operator": "!=",
-                        "operands": [
-                            {
-                                "operator": "%",
-                                "operands": [
-                                    {
-                                        "operator": "problem_size",
-                                        "operands": [
-                                            1
-                                        ]
-                                    },
-                                    1
-                                ]
-                            },
-                            0
-                        ]
-                    }
-                ]
-            },
-            {
-                "operator": "+",
-                "operands": [
-                    {
-                        "operator": "/",
-                        "operands": [
-                            {
-                                "operator": "problem_size",
-                                "operands": [
-                                    2
-                                ]
-                            },
-                            1
-                        ]
-                    },
-                    {
-                        "operator": "!=",
-                        "operands": [
-                            {
-                                "operator": "%",
-                                "operands": [
-                                    {
-                                        "operator": "problem_size",
-                                        "operands": [
-                                            2
-                                        ]
-                                    },
-                                    1
-                                ]
-                            },
-                            0
-                        ]
-                    }
-                ]
-            }
+            1,
+            1
         ],
         "shared_memory": 0,
         "template_args": [
@@ -275,21 +198,21 @@
             "type": "float*",
             "kind": "array",
             "hash": "1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d",
-            "file": "vector_add_key_qcmwx175.bin",
-            "reference_file": "vector_add_key_970yyzfz.bin",
+            "file": "vector_add_key_3g6deeqn.bin.gz",
+            "reference_file": "vector_add_key_9ehr6p5i.bin",
             "reference_hash": "14c1b905d46846f68a71f5bca482cb38171b43b9"
         },
         {
             "type": "float const*",
             "kind": "array",
             "hash": "81afb94d38ce9521dfbbfaa36a5fe609f802bb03",
-            "file": "vector_add_key_gss24clw.bin"
+            "file": "vector_add_key_pe2mtp0a.bin"
         },
         {
             "type": "float const*",
             "kind": "array",
             "hash": "6e61fc0e7da493354e9f995796462cf2cc15ac20",
-            "file": "vector_add_key_i0g41210.bin"
+            "file": "vector_add_key_up6lg48m.bin"
         }
     ],
     "problem_size": [
@@ -298,3 +221,4 @@
         1
     ]
 }
+
