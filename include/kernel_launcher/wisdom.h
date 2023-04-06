@@ -105,8 +105,8 @@ inline Config load_best_config(
         result);
 }
 
-struct Oracle {
-    virtual ~Oracle() = default;
+struct IWisdomSettings {
+    virtual ~IWisdomSettings() = default;
 
     virtual Config load_config(
         const std::string& tuning_key,
@@ -134,16 +134,16 @@ struct CaptureRule {
     bool force = false;
 };
 
-struct DefaultOracle: Oracle {
-    static DefaultOracle from_env();
+struct DefaultWisdomSettings: IWisdomSettings {
+    static DefaultWisdomSettings from_env();
 
-    DefaultOracle();
-    DefaultOracle(
+    DefaultWisdomSettings();
+    DefaultWisdomSettings(
         std::vector<std::string> wisdom_dirs,
         std::string capture_dir,
         std::vector<CaptureRule> capture_rules = {});
 
-    ~DefaultOracle() override = default;
+    ~DefaultWisdomSettings() override = default;
 
     Config load_config(
         const std::string& tuning_key,
@@ -202,11 +202,11 @@ struct WisdomSettings {
         std::string wisdom_dir,
         std::string capture_dir,
         std::vector<CaptureRule> capture_rules = {});
-    WisdomSettings(std::shared_ptr<Oracle> oracle);
+    WisdomSettings(std::shared_ptr<IWisdomSettings> oracle);
 
     template<typename T>
     WisdomSettings(std::shared_ptr<T> ptr) :
-        WisdomSettings(std::shared_ptr<Oracle> {std::move(ptr)}) {}
+        WisdomSettings(std::shared_ptr<IWisdomSettings> {std::move(ptr)}) {}
 
     WisdomSettings(const WisdomSettings&) = default;
 
@@ -260,7 +260,7 @@ struct WisdomSettings {
     }
 
   private:
-    std::shared_ptr<Oracle> impl_;
+    std::shared_ptr<IWisdomSettings> impl_;
 };
 
 /**

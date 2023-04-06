@@ -374,27 +374,29 @@ Config load_best_config(
         result_out);
 }
 
-std::shared_ptr<DefaultOracle> global_default_wisdom = nullptr;
+std::shared_ptr<DefaultWisdomSettings> global_default_wisdom = nullptr;
 
-static std::shared_ptr<DefaultOracle> set_global_wisdom(DefaultOracle oracle) {
-    auto ptr = std::make_shared<DefaultOracle>(std::move(oracle));
+static std::shared_ptr<DefaultWisdomSettings>
+set_global_wisdom(DefaultWisdomSettings oracle) {
+    auto ptr = std::make_shared<DefaultWisdomSettings>(std::move(oracle));
     atomic_store(&global_default_wisdom, ptr);
     return ptr;
 }
 
-static std::shared_ptr<DefaultOracle> get_global_wisdom() {
+static std::shared_ptr<DefaultWisdomSettings> get_global_wisdom() {
     auto ptr = atomic_load(&global_default_wisdom);
 
     if (!ptr) {
-        ptr = set_global_wisdom(DefaultOracle::from_env());
+        ptr = set_global_wisdom(DefaultWisdomSettings::DefaultWisdomSettings());
     }
 
     return ptr;
 }
 
-DefaultOracle::DefaultOracle() : DefaultOracle(*get_global_wisdom()) {}
+DefaultWisdomSettings::DefaultWisdomSettings() :
+    DefaultWisdomSettings(*get_global_wisdom()) {}
 
-DefaultOracle::DefaultOracle(
+DefaultWisdomSettings::DefaultWisdomSettings(
     std::vector<std::string> wisdom_dirs,
     std::string capture_dir,
     std::vector<CaptureRule> capture_rules) :
@@ -444,7 +446,7 @@ static std::vector<CaptureRule> determine_capture_rules() {
     return result;
 }
 
-DefaultOracle DefaultOracle::from_env() {
+DefaultWisdomSettings DefaultWisdomSettings::from_env() {
     std::vector<std::string> wisdom_dirs = {"."};
     std::string capture_dir = ".";
     const char* value;
@@ -478,13 +480,13 @@ DefaultOracle DefaultOracle::from_env() {
                    << string_comma_join(names) << "\n";
     }
 
-    return DefaultOracle(
+    return DefaultWisdomSettings(
         std::move(wisdom_dirs),
         std::move(capture_dir),
         std::move(capture_rules));
 }
 
-Config DefaultOracle::load_config(
+Config DefaultWisdomSettings::load_config(
     const std::string& tuning_key,
     const ConfigSpace& space,
     ProblemSize problem_size,
@@ -508,7 +510,7 @@ Config DefaultOracle::load_config(
     return config;
 }
 
-void DefaultOracle::capture_kernel(
+void DefaultWisdomSettings::capture_kernel(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     ProblemSize problem_size,
@@ -525,7 +527,7 @@ void DefaultOracle::capture_kernel(
         output_arrays);
 }
 
-bool DefaultOracle::should_capture_kernel(
+bool DefaultWisdomSettings::should_capture_kernel(
     const std::string& tuning_key,
     ProblemSize problem_size,
     WisdomResult result) const {
@@ -564,7 +566,7 @@ void append_global_wisdom_directory(std::string dir) {
     auto dirs = wisdom->wisdom_directories();
     dirs.push_back(std::move(dir));
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         std::move(dirs),
         wisdom->capture_directory(),
         wisdom->capture_rules()));
@@ -573,7 +575,7 @@ void append_global_wisdom_directory(std::string dir) {
 void set_global_wisdom_directory(std::string dir) {
     auto wisdom = get_global_wisdom();
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         std::vector<std::string> {std::move(dir)},
         wisdom->capture_directory(),
         wisdom->capture_rules()));
@@ -582,7 +584,7 @@ void set_global_wisdom_directory(std::string dir) {
 void set_global_capture_directory(std::string dir) {
     auto wisdom = get_global_wisdom();
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         wisdom->wisdom_directories(),
         std::move(dir),
         wisdom->capture_rules()));
@@ -593,7 +595,7 @@ void add_global_capture_pattern(CaptureRule rule) {
     std::vector<CaptureRule> rules = wisdom->capture_rules();
     rules.push_back(std::move(rule));
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         wisdom->wisdom_directories(),
         wisdom->capture_directory(),
         rules));
@@ -605,7 +607,7 @@ WisdomSettings default_wisdom_settings() {
 
 WisdomSettings::WisdomSettings() : WisdomSettings(get_global_wisdom()) {}
 
-WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
+WisdomSettings::WisdomSettings(std::shared_ptr<IWisdomSettings> oracle) :
     impl_(std::move(oracle)) {
     if (!impl_) {
         throw std::runtime_error("Oracle cannot be null");
@@ -616,7 +618,7 @@ WisdomSettings::WisdomSettings(
     std::string wisdom_dir,
     std::string capture_dir,
     std::vector<CaptureRule> capture_rules) :
-    WisdomSettings(std::make_shared<DefaultOracle>(
+    WisdomSettings(std::make_shared<DefaultWisdomSettings>(
         std::vector<std::string> {std::move(wisdom_dir)},
         std::move(capture_dir),
         std::move(capture_rules))) {}
