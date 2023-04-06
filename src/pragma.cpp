@@ -41,13 +41,15 @@ PragmaKernel::PragmaKernel(
     std::vector<Value> template_args) :
     kernel_name_(std::move(kernel_name)),
     template_args_(std::move(template_args)) {
-    // Resolve absolute file path
-    const char* abs_path = realpath(path.c_str(), nullptr);
-    if (abs_path == nullptr) {
-        throw std::runtime_error("failed to resolve path: '" + path + "'");
-    }
 
-    file_path_ = abs_path;
+    /* We cannot resolve the file path at this moment since we do not what
+     * type of `FileLoader` will be used during compilation.  */
+    //const char* abs_path = realpath(path.c_str(), nullptr);
+    //if (abs_path == nullptr) {
+    //    throw std::runtime_error("failed to resolve path: '" + path + "'");
+    //}
+
+    file_path_ = path;
 }
 
 KernelBuilder PragmaKernel::build() const {
