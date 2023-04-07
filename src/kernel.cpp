@@ -16,6 +16,8 @@ struct WisdomKernelImpl {
     Compiler compiler_;
     std::vector<TypeInfo> param_types_;
     WisdomSettings settings_;
+    bool capture_required_;
+    int capture_skip_;
 };
 
 WisdomKernel::WisdomKernel() = default;
@@ -35,7 +37,9 @@ void WisdomKernel::initialize(
         std::move(problem_processor),
         std::move(compiler),
         std::vector<TypeInfo> {},
-        std::move(settings)});
+        std::move(settings),
+        false,
+        0});
 }
 
 void WisdomKernel::clear() {
@@ -47,17 +51,18 @@ void WisdomKernel::clear() {
 
 void compile_impl(
     WisdomKernelImpl* impl,
-    const std::string& tuning_key,
     ProblemSize problem_size,
     CudaContextHandle context,
-    std::vector<TypeInfo> param_types,
-    bool* should_capture = nullptr) {
+    std::vector<TypeInfo> param_types) {
+    const std::string& tuning_key = impl->builder_.tuning_key();
+    int capture_skip = 0;
+
     Config config = impl->settings_.load_config(
         tuning_key,
         impl->builder_,
         problem_size,
         context.device(),
-        should_capture);
+        &capture_skip);
 
     // Assign result to temporary variable since compile may throw
     auto instance =
@@ -67,6 +72,8 @@ void compile_impl(
     impl->instance_ = std::move(instance);
     impl->param_types_ = std::move(param_types);
     impl->compiled_ = true;
+    impl->capture_required_ = capture_skip >= 0;
+    impl->capture_skip_ = capture_skip;
 }
 
 void WisdomKernel::compile(
@@ -77,16 +84,26 @@ void WisdomKernel::compile(
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
-    const std::string& tuning_key = impl_->builder_.tuning_key();
+    std::lock_guard<std::mutex> guard(impl_->mutex_);
+    compile_impl(impl_.get(), problem_size, context, std::move(param_types));
+}
+
+void WisdomKernel::compile(
+    std::vector<KernelArg> args,
+    CudaContextHandle context) {
+    if (!impl_) {
+        throw std::runtime_error("WisdomKernel has not been initialized");
+    }
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
-    compile_impl(
-        impl_.get(),
-        tuning_key,
-        problem_size,
-        context,
-        std::move(param_types),
-        nullptr);
+    ProblemSize problem_size = impl_->problem_processor_(args);
+
+    std::vector<TypeInfo> param_types;
+    for (const KernelArg& arg : args) {
+        param_types.push_back(arg.type());
+    }
+
+    compile_impl(impl_.get(), problem_size, context, std::move(param_types));
 }
 
 static void assert_types_equal(
@@ -173,19 +190,27 @@ static void launch_captured_impl(
     }
 }
 
-void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
+void WisdomKernel::capture_next_launch(int skip_launches) {
     if (!impl_) {
         throw std::runtime_error("WisdomKernel has not been initialized");
     }
 
     std::lock_guard<std::mutex> guard(impl_->mutex_);
+    impl_->capture_required_ = true;
+    impl_->capture_skip_ = skip_launches;
+}
 
+void WisdomKernel::launch_args(
+    cudaStream_t stream,
+    std::vector<KernelArg> args) {
+    if (!impl_) {
+        throw std::runtime_error("WisdomKernel has not been initialized");
+    }
+
+    std::lock_guard<std::mutex> guard(impl_->mutex_);
     ProblemSize problem_size = impl_->problem_processor_(args);
-    bool should_capture = false;
 
     if (!impl_->compiled_) {
-        const std::string& tuning_key = impl_->builder_.tuning_key();
-
         std::vector<TypeInfo> param_types;
         for (const KernelArg& arg : args) {
             param_types.push_back(arg.type());
@@ -193,14 +218,22 @@ void WisdomKernel::launch(cudaStream_t stream, std::vector<KernelArg> args) {
 
         compile_impl(
             impl_.get(),
-            tuning_key,
             problem_size,
             CudaContextHandle::current(),
-            param_types,
-            &should_capture);
+            param_types);
     }
 
     assert_types_equal(args, impl_->param_types_);
+
+    bool should_capture = false;
+    if (impl_->capture_required_) {
+        if (impl_->capture_skip_ <= 0) {
+            impl_->capture_required_ = false;
+            should_capture = true;
+        } else {
+            impl_->capture_skip_ -= 1;
+        }
+    }
 
     if (should_capture) {
         launch_captured_impl(impl_.get(), stream, problem_size, args);

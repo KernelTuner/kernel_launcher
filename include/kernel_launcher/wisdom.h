@@ -113,7 +113,7 @@ struct IWisdomSettings {
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out) const = 0;
+        int* capture_skip_out = nullptr) const = 0;
 
     virtual void capture_kernel(
         const std::string& tuning_key,
@@ -125,13 +125,18 @@ struct IWisdomSettings {
 };
 
 struct CaptureRule {
-    CaptureRule(std::string pattern, bool force = false) :
+    CaptureRule(
+        std::string pattern,
+        bool force = false,
+        int skip_launches = 0) :
         pattern(std::move(pattern)),
-        force(force) {}
+        force(force),
+        skip_launches(skip_launches) {}
     CaptureRule(const char* pattern) : CaptureRule(std::string(pattern)) {}
 
     std::string pattern;
     bool force = false;
+    int skip_launches = 0;
 };
 
 struct DefaultWisdomSettings: IWisdomSettings {
@@ -150,7 +155,7 @@ struct DefaultWisdomSettings: IWisdomSettings {
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out) const override;
+        int* capture_skip_launches_out) const override;
 
     void capture_kernel(
         const std::string& tuning_key,
@@ -163,15 +168,18 @@ struct DefaultWisdomSettings: IWisdomSettings {
     virtual bool should_capture_kernel(
         const std::string& tuning_key,
         ProblemSize problem_size,
-        WisdomResult result) const;
+        WisdomResult result,
+        int& capture_skip_launches_out) const;
 
-    bool should_capture_kernel(
+    int should_capture_kernel(
         const std::string& tuning_key,
-        ProblemSize problem_size) const {
+        ProblemSize problem_size,
+        int& capture_skip_launches_out) const {
         return should_capture_kernel(
             tuning_key,
             problem_size,
-            WisdomResult::NotFound);
+            WisdomResult::NotFound,
+            capture_skip_launches_out);
     }
 
     const std::vector<std::string>& wisdom_directories() const {
@@ -217,20 +225,22 @@ struct WisdomSettings {
      * @param space The configuration space of the kernel.
      * @param problem_size The current problem size.
      * @param device The current device.
-     * @param should_capture_out Optional. Indicates if kernel must be captured.
+     * @param capture_skip_out Optional, indicates if the kernel should be
+     * captured. If negative, the kernel will not be captured. Otherwise,
+     * the kernel will be captured after the `capture_skip_out` kernel launches.
      */
     Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out = nullptr) const {
+        int* capture_skip_out = nullptr) const {
         return impl_->load_config(
             tuning_key,
             space,
             problem_size,
             device,
-            should_capture_out);
+            capture_skip_out);
     }
 
     /**

@@ -387,7 +387,7 @@ static std::shared_ptr<DefaultWisdomSettings> get_global_wisdom() {
     auto ptr = atomic_load(&global_default_wisdom);
 
     if (!ptr) {
-        ptr = set_global_wisdom(DefaultWisdomSettings::DefaultWisdomSettings());
+        ptr = set_global_wisdom(DefaultWisdomSettings::from_env());
     }
 
     return ptr;
@@ -406,6 +406,26 @@ DefaultWisdomSettings::DefaultWisdomSettings(
 
 static std::vector<CaptureRule> determine_capture_rules() {
     const char* value;
+    int skip = 0;
+
+    if ((value = getenv("KERNEL_LAUNCHER_CAPTURE_SKIP")) != nullptr
+        || (value = getenv("KERNEL_LAUNCHER_SKIP")) != nullptr) {
+        bool valid;
+
+        try {
+            skip = std::stoi(value);
+            valid = skip >= 0;
+        } catch (const std::exception& e) {
+            valid = false;
+        }
+
+        if (!valid) {
+            log_warning() << "failed to parse KERNEL_LAUNCHER_CAPTURE_SKIP, "
+                             "kernel capturing is now be disabled";
+            return {};
+        }
+    }
+
     std::vector<CaptureRule> result = {};
 
     // Try the following environment keys
@@ -438,7 +458,7 @@ static std::vector<CaptureRule> determine_capture_rules() {
 
         for (auto pattern : string_split(patterns.c_str(), {',', '|', ';'})) {
             if (!pattern.empty()) {
-                result.emplace_back(std::move(pattern), force);
+                result.emplace_back(std::move(pattern), force, skip);
             }
         }
     }
@@ -463,7 +483,9 @@ DefaultWisdomSettings DefaultWisdomSettings::from_env() {
         }
     }
 
-    if ((value = getenv("KERNEL_LAUNCHER_DIR")) != nullptr) {
+    // capture directory
+    if ((value = getenv("KERNEL_LAUNCHER_CAPTURE_DIR")) != nullptr
+        || (value = getenv("KERNEL_LAUNCHER_DIR")) != nullptr) {
         capture_dir = value;
     }
 
@@ -491,7 +513,7 @@ Config DefaultWisdomSettings::load_config(
     const ConfigSpace& space,
     ProblemSize problem_size,
     CudaDevice device,
-    bool* should_capture_out) const {
+    int* capture_skip_launches_out) const {
     WisdomResult result = WisdomResult::Ok;
     Config config = load_best_config(
         wisdom_dirs_,
@@ -502,9 +524,18 @@ Config DefaultWisdomSettings::load_config(
         problem_size,
         &result);
 
-    if (should_capture_out != nullptr) {
-        *should_capture_out =
-            this->should_capture_kernel(tuning_key, problem_size, result);
+    if (capture_skip_launches_out != nullptr) {
+        int skip;
+
+        if (!this->should_capture_kernel(
+                tuning_key,
+                problem_size,
+                result,
+                skip)) {
+            skip = -1;
+        }
+
+        *capture_skip_launches_out = skip;
     }
 
     return config;
@@ -530,14 +561,17 @@ void DefaultWisdomSettings::capture_kernel(
 bool DefaultWisdomSettings::should_capture_kernel(
     const std::string& tuning_key,
     ProblemSize problem_size,
-    WisdomResult result) const {
+    WisdomResult result,
+    int& skip_launches_out) const {
     bool matches = false;
     bool forced = false;
+    int skip = std::numeric_limits<int>::max();
 
     for (const auto& rule : capture_rules_) {
         if (string_match(rule.pattern.c_str(), tuning_key.c_str())) {
             matches = true;
             forced |= rule.force;
+            skip = std::min(skip, rule.skip_launches);
             break;
         }
     }
@@ -547,7 +581,7 @@ bool DefaultWisdomSettings::should_capture_kernel(
         return false;
     }
 
-    // If wisdom was found for this kernel and we do not force tuning,
+    // If wisdom was found for this kernel, and we do not force tuning,
     // then there is no need to capture this kernel.
     if (result == WisdomResult::Ok && !forced) {
         return false;
@@ -557,6 +591,7 @@ bool DefaultWisdomSettings::should_capture_kernel(
         return false;
     }
 
+    skip_launches_out = skip;
     return true;
 }
 
