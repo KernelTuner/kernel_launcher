@@ -100,8 +100,8 @@ KernelArg KernelArg::to_array(size_t nelements) const {
     if (is_array()) {
         if (nelements > data_.array.nelements) {
             throw std::runtime_error(
-                "array of type " + type_.remove_pointer().name()
-                + " cannot be be resized to " + std::to_string(nelements)
+                "array of type `" + type_.remove_pointer().name()
+                + "` cannot be be resized to " + std::to_string(nelements)
                 + " elements, it only has "
                 + std::to_string(data_.array.nelements) + " elements");
         }
@@ -110,8 +110,8 @@ KernelArg KernelArg::to_array(size_t nelements) const {
     } else {
         if (!type_.is_pointer()) {
             throw std::runtime_error(
-                "argument is not a pointer type and cannot be converted into an array: "
-                + type_.name());
+                "argument of type `" + type_.name() + "` is not a pointer type "
+                "and thus cannot be converted into an array");
         }
 
         return {type_, *(void**)as_void_ptr(), nelements};
@@ -123,8 +123,8 @@ Value KernelArg::to_value() const {
 
     if (v.is_empty()) {
         throw std::runtime_error(
-            "cannot convert value of type \"" + type_.name()
-            + "\" instance of kernel_launcher::Value");
+            "cannot convert value of type `" + type_.name()
+            + "` instance of kernel_launcher::Value");
     }
 
     return v;
@@ -163,6 +163,22 @@ TypeInfo KernelArg::type() const {
 }
 
 std::vector<uint8_t> KernelArg::to_bytes() const {
+    // If this type is pointer, we check if it is a NULL pointer. It makes no
+    // sense to export non-NULL pointer since the address will be invalid
+    // when reading the exported pointer.
+    if (type_.is_pointer()) {
+        void* ptr;
+        ::memcpy(&ptr, as_void_ptr(), sizeof(void*));
+
+        if (ptr != nullptr) {
+            std::string msg = "a raw pointer of type `" + type_.name() + "` "
+                "was provided as kernel argument which cannot be exported "
+                "since the corresponding buffer size is unknown";
+
+            throw std::runtime_error(msg);
+        }
+    }
+
     size_t nbytes = type_.size();
     std::vector<uint8_t> result(nbytes);
     ::memcpy(result.data(), as_void_ptr(), nbytes);
@@ -187,11 +203,11 @@ std::vector<uint8_t> KernelArg::copy_array() const {
     std::string msg;
 
     if (type_.is_pointer()) {
-        msg = "a raw pointer of type " + type_.name() + " was provided as "
+        msg = "a raw pointer of type `" + type_.name() + "` was provided as "
             "kernel argument which cannot be exported since the "
             "corresponding buffer size is unknown";
     } else {
-        msg = "a scalar of type " + type_.name() + " was provided as "
+        msg = "a scalar of type `" + type_.name() + "` was provided as "
             "kernel argument which cannot be exported since it is not "
             "an array";
     }

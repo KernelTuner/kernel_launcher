@@ -99,7 +99,28 @@ TEST_CASE("test export_tuning_file", "[CUDA]") {
         compare_exports("vector_add_key_1024", tmp_dir, assets_dir);
     }
 
-    SECTION("matmul") {
+    SECTION("vector_add n=0") {
+        KernelBuilder builder = build_vector_add_kernel();
+        size_t n = 0;
+
+        std::vector<KernelArg> arguments = {
+            KernelArg::from_scalar(int(n)),
+            KernelArg::from_scalar(nullptr),
+            KernelArg::from_scalar((const float*)nullptr),
+            KernelArg::from_array((const float*)nullptr, 0)};
+
+        export_capture_file(
+            tmp_dir,
+            "vector_add_key",
+            builder,
+            {uint32_t(n)},
+            arguments,
+            {{}, {}, {}});
+
+        compare_exports("vector_add_key_0", tmp_dir, assets_dir);
+    }
+
+    SECTION("matmul n=1024") {
         KernelBuilder builder = build_matmul_kernel();
         size_t n = 1024;
         std::vector<float> a(n * n);

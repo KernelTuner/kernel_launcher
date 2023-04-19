@@ -1,0 +1,237 @@
+{
+    "key": "vector_add_key",
+    "environment": {
+        "host_name": "node026",
+        "date": "2023-04-19T15:25:10+0200",
+        "runtime_version": 11070,
+        "driver_version": 11070,
+        "nvrtc_version": 11070
+    },
+    "config_space": {
+        "parameters": [
+            {
+                "name": "threads_per_block",
+                "values": [
+                    1,
+                    32,
+                    128,
+                    256
+                ],
+                "priors": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "default": 256
+            },
+            {
+                "name": "elements_per_thread",
+                "values": [
+                    1,
+                    2,
+                    4
+                ],
+                "priors": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "default": 1
+            }
+        ],
+        "restrictions": [
+            {
+                "operator": "&&",
+                "operands": [
+                    {
+                        "operator": ">=",
+                        "operands": [
+                            {
+                                "operator": "*",
+                                "operands": [
+                                    {
+                                        "operator": "parameter",
+                                        "operands": [
+                                            "elements_per_thread"
+                                        ]
+                                    },
+                                    {
+                                        "operator": "parameter",
+                                        "operands": [
+                                            "threads_per_block"
+                                        ]
+                                    }
+                                ]
+                            },
+                            32
+                        ]
+                    },
+                    {
+                        "operator": "<=",
+                        "operands": [
+                            {
+                                "operator": "*",
+                                "operands": [
+                                    {
+                                        "operator": "parameter",
+                                        "operands": [
+                                            "elements_per_thread"
+                                        ]
+                                    },
+                                    {
+                                        "operator": "parameter",
+                                        "operands": [
+                                            "threads_per_block"
+                                        ]
+                                    }
+                                ]
+                            },
+                            1024
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "kernel": {
+        "source": "\n    template <typename T>\n    __global__\n    void vector_add(int n, int *c, const int* a, const int* b) {\n        for (int k = 0; k < ELEMENTS_PER_THREAD; k++) {\n            int index = (blockIdx.x * ELEMENTS_PER_THREAD + k) * blockDim.x + threadIdx.x;\n\n            if (index < n) {\n                c[index] = a[index] + b[index];\n            }\n        }\n    }\n    ",
+        "name": "vector_add",
+        "compile_flags": [],
+        "shared_memory": 0,
+        "template_args": [
+            "int"
+        ],
+        "headers": [],
+        "defines": {
+            "ELEMENTS_PER_THREAD": {
+                "operator": "parameter",
+                "operands": [
+                    "elements_per_thread"
+                ]
+            }
+        },
+        "block_size": [
+            {
+                "operator": "parameter",
+                "operands": [
+                    "threads_per_block"
+                ]
+            },
+            1,
+            1
+        ],
+        "grid_size": [
+            {
+                "operator": "+",
+                "operands": [
+                    {
+                        "operator": "/",
+                        "operands": [
+                            0,
+                            {
+                                "operator": "*",
+                                "operands": [
+                                    {
+                                        "operator": "parameter",
+                                        "operands": [
+                                            "elements_per_thread"
+                                        ]
+                                    },
+                                    {
+                                        "operator": "parameter",
+                                        "operands": [
+                                            "threads_per_block"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "operator": "!=",
+                        "operands": [
+                            {
+                                "operator": "%",
+                                "operands": [
+                                    0,
+                                    {
+                                        "operator": "*",
+                                        "operands": [
+                                            {
+                                                "operator": "parameter",
+                                                "operands": [
+                                                    "elements_per_thread"
+                                                ]
+                                            },
+                                            {
+                                                "operator": "parameter",
+                                                "operands": [
+                                                    "threads_per_block"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            0
+                        ]
+                    }
+                ]
+            },
+            1,
+            1
+        ]
+    },
+    "arguments": [
+        {
+            "type": "int",
+            "kind": "scalar",
+            "data": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "type": "decltype(nullptr)",
+            "kind": "scalar",
+            "data": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "type": "float const*",
+            "kind": "scalar",
+            "data": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "type": "float const*",
+            "kind": "array",
+            "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "file": "vector_add_key_i1j63muv.bin"
+        }
+    ],
+    "problem_size": [
+        0,
+        1,
+        1
+    ]
+}
