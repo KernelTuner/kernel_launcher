@@ -67,6 +67,16 @@ int main() {
 
 Licensed under Apache 2.0. See [LICENSE](https://github.com/KernelTuner/kernel_launcher/blob/master/LICENSE).
 
+## Citation
+
+```
+@article{heldens2023kernellauncher,
+  title={Kernel Launcher: C++ Library for Optimal-Performance Portable CUDA Applications},
+  author={Heldens, Stijn and van Werkhoven, Ben},
+  journal={The Eighteenth International Workshop on Automatic Performance Tuning (iWAPT2023) co-located with IPDPS 2023},
+  year={2023}
+}
+```
 
 ## Related Work
 
