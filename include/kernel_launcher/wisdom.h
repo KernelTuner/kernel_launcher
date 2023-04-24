@@ -105,73 +105,81 @@ inline Config load_best_config(
         result);
 }
 
-struct Oracle {
-    virtual ~Oracle() = default;
+struct IWisdomSettings {
+    virtual ~IWisdomSettings() = default;
 
     virtual Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out) const = 0;
+        int* capture_skip_out = nullptr) const = 0;
 
     virtual void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const = 0;
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const = 0;
 };
 
 struct CaptureRule {
-    CaptureRule(std::string pattern, bool force = false) :
+    CaptureRule(
+        std::string pattern,
+        bool force = false,
+        int skip_launches = 0) :
         pattern(std::move(pattern)),
-        force(force) {}
+        force(force),
+        skip_launches(skip_launches) {}
     CaptureRule(const char* pattern) : CaptureRule(std::string(pattern)) {}
 
-    std::string pattern = "";
+    std::string pattern;
     bool force = false;
+    int skip_launches = 0;
 };
 
-struct DefaultOracle: Oracle {
-    static DefaultOracle from_env();
+struct DefaultWisdomSettings: IWisdomSettings {
+    static DefaultWisdomSettings from_env();
 
-    DefaultOracle();
-    DefaultOracle(
+    DefaultWisdomSettings();
+    DefaultWisdomSettings(
         std::vector<std::string> wisdom_dirs,
         std::string capture_dir,
         std::vector<CaptureRule> capture_rules = {});
 
-    virtual ~DefaultOracle() = default;
+    ~DefaultWisdomSettings() override = default;
 
-    virtual Config load_config(
+    Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out) const override;
+        int* capture_skip_launches_out) const override;
 
-    virtual void capture_kernel(
+    void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const override;
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const override;
 
     virtual bool should_capture_kernel(
         const std::string& tuning_key,
         ProblemSize problem_size,
-        WisdomResult result) const;
+        WisdomResult result,
+        int& capture_skip_launches_out) const;
 
-    bool should_capture_kernel(
+    int should_capture_kernel(
         const std::string& tuning_key,
-        ProblemSize problem_size) const {
+        ProblemSize problem_size,
+        int& capture_skip_launches_out) const {
         return should_capture_kernel(
             tuning_key,
             problem_size,
-            WisdomResult::NotFound);
+            WisdomResult::NotFound,
+            capture_skip_launches_out);
     }
 
     const std::vector<std::string>& wisdom_directories() const {
@@ -202,11 +210,11 @@ struct WisdomSettings {
         std::string wisdom_dir,
         std::string capture_dir,
         std::vector<CaptureRule> capture_rules = {});
-    WisdomSettings(std::shared_ptr<Oracle> oracle);
+    WisdomSettings(std::shared_ptr<IWisdomSettings> oracle);
 
     template<typename T>
     WisdomSettings(std::shared_ptr<T> ptr) :
-        WisdomSettings(std::shared_ptr<Oracle> {std::move(ptr)}) {}
+        WisdomSettings(std::shared_ptr<IWisdomSettings> {std::move(ptr)}) {}
 
     WisdomSettings(const WisdomSettings&) = default;
 
@@ -217,20 +225,22 @@ struct WisdomSettings {
      * @param space The configuration space of the kernel.
      * @param problem_size The current problem size.
      * @param device The current device.
-     * @param should_capture_out Optional. Indicates if kernel must be captured.
+     * @param capture_skip_out Optional, indicates if the kernel should be
+     * captured. If negative, the kernel will not be captured. Otherwise,
+     * the kernel will be captured after the `capture_skip_out` kernel launches.
      */
     Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out = nullptr) const {
+        int* capture_skip_out = nullptr) const {
         return impl_->load_config(
             tuning_key,
             space,
             problem_size,
             device,
-            should_capture_out);
+            capture_skip_out);
     }
 
     /**
@@ -247,20 +257,20 @@ struct WisdomSettings {
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const {
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const {
         return impl_->capture_kernel(
             tuning_key,
             builder,
             problem_size,
-            param_types,
-            inputs,
-            outputs);
+            arguments,
+            input_arrays,
+            output_arrays);
     }
 
   private:
-    std::shared_ptr<Oracle> impl_;
+    std::shared_ptr<IWisdomSettings> impl_;
 };
 
 /**

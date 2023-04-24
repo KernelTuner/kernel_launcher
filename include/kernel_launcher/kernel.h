@@ -45,9 +45,8 @@ struct Kernel {
     /**
      * Launch this kernel onto the given stream with the given arguments.
      */
-    void launch(cudaStream_t stream, Args&&... args) {
-        std::vector<KernelArg> kargs = {
-            into_kernel_arg(std::forward<Args>(args))...};
+    void launch(cudaStream_t stream, Args... args) {
+        std::vector<KernelArg> kargs = {into_kernel_arg(std::move(args))...};
         ProblemSize problem_size = problem_processor_(kargs);
         instance_.launch(stream, problem_size, kargs);
     }
@@ -108,6 +107,19 @@ struct WisdomKernel {
         WisdomSettings settings = default_wisdom_settings());
 
     /**
+         * Explicitly compile this kernel for the given problem size and parameter
+         * types.
+         *
+         * @param problem_size Use to find the configuration from the wisdom file.
+         * @param param_types Types of kernel parameters.
+         * @param context CUDA context to use for compilation.
+         */
+    void compile(
+        ProblemSize problem_size,
+        std::vector<TypeInfo> param_types,
+        CudaContextHandle context = CudaContextHandle::current());
+
+    /**
      * Explicitly compile this kernel for the given problem size and parameter
      * types.
      *
@@ -116,16 +128,25 @@ struct WisdomKernel {
      * @param context CUDA context to use for compilation.
      */
     void compile(
-        ProblemSize problem_size,
-        std::vector<TypeInfo> param_types,
+        std::vector<KernelArg> args,
         CudaContextHandle context = CudaContextHandle::current());
+
+    /**
+     * Sets an internal flag that enables the next launch of this kernel to
+     * be captured.
+     *
+     * @param skip Optionally set the number of kernel launches to skip_launches before
+     * capturing a kernel launch. For example, if `skip_launches=5` then the next
+     * 6th kernel launch will be captured.
+     */
+    void capture_next_launch(int skip_launches = 0);
 
     /**
      * Delete this kernel and reset its contents.
      */
     void clear();
 
-    void launch(cudaStream_t stream, std::vector<KernelArg> args);
+    void launch_args(cudaStream_t stream, std::vector<KernelArg> args);
 
     /**
      * Launch this kernel onto the given stream with the given arguments.
@@ -133,7 +154,9 @@ struct WisdomKernel {
      */
     template<typename... Args>
     void launch(cudaStream_t stream, Args&&... args) {
-        return launch(stream, {into_kernel_arg(std::forward<Args>(args))...});
+        return launch_args(
+            stream,
+            {into_kernel_arg(std::forward<Args>(args))...});
     }
 
     /**
@@ -142,19 +165,23 @@ struct WisdomKernel {
      */
     template<typename... Args>
     void launch(Args&&... args) {
-        return launch(
+        return launch_args(
             cudaStream_t(nullptr),
             {into_kernel_arg(std::forward<Args>(args))...});
     }
 
     template<typename... Args>
     void operator()(cudaStream_t stream, Args&&... args) {
-        return launch(stream, std::forward<Args>(args)...);
+        return launch_args(
+            stream,
+            {into_kernel_arg(std::forward<Args>(args))...});
     }
 
     template<typename... Args>
     void operator()(Args&&... args) {
-        return launch(std::forward<Args>(args)...);
+        return launch_args(
+            cudaStream_t(nullptr),
+            {into_kernel_arg(std::forward<Args>(args))...});
     }
 
   private:

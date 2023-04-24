@@ -95,8 +95,11 @@ struct KernelArg {
     void assert_type_matches(TypeInfo t) const;
     bool is_scalar() const;
     bool is_array() const;
-    std::vector<uint8_t> to_bytes() const;
+    std::vector<uint8_t> copy_array() const;
     void* as_void_ptr() const;
+    std::vector<uint8_t> to_bytes() const;
+
+    friend std::ostream& operator<<(std::ostream&, const KernelArg&);
 
     friend std::ostream& operator<<(std::ostream&, const KernelArg&);
 

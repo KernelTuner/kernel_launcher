@@ -21,16 +21,31 @@ bool write_file(
 
 inline bool write_file(
     const std::string& path,
+    const std::vector<char>& content,
+    bool overwrite = false) {
+    return write_file(path, content.data(), content.size(), overwrite);
+}
+
+inline bool write_file(
+    const std::string& path,
     const std::vector<int8_t>& content,
     bool overwrite = false) {
-    return write_file(path, (char*)content.data(), content.size(), overwrite);
+    return write_file(
+        path,
+        (const char*)content.data(),
+        content.size(),
+        overwrite);
 }
 
 inline bool write_file(
     const std::string& path,
     const std::vector<uint8_t>& content,
     bool overwrite = false) {
-    return write_file(path, (char*)content.data(), content.size(), overwrite);
+    return write_file(
+        path,
+        (const char*)content.data(),
+        content.size(),
+        overwrite);
 }
 
 inline bool write_file(

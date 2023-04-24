@@ -156,8 +156,7 @@ KernelBuilder::KernelBuilder(
 KernelBuilder& KernelBuilder::argument_processor(ArgumentsProcessor f) {
     if (!f) {
         throw std::runtime_error(
-            "null pointer given in "
-            "`KernelBuilder::argument_processor(...)`");
+            "null pointer given in `KernelBuilder::argument_processor(...)`");
     }
 
     args_processors_.push_back(std::move(f));

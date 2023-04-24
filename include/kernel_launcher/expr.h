@@ -298,14 +298,14 @@ struct ArgsHelper<std::index_sequence<Is...>> {
         Is <= std::numeric_limits<uint8_t>::max(),
         ArgExpr>::type...>;
 
-        static type call() {
-            return {Is...};
-        }
+    static type call() {
+        return {Is...};
+    }
 
-        static type call(std::string* names) {
-            return {{Is, std::move(names[Is])}...};
-        }
-    };
+    static type call(std::string* names) {
+        return {{Is, std::move(names[Is])}...};
+    }
+};
 }  // namespace detail
 
 template<size_t N>
