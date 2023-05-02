@@ -15,8 +15,9 @@ namespace kernel_launcher {
 struct WisdomRecordImpl;
 
 /**
- * Represents a record read from a wisdom file. Use methods such as
- * ``problem_size()`` and ``device_name()`` to retrieve fields of this record.
+ * Use by ``process_wisdom_file``. Represents a record read from a wisdom
+ * file. Use methods such as ``problem_size()`` and ``device_name()`` to
+ * retrieve fields of this record.
  */
 struct WisdomRecord {
     WisdomRecord(const WisdomRecordImpl& impl) : impl_(impl) {}
@@ -105,6 +106,13 @@ inline Config load_best_config(
         result);
 }
 
+/**
+* The interface that describes how to load a configuration and how to
+ * capture a kernel launch for a ``WisdomKernel``.
+ *
+ * If you want to implement your own ``IWisdomSettings``, it is best to
+ * extend ``DefaultWisdomSettings`` and override the necessary methods.
+ */
 struct IWisdomSettings {
     virtual ~IWisdomSettings() = default;
 
@@ -124,6 +132,9 @@ struct IWisdomSettings {
         const std::vector<std::vector<uint8_t>>& output_arrays) const = 0;
 };
 
+/**
+ * A rule that describes which kernels should be captured.
+ */
 struct CaptureRule {
     CaptureRule(
         std::string pattern,
@@ -132,6 +143,7 @@ struct CaptureRule {
         pattern(std::move(pattern)),
         force(force),
         skip_launches(skip_launches) {}
+
     CaptureRule(const char* pattern) : CaptureRule(std::string(pattern)) {}
 
     std::string pattern;
@@ -139,6 +151,10 @@ struct CaptureRule {
     int skip_launches = 0;
 };
 
+/**
+ * The interface that describes how to load a configuration and how to
+ * capture a kernel launch for a ``WisdomKernel``.
+ */
 struct DefaultWisdomSettings: IWisdomSettings {
     static DefaultWisdomSettings from_env();
 
@@ -150,6 +166,17 @@ struct DefaultWisdomSettings: IWisdomSettings {
 
     ~DefaultWisdomSettings() override = default;
 
+    /**
+     * Loads a configuration for a given kernel instance.
+     *
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param space The configuration space of the kernel instance.
+     * @param problem_size The current problem size.
+     * @param device The current device.
+     * @param capture_skip_out Optional, indicates if the kernel should be
+     * captured. If negative, the kernel will not be captured. Otherwise,
+     * the kernel will be captured after the `capture_skip_out` kernel launches.
+     */
     Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
@@ -157,6 +184,16 @@ struct DefaultWisdomSettings: IWisdomSettings {
         CudaDevice device,
         int* capture_skip_launches_out) const override;
 
+    /**
+     * Called to export a captured kernel launch to a file.
+     *
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param builder The builder of the kernel instance.
+     * @param problem_size The current problem size.
+     * @param arguments The kernel arguments.
+     * @param input_arrays The input arrays associated with the arguments.
+     * @param output_arrays The output arrays associated with the arguments.
+     */
     void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
@@ -165,31 +202,41 @@ struct DefaultWisdomSettings: IWisdomSettings {
         const std::vector<std::vector<uint8_t>>& input_arrays,
         const std::vector<std::vector<uint8_t>>& output_arrays) const override;
 
+    /**
+     * Returns ``true`` if the given kernel instance should be captured in the
+     * future. This method is called after ``load_config`` loads a
+     * configuration for a kernel.
+     *
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param problem_size The problem size of the kernel instance.
+     * @param result The result from ``load_best_config``.
+     * @param capture_skip_launches_out Out parameter. If set to `n`, the
+     * first `n` kernel launches will be skipped and the `n+1`-th kernel launch
+     * will be captured.
+     */
     virtual bool should_capture_kernel(
         const std::string& tuning_key,
         ProblemSize problem_size,
         WisdomResult result,
         int& capture_skip_launches_out) const;
 
-    int should_capture_kernel(
-        const std::string& tuning_key,
-        ProblemSize problem_size,
-        int& capture_skip_launches_out) const {
-        return should_capture_kernel(
-            tuning_key,
-            problem_size,
-            WisdomResult::NotFound,
-            capture_skip_launches_out);
-    }
-
+    /**
+     * Returns the directories that will be searched to find wisdom files.
+     */
     const std::vector<std::string>& wisdom_directories() const {
         return wisdom_dirs_;
     }
 
+    /**
+     * Returns the directory where kernel captures will be stored.
+     */
     const std::string& capture_directory() const {
         return capture_dir_;
     }
 
+    /**
+     * Returns the active capture rules.
+     */
     const std::vector<CaptureRule>& capture_rules() const {
         return capture_rules_;
     }
@@ -221,8 +268,8 @@ struct WisdomSettings {
     /**
      * Load the configuration for the given parameters.
      *
-     * @param tuning_key The tuning key of the kernel.
-     * @param space The configuration space of the kernel.
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param space The configuration space of the kernel instance.
      * @param problem_size The current problem size.
      * @param device The current device.
      * @param capture_skip_out Optional, indicates if the kernel should be
@@ -244,14 +291,14 @@ struct WisdomSettings {
     }
 
     /**
+     * Called to export a captured kernel launch to a file.
      *
-     *
-     * @param tuning_key
-     * @param builder
-     * @param problem_size
-     * @param param_types
-     * @param inputs
-     * @param outputs
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param builder The builder of the kernel instance.
+     * @param problem_size The current problem size.
+     * @param arguments The kernel arguments.
+     * @param input_arrays The input arrays associated with the arguments.
+     * @param output_arrays The output arrays associated with the arguments.
      */
     void capture_kernel(
         const std::string& tuning_key,

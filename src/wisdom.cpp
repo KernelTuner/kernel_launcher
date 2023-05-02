@@ -572,7 +572,6 @@ bool DefaultWisdomSettings::should_capture_kernel(
             matches = true;
             forced |= rule.force;
             skip = std::min(skip, rule.skip_launches);
-            break;
         }
     }
 
