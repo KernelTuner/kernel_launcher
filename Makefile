@@ -1,7 +1,7 @@
 BUILD_DIR=build
 
 pretty:
-	clang-format -i include/kernel_launcher/*.h src/*.cpp tests/*.cpp examples/*/*.cu
+	clang-format -i include/*.h include/*/*.h include/*/*/*.h src/*.cpp src/*/*.cpp tests/*.cpp examples/*/*.cu
 
 fmt: pretty
 

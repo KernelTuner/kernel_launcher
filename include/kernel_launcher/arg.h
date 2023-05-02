@@ -101,6 +101,8 @@ struct KernelArg {
 
     friend std::ostream& operator<<(std::ostream&, const KernelArg&);
 
+    friend std::ostream& operator<<(std::ostream&, const KernelArg&);
+
   private:
     TypeInfo type_;
     bool scalar_;

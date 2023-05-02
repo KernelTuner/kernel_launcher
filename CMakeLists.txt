@@ -8,7 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 
-file(GLOB sources "${PROJECT_SOURCE_DIR}/src/*.cpp")
+file(GLOB sources "${PROJECT_SOURCE_DIR}/src/*.cpp" "${PROJECT_SOURCE_DIR}/src/*/*.cpp")
 add_library(${PROJECT_NAME} STATIC ${sources})
 set(KERNEL_LAUNCHER_CLANG_TIDY clang-tidy -checks=-*,readability-*,bugprone-*,-readability-magic-numbers,-readability-use-anyofallof,-readability-else-after-return)
 

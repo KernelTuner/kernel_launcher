@@ -146,6 +146,11 @@ struct KernelRegistry {
  */
 const KernelRegistry& default_registry();
 
+/**
+ * Launch the kernel given a `KernelDescriptor` using the global registry.
+ * This is a short-hand for
+ * `default_registry().lookup(descriptor).launch(args...)`
+ */
 template<typename... Args>
 void launch(KernelDescriptor descriptor, Args&&... args) {
     return default_registry().launch(
