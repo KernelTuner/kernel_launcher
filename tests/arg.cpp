@@ -161,7 +161,7 @@ TEST_CASE("test KernelArg::copy_array", "[CUDA]") {
         ::memcpy(ptr_bytes.data(), (uint8_t*)&array_ptr, sizeof(int*));
 
         KernelArg v = KernelArg::from_array(array.data(), array.size());
-        CHECK(v.to_bytes() == ptr_bytes);
+        CHECK_THROWS(v.to_bytes());  // pointers cannot be exported
         CHECK(
             v.copy_array()
             == std::vector<uint8_t> {1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0});
