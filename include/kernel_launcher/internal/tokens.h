@@ -106,13 +106,6 @@ struct TokenStream {
         throw_expecting_token(t, str);
     }
 
-    template<typename T, size_t N>
-    [[noreturn]] void
-    throw_expecting_token(Token t, const std::array<T, N>& patterns) const {
-        static_assert(N > 0, "number of patterns cannot be zero");
-        throw_expecting_token(t, patterns[0]);
-    }
-
     template<typename T>
     Token consume(const T& pattern) {
         Token t = next();
