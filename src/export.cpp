@@ -186,34 +186,6 @@ struct KernelBuilderSerializerHack {
 
     static json
     builder_to_json(const KernelBuilder& builder, const Eval& eval) {
-        std::vector<json> headers;
-        for (const auto& source : builder.preheaders_) {
-            json content = nullptr;
-            if (source.content() != nullptr) {
-                content = *source.content();
-            }
-
-            headers.push_back({
-                {"file", source.file_name()},
-                {"content", std::move(content)},
-            });
-        }
-
-        json defines = json::object();
-        for (const auto& p : builder.defines_) {
-            defines[p.first] = expr_to_json(p.second, eval);
-        }
-
-        std::array<Expr, 3> block_size = {
-            builder.determine_block_size(0),
-            builder.determine_block_size(1),
-            builder.determine_block_size(2)};
-
-        std::array<Expr, 3> grid_size = {
-            builder.determine_grid_size(0),
-            builder.determine_grid_size(1),
-            builder.determine_grid_size(2)};
-
         json result;
         const std::string* content = builder.kernel_source_.content();
         if (content != nullptr) {
@@ -225,24 +197,43 @@ struct KernelBuilderSerializerHack {
         result["name"] = builder.kernel_name_;
         result["compile_flags"] =
             expr_list_to_json(builder.compile_flags_, eval);
-        result["shared_memory"] = expr_to_json(builder.shared_mem_, eval);
+        result["shared_memory"] =  //
+            expr_to_json(builder.shared_mem_, eval);
         result["template_args"] =
             expr_list_to_json(builder.template_args_, eval);
+
+        std::vector<json> headers;
+        for (const auto& source : builder.preheaders_) {
+            json header_content = nullptr;
+            if (source.content() != nullptr) {
+                header_content = *source.content();
+            }
+
+            headers.push_back({
+                {"file", source.file_name()},
+                {"content", std::move(header_content)},
+            });
+        }
         result["headers"] = std::move(headers);
+
+        json defines = json::object();
+        for (const auto& p : builder.defines_) {
+            defines[p.first] = expr_to_json(p.second, eval);
+        }
         result["defines"] = std::move(defines);
+
+        std::array<Expr, 3> block_size = {
+            builder.determine_block_size(0),
+            builder.determine_block_size(1),
+            builder.determine_block_size(2)};
+
+        std::array<Expr, 3> grid_size = {
+            builder.determine_grid_size(0),
+            builder.determine_grid_size(1),
+            builder.determine_grid_size(2)};
 
         result["block_size"] = expr_list_to_json(block_size, eval);
         result["grid_size"] = expr_list_to_json(grid_size, eval);
-
-        result["block_size"] = expr_list_to_json(std::array<Expr, 3> {
-            builder.determine_block_size(0),
-            builder.determine_block_size(1),
-            builder.determine_block_size(2)});
-
-        result["grid_size"] = expr_list_to_json(std::array<Expr, 3> {
-            builder.determine_grid_size(0),
-            builder.determine_grid_size(1),
-            builder.determine_grid_size(2)});
 
         return result;
     }
