@@ -23,8 +23,68 @@ Recommended installation is using CMake. See the [installation guide](https://ke
 
 ## Example
 
-See the documentation for [examples](https://kerneltuner.github.io/kernel_launcher/example.html) or check out the [examples](https://github.com/KernelTuner/kernel_launcher/tree/master/examples) directory.
+There are many ways of using Kernel Launcher. See the documentation for [examples](https://kerneltuner.github.io/kernel_launcher/example.html) or check out the [examples](https://github.com/KernelTuner/kernel_launcher/tree/master/examples) directory.
 
+
+### Pragma-based API
+Below shows an example of using the pragma-based API, which allows existing CUDA kernels to be annotated with Kernel-Launcher-specific directives.
+
+**kernel.cu**
+```cpp
+#pragma kernel tune(threads_per_block=32, 64, 128, 256, 512, 1024)
+#pragma kernel block_size(threads_per_block)
+#pragma kernel problem_size(n)
+#pragma kernel buffers(A[n], B[n], C[n])
+template <typename T>
+__global__ void vector_add(int n, T *C, const T *A, const T *B) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        C[i] = A[i] + B[i];
+    }
+}
+```
+
+**main.cpp**
+```cpp
+#include "kernel_launcher.h"
+
+int main() {
+    // Initialize CUDA memory. This is outside the scope of kernel_launcher.
+    unsigned int n = 1000000;
+    float *dev_A, *dev_B, *dev_C;
+    /* cudaMalloc, cudaMemcpy, ... */
+
+    // Namespace alias.
+    namespace kl = kernel_launcher;
+
+    // Launch the kernel! Again, the grid size and block size do not need to
+    // be specified, they are calculated from the kernel specifications and
+    // run-time arguments.
+    kl::launch(
+        kl::PragmaKernel("kernel.cu", "vector_add", {"float"}),
+        n, dev_C, dev_A, dev_B
+    );
+}
+
+```
+
+
+### Builder-based API
+Below shows an example of the `KernelBuilder`-based API.
+This offers more flexiblity than the pragma-based API, but is also more verbose:
+
+**kernel.cu**
+```cpp
+template <typename T>
+__global__ void vector_add(int n, T *C, const T *A, const T *B) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        C[i] = A[i] + B[i];
+    }
+}
+```
+
+**main.cpp**
 ```cpp
 #include "kernel_launcher.h"
 
@@ -33,22 +93,19 @@ int main() {
     namespace kl = kernel_launcher;
 
     // Create a kernel builder
-    kl::KernelBuilder builder("vector_add", "vector_add_kernel.cu");
+    auto builder = kl::KernelBuilder("vector_add", "vector_add_kernel.cu");
 
     // Define the variables that can be tuned for this kernel.
     auto threads_per_block = builder.tune("block_size", {32, 64, 128, 256, 512, 1024});
-    auto elements_per_thread = builder.tune("elements_per_thread", {1, 2, 4, 8});
 
     // Set kernel properties such as block size, grid divisor, template arguments, etc.
     builder
-        .problem_size(kl::arg0)
-        .block_size(threads_per_block)
-        .grid_divisors(threads_per_block * elements_per_thread)
         .template_args(kl::type_of<float>())
-        .define("ELEMENTS_PER_THREAD", elements_per_thread);
+        .problem_size(kl::arg0)
+        .block_size(threads_per_block);
 
     // Define the kernel
-    kl::WisdomKernel vector_add_kernel(builder);
+    auto vector_add_kernel = kl::WisdomKernel(builder);
 
     // Initialize CUDA memory. This is outside the scope of kernel_launcher.
     unsigned int n = 1000000;
@@ -60,16 +117,24 @@ int main() {
     // derived from the kernel specifications and run-time arguments.
     vector_add_kernel(n, dev_C, dev_A, dev_B);
 }
-
 ```
+
+
 
 ## License
 
 Licensed under Apache 2.0. See [LICENSE](https://github.com/KernelTuner/kernel_launcher/blob/master/LICENSE).
 
+
 ## Citation
 
-```
+If you use Kernel Launcher in your work, please cite the following publication:
+
+> S. Heldens, B. van Werkhoven (2023), "Kernel Launcher: C++ Library for Optimal-Performance Portable CUDA Applications", The Eighteenth International Workshop on Automatic Performance Tuning (iWAPT2023) co-located with IPDPS 2023
+
+As BibTeX:
+
+```Latex
 @article{heldens2023kernellauncher,
   title={Kernel Launcher: C++ Library for Optimal-Performance Portable CUDA Applications},
   author={Heldens, Stijn and van Werkhoven, Ben},
