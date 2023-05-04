@@ -93,7 +93,7 @@ int main() {
     namespace kl = kernel_launcher;
 
     // Create a kernel builder
-    auto builder = kl::KernelBuilder("vector_add", "vector_add_kernel.cu");
+    auto builder = kl::KernelBuilder("vector_add", "kernel.cu");
 
     // Define the variables that can be tuned for this kernel.
     auto threads_per_block = builder.tune("block_size", {32, 64, 128, 256, 512, 1024});
