@@ -32,6 +32,7 @@ API Reference
    api/NvrtcCompiler.rst
    api/NvrtcException.rst
    api/Oracle.rst
+   api/PragmaKernel.rst
    api/ProblemSize.rst
    api/TemplateArg.rst
    api/TunableParam.rst
@@ -43,6 +44,7 @@ API Reference
    api/WisdomSettings.rst
    api/add_global_capture_pattern.rst
    api/append_global_wisdom_directory.rst
+   api/build_pragma_kernel.rst
    api/capture_file_exists.rst
    api/cuda_check.rst
    api/cuda_copy.rst
@@ -73,7 +75,7 @@ API Reference
 
 .. raw:: html
 
-   <h2>Wisdom</h2>
+   <h2>Wisdom Kernels</h2>
 
 * :doc:`WisdomKernel <api/WisdomKernel>`
 * :doc:`WisdomSettings <api/WisdomSettings>`
@@ -88,6 +90,13 @@ API Reference
 * :doc:`add_global_capture_pattern <api/add_global_capture_pattern>`
 * :doc:`export_capture_file <api/export_capture_file>`
 * :doc:`capture_file_exists <api/capture_file_exists>`
+
+.. raw:: html
+
+   <h2>Pragma Kernels</h2>
+
+* :doc:`PragmaKernel <api/PragmaKernel>`
+* :doc:`build_pragma_kernel <api/build_pragma_kernel>`
 
 .. raw:: html
 

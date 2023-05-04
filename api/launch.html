@@ -70,6 +70,7 @@
 <li class="toctree-l2"><a class="reference internal" href="NvrtcCompiler.html">NvrtcCompiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="NvrtcException.html">NvrtcException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Oracle.html">Oracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PragmaKernel.html">PragmaKernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ProblemSize.html">ProblemSize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TemplateArg.html">TemplateArg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TunableParam.html">TunableParam</a></li>
@@ -81,6 +82,7 @@
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build_pragma_kernel.html">build_pragma_kernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
@@ -134,7 +136,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4IDpEN15kernel_launcher6launchEv16KernelDescriptorDpRR4Args">
 <span id="_CPPv3IDpEN15kernel_launcher6launchE16KernelDescriptorDpRR4Args"></span><span id="_CPPv2IDpEN15kernel_launcher6launchE16KernelDescriptorDpRR4Args"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="sig-name descname"><span class="n"><span class="pre">Args</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="registry_8h_1a1f16b60988034e7fb3be3fee1bbcaa86"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">launch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">KernelDescriptor</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">descriptor</span></span>, <a class="reference internal" href="#_CPPv4IDpEN15kernel_launcher6launchEv16KernelDescriptorDpRR4Args" title="kernel_launcher::launch::Args"><span class="n"><span class="pre">Args</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4IDpEN15kernel_launcher6launchEv16KernelDescriptorDpRR4Args" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
+<dd><p>Launch the kernel given a <code class="docutils literal notranslate"><span class="pre">KernelDescriptor</span></code> using the global registry. This is a short-hand for <code class="docutils literal notranslate"><span class="pre">default_registry().lookup(descriptor).launch(args...)</span></code></p>
+</dd></dl>
 
 </section>
 

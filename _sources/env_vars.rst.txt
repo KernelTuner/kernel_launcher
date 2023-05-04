@@ -12,7 +12,7 @@ Environment Variables
    * - **KERNEL_LAUNCHER_CAPTURE**
      - ``_``
 
-     - Kernels for which a tuning specification will be exported on the first call to the kernel.
+     - Kernels for which a tuning specification will be captured.
        The value should a comma-seperated list of kernel names.
        Additionally, an ``*`` can be used as a wild card.
 
@@ -29,6 +29,14 @@ Environment Variables
        However, while ``KERNEL_LAUNCHER_CAPTURE`` skips kernels that have already been tuned
        (i.e., a wisdom file was found), the ``KERNEL_LAUNCHER_CAPTURE_FORCE`` will force to always
        capture kernels regardless of whether wisdom files are available.
+
+   * - **KERNEL_LAUNCHER_CAPTURE _SKIP**
+     - ``0``
+     - Set the number of kernel launches to skip before capturing a particular kernel.
+       For example, if you set the value to ``3``, only the fourth launch will be captured since the
+       first three launches will be skipped.
+
+       Note that this option is applied on a `per-kernel basis`, which means that each individual kernel keeps its own skip counter.
 
    * - **KERNEL_LAUNCHER_LOG**
      - ``info``

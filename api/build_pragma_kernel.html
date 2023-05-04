@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Variable &mdash; kernel-launcher 0.1 documentation</title>
+  <title>build_pragma_kernel &mdash; kernel-launcher 0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
@@ -18,8 +18,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="WisdomKernel" href="WisdomKernel.html" />
-    <link rel="prev" title="Value" href="Value.html" /> 
+    <link rel="next" title="capture_file_exists" href="capture_file_exists.html" />
+    <link rel="prev" title="append_global_wisdom_directory" href="append_global_wisdom_directory.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -76,13 +76,13 @@
 <li class="toctree-l2"><a class="reference internal" href="TunableParam.html">TunableParam</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TypeInfo.html">TypeInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Value.html">Value</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Variable.html">Variable</a></li>
 <li class="toctree-l2"><a class="reference internal" href="WisdomKernel.html">WisdomKernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="WisdomRecord.html">WisdomRecord</a></li>
 <li class="toctree-l2"><a class="reference internal" href="WisdomSettings.html">WisdomSettings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="add_global_capture_pattern.html">add_global_capture_pattern</a></li>
 <li class="toctree-l2"><a class="reference internal" href="append_global_wisdom_directory.html">append_global_wisdom_directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="build_pragma_kernel.html">build_pragma_kernel</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">build_pragma_kernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="capture_file_exists.html">capture_file_exists</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_check.html">cuda_check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cuda_copy.html">cuda_copy</a></li>
@@ -121,9 +121,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
-      <li class="breadcrumb-item active">Variable</li>
+      <li class="breadcrumb-item active">build_pragma_kernel</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/Variable.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/build_pragma_kernel.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -131,12 +131,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="variable">
-<span id="id1"></span><h1>Variable<a class="headerlink" href="#variable" title="Permalink to this heading"></a></h1>
-<dl class="cpp struct">
-<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher8VariableE">
-<span id="_CPPv3N15kernel_launcher8VariableE"></span><span id="_CPPv2N15kernel_launcher8VariableE"></span><span id="kernel_launcher::Variable"></span><span class="target" id="structkernel__launcher_1_1Variable"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Variable</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher8VariableE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Subclassed by kernel_launcher::ArgExpr, kernel_launcher::DeviceAttributeExpr, kernel_launcher::ProblemExpr, <a class="reference internal" href="TunableParam.html#structkernel__launcher_1_1TunableParam"><span class="std std-ref">kernel_launcher::TunableParam</span></a></p>
+  <section id="build-pragma-kernel">
+<span id="id1"></span><h1>build_pragma_kernel<a class="headerlink" href="#build-pragma-kernel" title="Permalink to this heading"></a></h1>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher19build_pragma_kernelERKNSt6stringERK12KernelSourceRKNSt6vectorI5ValueEERK10FileLoader">
+<span id="_CPPv3N15kernel_launcher19build_pragma_kernelERKNSt6stringERK12KernelSourceRKNSt6vectorI5ValueEERK10FileLoader"></span><span id="_CPPv2N15kernel_launcher19build_pragma_kernelERKNSt6stringERK12KernelSourceRKNSt6vectorI5ValueEERK10FileLoader"></span><span id="kernel_launcher::build_pragma_kernel__ssCR.KernelSourceCR.std::vector:Value:CR.FileLoaderCR"></span><span class="target" id="pragma_8h_1a8c451a617ab41d87a24df8f1414e79c4"></span><a class="reference internal" href="KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">build_pragma_kernel</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">kernel_name</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="KernelSource.html#_CPPv4N15kernel_launcher12KernelSourceE" title="kernel_launcher::KernelSource"><span class="n"><span class="pre">KernelSource</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">source</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">template_args</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="FileLoader.html#_CPPv4N15kernel_launcher10FileLoaderE" title="kernel_launcher::FileLoader"><span class="n"><span class="pre">FileLoader</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fs</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="DefaultLoader.html#_CPPv4N15kernel_launcher13DefaultLoaderE" title="kernel_launcher::DefaultLoader"><span class="n"><span class="pre">DefaultLoader</span></span></a><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher19build_pragma_kernelERKNSt6stringERK12KernelSourceRKNSt6vectorI5ValueEERK10FileLoader" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Parses the given <code class="docutils literal notranslate"><span class="pre">KernelSource</span></code>, searches the source code for the kernel with the given <code class="docutils literal notranslate"><span class="pre">kernel_name</span></code>, extract the KernelLauncher-specific pragmas for that kernel, and returns <code class="docutils literal notranslate"><a class="reference internal" href="KernelBuilder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kernel_name</strong> – The name of the kernel in the source code. It may contain namespaces such as <code class="docutils literal notranslate"><span class="pre">mypackage::kernels::vector_add</span></code>. </p></li>
+<li><p><strong>source</strong> – The source code. Can be either a filename (like <code class="docutils literal notranslate"><span class="pre">&quot;kernel.cu&quot;</span></code>) or a filename+content pair (like <code class="docutils literal notranslate"><span class="pre">{&quot;kernel.cu&quot;,</span> <span class="pre">&quot;#include</span> <span class="pre">&lt;stdin.h&gt;...&quot;}</span></code>). </p></li>
+<li><p><strong>template_args</strong> – Optional; template arguments passed to the kernel. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -145,8 +154,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Value.html" class="btn btn-neutral float-left" title="Value" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="WisdomKernel.html" class="btn btn-neutral float-right" title="WisdomKernel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="append_global_wisdom_directory.html" class="btn btn-neutral float-left" title="append_global_wisdom_directory" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="capture_file_exists.html" class="btn btn-neutral float-right" title="capture_file_exists" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

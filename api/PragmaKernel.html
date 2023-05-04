@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IKernelDescriptor &mdash; kernel-launcher 0.1 documentation</title>
+  <title>PragmaKernel &mdash; kernel-launcher 0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
@@ -18,8 +18,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="IntoKernelArg" href="IntoKernelArg.html" />
-    <link rel="prev" title="ICompiler" href="ICompiler.html" /> 
+    <link rel="next" title="ProblemSize" href="ProblemSize.html" />
+    <link rel="prev" title="Oracle" href="Oracle.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -59,7 +59,7 @@
 <li class="toctree-l2"><a class="reference internal" href="DefaultOracle.html">DefaultOracle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="FileLoader.html">FileLoader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ICompiler.html">ICompiler</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">IKernelDescriptor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IKernelDescriptor.html">IKernelDescriptor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="IntoKernelArg.html">IntoKernelArg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Kernel.html">Kernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="KernelArg.html">KernelArg</a></li>
@@ -70,7 +70,7 @@
 <li class="toctree-l2"><a class="reference internal" href="NvrtcCompiler.html">NvrtcCompiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="NvrtcException.html">NvrtcException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Oracle.html">Oracle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PragmaKernel.html">PragmaKernel</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">PragmaKernel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ProblemSize.html">ProblemSize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TemplateArg.html">TemplateArg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TunableParam.html">TunableParam</a></li>
@@ -121,9 +121,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API Reference</a></li>
-      <li class="breadcrumb-item active">IKernelDescriptor</li>
+      <li class="breadcrumb-item active">PragmaKernel</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/IKernelDescriptor.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/PragmaKernel.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -131,31 +131,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="ikerneldescriptor">
-<span id="id1"></span><h1>IKernelDescriptor<a class="headerlink" href="#ikerneldescriptor" title="Permalink to this heading"></a></h1>
+  <section id="pragmakernel">
+<span id="id1"></span><h1>PragmaKernel<a class="headerlink" href="#pragmakernel" title="Permalink to this heading"></a></h1>
 <dl class="cpp struct">
-<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher17IKernelDescriptorE">
-<span id="_CPPv3N15kernel_launcher17IKernelDescriptorE"></span><span id="_CPPv2N15kernel_launcher17IKernelDescriptorE"></span><span id="kernel_launcher::IKernelDescriptor"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IKernelDescriptor</span></span></span><a class="headerlink" href="#_CPPv4N15kernel_launcher17IKernelDescriptorE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>This interface is used to implement an abstract representation for a kernel. For example, one may implement a <code class="docutils literal notranslate"><span class="pre">MatrixMultiplyDescriptor</span></code> that represents a kernel for matrix multiplication. The <code class="docutils literal notranslate"><span class="pre">build</span></code> method should return the <code class="docutils literal notranslate"><a class="reference internal" href="KernelBuilder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code> that be used to build the specific kernel.</p>
-<p>The interface is used in combination with <code class="docutils literal notranslate"><a class="reference internal" href="KernelRegistry.html#structkernel__launcher_1_1KernelRegistry"><span class="std std-ref"><span class="pre">KernelRegistry</span></span></a></code> to look up if this kernel has already been compiled. The registry is essentially a hash table that maps <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1IKernelDescriptor"><span class="std std-ref"><span class="pre">IKernelDescriptor</span></span></a></code> objects to <code class="docutils literal notranslate"><span class="pre">KernelInstance</span></code> objects. This is why this descriptor class must implement <code class="docutils literal notranslate"><span class="pre">equals</span></code> and <code class="docutils literal notranslate"><span class="pre">hash</span></code>. </p>
-<p>Subclassed by <a class="reference internal" href="PragmaKernel.html#structkernel__launcher_1_1PragmaKernel"><span class="std std-ref">kernel_launcher::PragmaKernel</span></a></p>
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher12PragmaKernelE">
+<span id="_CPPv3N15kernel_launcher12PragmaKernelE"></span><span id="_CPPv2N15kernel_launcher12PragmaKernelE"></span><span id="kernel_launcher::PragmaKernel"></span><span class="target" id="structkernel__launcher_1_1PragmaKernel"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PragmaKernel</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">kernel_launcher</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="IKernelDescriptor.html#_CPPv4N15kernel_launcher17IKernelDescriptorE" title="kernel_launcher::IKernelDescriptor"><span class="n"><span class="pre">IKernelDescriptor</span></span></a><a class="headerlink" href="#_CPPv4N15kernel_launcher12PragmaKernelE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>This is a <code class="docutils literal notranslate"><a class="reference internal" href="IKernelDescriptor.html#structkernel__launcher_1_1IKernelDescriptor"><span class="std std-ref"><span class="pre">IKernelDescriptor</span></span></a></code> that uses <code class="docutils literal notranslate"><span class="pre">build_pragma_kernel</span></code> to construct a <code class="docutils literal notranslate"><a class="reference internal" href="KernelBuilder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code>. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17IKernelDescriptor5buildEv">
-<span id="_CPPv3NK15kernel_launcher17IKernelDescriptor5buildEv"></span><span id="_CPPv2NK15kernel_launcher17IKernelDescriptor5buildEv"></span><span id="kernel_launcher::IKernelDescriptor::buildC"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor_1ae636a7db8682e92eb8eb5fb82cefd74c"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">build</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17IKernelDescriptor5buildEv" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N15kernel_launcher12PragmaKernel12PragmaKernelENSt6stringENSt6stringENSt6vectorI5ValueEE">
+<span id="_CPPv3N15kernel_launcher12PragmaKernel12PragmaKernelENSt6stringENSt6stringENSt6vectorI5ValueEE"></span><span id="_CPPv2N15kernel_launcher12PragmaKernel12PragmaKernelENSt6stringENSt6stringENSt6vectorI5ValueEE"></span><span id="kernel_launcher::PragmaKernel::PragmaKernel__ss.ss.std::vector:Value:"></span><span class="target" id="structkernel__launcher_1_1PragmaKernel_1accd424acfe4479d0acbad9a96e1953a8"></span><span class="sig-name descname"><span class="n"><span class="pre">PragmaKernel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">kernel_name</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">path</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Value.html#_CPPv4N15kernel_launcher5ValueE" title="kernel_launcher::Value"><span class="n"><span class="pre">Value</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">template_args</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15kernel_launcher12PragmaKernel12PragmaKernelENSt6stringENSt6stringENSt6vectorI5ValueEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct <code class="docutils literal notranslate"><a class="reference internal" href="#structkernel__launcher_1_1PragmaKernel"><span class="std std-ref"><span class="pre">PragmaKernel</span></span></a></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Filename of the source file. </p></li>
+<li><p><strong>kernel_name</strong> – The name of the kernel in the source code. It may contain namespaces such as <code class="docutils literal notranslate"><span class="pre">mypackage::kernels::vector_add</span></code>. </p></li>
+<li><p><strong>template_args</strong> – Optional; template arguments passed to the kernel. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher12PragmaKernel5buildEv">
+<span id="_CPPv3NK15kernel_launcher12PragmaKernel5buildEv"></span><span id="_CPPv2NK15kernel_launcher12PragmaKernel5buildEv"></span><span id="kernel_launcher::PragmaKernel::buildC"></span><span class="target" id="structkernel__launcher_1_1PragmaKernel_1a76b20498f62d5c3c32d0ef806d7dd0ac"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilderE" title="kernel_launcher::KernelBuilder"><span class="n"><span class="pre">KernelBuilder</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">build</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher12PragmaKernel5buildEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Should return the <code class="docutils literal notranslate"><a class="reference internal" href="KernelBuilder.html#structkernel__launcher_1_1KernelBuilder"><span class="std std-ref"><span class="pre">KernelBuilder</span></span></a></code> that can be used to build the kernel associated with this descriptor. </p>
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor">
-<span id="_CPPv3NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor"></span><span id="_CPPv2NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor"></span><span id="kernel_launcher::IKernelDescriptor::equals__IKernelDescriptorCRC"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor_1a576439353853aca5a9a7b921b1cfa6b7"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">equals</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15kernel_launcher17IKernelDescriptorE" title="kernel_launcher::IKernelDescriptor"><span class="n"><span class="pre">IKernelDescriptor</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">that</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17IKernelDescriptor6equalsERK17IKernelDescriptor" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher12PragmaKernel6equalsERK17IKernelDescriptor">
+<span id="_CPPv3NK15kernel_launcher12PragmaKernel6equalsERK17IKernelDescriptor"></span><span id="_CPPv2NK15kernel_launcher12PragmaKernel6equalsERK17IKernelDescriptor"></span><span id="kernel_launcher::PragmaKernel::equals__IKernelDescriptorCRC"></span><span class="target" id="structkernel__launcher_1_1PragmaKernel_1a40ccf3cc42208de9815a9b66c4e9eaa9"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">equals</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="IKernelDescriptor.html#_CPPv4N15kernel_launcher17IKernelDescriptorE" title="kernel_launcher::IKernelDescriptor"><span class="n"><span class="pre">IKernelDescriptor</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">that</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher12PragmaKernel6equalsERK17IKernelDescriptor" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Check if this descriptor is equal to another descriptor. </p>
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher17IKernelDescriptor4hashEv">
-<span id="_CPPv3NK15kernel_launcher17IKernelDescriptor4hashEv"></span><span id="_CPPv2NK15kernel_launcher17IKernelDescriptor4hashEv"></span><span id="kernel_launcher::IKernelDescriptor::hashC"></span><span class="target" id="structkernel__launcher_1_1IKernelDescriptor_1a821081c4b21aac43742ed8003bd864c6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">hash_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hash</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher17IKernelDescriptor4hashEv" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4NK15kernel_launcher12PragmaKernel4hashEv">
+<span id="_CPPv3NK15kernel_launcher12PragmaKernel4hashEv"></span><span id="_CPPv2NK15kernel_launcher12PragmaKernel4hashEv"></span><span id="kernel_launcher::PragmaKernel::hashC"></span><span class="target" id="structkernel__launcher_1_1PragmaKernel_1ab3b0a196fb0a070d57e381fd938494fc"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">hash_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hash</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK15kernel_launcher12PragmaKernel4hashEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Return a hash of this descriptor. This is used to test for equality of two descriptors:</p>
 <p><ul class="simple">
 <li><p>Two descriptors that return the same hash MAY be identical.</p></li>
@@ -174,8 +187,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="ICompiler.html" class="btn btn-neutral float-left" title="ICompiler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="IntoKernelArg.html" class="btn btn-neutral float-right" title="IntoKernelArg" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Oracle.html" class="btn btn-neutral float-left" title="Oracle" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ProblemSize.html" class="btn btn-neutral float-right" title="ProblemSize" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

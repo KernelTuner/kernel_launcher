@@ -87,7 +87,7 @@
 </tr>
 <tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_CAPTURE</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">_</span></code></p></td>
-<td><p>Kernels for which a tuning specification will be exported on the first call to the kernel.
+<td><p>Kernels for which a tuning specification will be captured.
 The value should a comma-seperated list of kernel names.
 Additionally, an <code class="docutils literal notranslate"><span class="pre">*</span></code> can be used as a wild card.</p>
 <p>Examples:</p>
@@ -106,7 +106,15 @@ However, while <code class="docutils literal notranslate"><span class="pre">KERN
 (i.e., a wisdom file was found), the <code class="docutils literal notranslate"><span class="pre">KERNEL_LAUNCHER_CAPTURE_FORCE</span></code> will force to always
 capture kernels regardless of whether wisdom files are available.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_LOG</strong></p></td>
+<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_CAPTURE _SKIP</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>Set the number of kernel launches to skip before capturing a particular kernel.
+For example, if you set the value to <code class="docutils literal notranslate"><span class="pre">3</span></code>, only the fourth launch will be captured since the
+first three launches will be skipped.</p>
+<p>Note that this option is applied on a <cite>per-kernel basis</cite>, which means that each individual kernel keeps its own skip counter.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_LOG</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">info</span></code></p></td>
 <td><p>Controls how much logging information is printed to stderr. There are three possible options:</p>
 <ul class="simple">
@@ -116,15 +124,15 @@ capture kernels regardless of whether wisdom files are available.</p></td>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_DIR</strong></p></td>
+<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_DIR</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
 <td><p>The directory were the tuning specifications will be stored. Defaults to the current working directory.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_WISDOM</strong></p></td>
+<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_WISDOM</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
 <td><p>The default directory where wisdom files are located. Defaults to the current working directory.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>KERNEL_LAUNCHER_INCLUDE</strong></p></td>
+<tr class="row-even"><td><p><strong>KERNEL_LAUNCHER_INCLUDE</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
 <td><p>List of comma-seperate directories that are considered while compiling kernels when searching for header files.</p></td>
 </tr>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pragma Kernels &mdash; kernel-launcher 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api.html" />
+    <link rel="prev" title="Kernel Registry" href="registry.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            kernel-launcher
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Kernel Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../example.html">Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wisdom.html">Wisdom Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="registry.html">Kernel Registry</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Pragma Kernels</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#source-code">Source Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-explanation">Code Explanation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#host-code">Host Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#list-of-pragmas">List of pragmas</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/KernelTuner/kernel_launcher">Github repository</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kernel-launcher</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../example.html">Guides</a></li>
+      <li class="breadcrumb-item active">Pragma Kernels</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/pragma.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pragma-kernels">
+<h1>Pragma Kernels<a class="headerlink" href="#pragma-kernels" title="Permalink to this heading"></a></h1>
+<p>In the previous examples, we demonstrated how a tunable kernel can be specified by defining a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance in the host-side code.
+While this API offers flexiblity, it can be cumbersome and requires keeping the kernel code in CUDA in sync with the host-side code in C++.</p>
+<p>Kernel Launcher also provides a way to define kernel specifications directly in the CUDA code by using pragma directives to annotate the kernel code.
+Although this method is less flexible than the <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> API, it is much more convenient and suitable for most CUDA kernels.</p>
+<section id="source-code">
+<h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h2>
+<p>The following code example shows valid CUDA kernel code containing pragma directives.
+The <code class="docutils literal notranslate"><span class="pre">#pragma</span></code> annotations will be ignored by the <code class="docutils literal notranslate"><span class="pre">nvcc</span></code> compiler (but they may produce compiler warnings).</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cp">#pragma kernel tune(threads_per_block=32, 64, 128, 256, 512, 1024)</span>
+<span class="linenos"> 2</span><span class="cp">#pragma kernel tune(items_per_thread=1, 2, 4, 8)</span>
+<span class="linenos"> 3</span><span class="cp">#pragma kernel set(items_per_block=threads_per_block * items_per_thread)</span>
+<span class="linenos"> 4</span><span class="cp">#pragma kernel problem_size(n)</span>
+<span class="linenos"> 5</span><span class="cp">#pragma kernel block_size(threads_per_block)</span>
+<span class="linenos"> 6</span><span class="cp">#pragma kernel grid_divisor(items_per_block)</span>
+<span class="linenos"> 7</span><span class="cp">#pragma kernel buffers(C[n], A[n], B[n])</span>
+<span class="linenos"> 8</span><span class="cp">#pragma kernel tuning_key(&quot;vector_add_&quot; + T)</span>
+<span class="linenos"> 9</span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">items_per_thread</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span>
+<span class="linenos">10</span><span class="n">__global__</span>
+<span class="linenos">11</span><span class="kt">void</span><span class="w"> </span><span class="n">vector_add</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">B</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="linenos">12</span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">items_per_thread</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="linenos">13</span><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">items_per_thread</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="linenos">16</span><span class="w">            </span><span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="linenos">17</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos">18</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">19</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="code-explanation">
+<h2>Code Explanation<a class="headerlink" href="#code-explanation" title="Permalink to this heading"></a></h2>
+<p>The kernel contains the following <code class="docutils literal notranslate"><span class="pre">pragma</span></code> directives:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="cp">#pragma kernel tune(threads_per_block=32, 64, 128, 256, 512, 1024)</span>
+<span class="linenos">2</span><span class="cp">#pragma kernel tune(items_per_thread=1, 2, 4, 8)</span>
+</pre></div>
+</div>
+<p>The tune directives specify the tunable parameters: <code class="docutils literal notranslate"><span class="pre">threads_per_block</span></code> and <code class="docutils literal notranslate"><span class="pre">items_per_thread</span></code>.
+Since <code class="docutils literal notranslate"><span class="pre">items_per_thread</span></code> is also the name of the template parameter, so it is passed to the kernel as a compile-time constant via this parameter.
+The value of <code class="docutils literal notranslate"><span class="pre">threads_per_block</span></code> is not passed to the kernel but is used by subsequent pragmas.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">3</span><span class="cp">#pragma kernel set(items_per_block=threads_per_block * items_per_thread)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">set</span></code> directives defines a constant.
+In this case, the constant <code class="docutils literal notranslate"><span class="pre">items_per_block</span></code> is defined as the product of <code class="docutils literal notranslate"><span class="pre">threads_per_block</span></code> and <code class="docutils literal notranslate"><span class="pre">items_per_thread</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">4</span><span class="cp">#pragma kernel problem_size(n)</span>
+<span class="linenos">5</span><span class="cp">#pragma kernel block_size(threads_per_block)</span>
+<span class="linenos">6</span><span class="cp">#pragma kernel grid_divisor(items_per_block)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">problem_size</span></code> directive defines the problem size (as discussed in as discussed in <a class="reference internal" href="basic.html"><span class="doc">Basic Example</span></a>), <code class="docutils literal notranslate"><span class="pre">block_size</span></code> specifies the thread block size, and <code class="docutils literal notranslate"><span class="pre">grid_divisor</span></code> specifies how the problem size should be divided to obtain the thread grid size.
+Alternatively, <code class="docutils literal notranslate"><span class="pre">grid_size</span></code> can be used to specify the grid size directly.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">7</span><span class="cp">#pragma kernel buffers(C[n], A[n], B[n])</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">buffers</span></code> directive specifies the size of each buffer (<code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">B</span></code>, and <code class="docutils literal notranslate"><span class="pre">C</span></code>) as <code class="docutils literal notranslate"><span class="pre">n</span></code> elements to be known by Kernel Launcher.
+This is necessary since raw pointers can be used for buffer arguments, for which size information may not be available.
+If the <code class="docutils literal notranslate"><span class="pre">buffers</span></code> pragma is not specified, Kernel Launcher can still be used but it is not possible to capture kernel launches.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">8</span><span class="cp">#pragma kernel tuning_key(&quot;vector_add_&quot; + T)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">tuning_key</span></code> directive specifies the tuning key, which can be a concatenation of strings or variables.
+In this example, the tuning key is <code class="docutils literal notranslate"><span class="pre">&quot;vector_add_&quot;</span> <span class="pre">+</span> <span class="pre">T</span></code>, where <code class="docutils literal notranslate"><span class="pre">T</span></code> is the name of the type.</p>
+</section>
+<section id="host-code">
+<h2>Host Code<a class="headerlink" href="#host-code" title="Permalink to this heading"></a></h2>
+<p>The below code shows how to call the kernel from the host in C++:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel_launcher/pragma.h&quot;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">kl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">kernel_launcher</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">launch_vector_add</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">B</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">launch</span><span class="p">(</span>
+<span class="w">        </span><span class="n">kl</span><span class="o">::</span><span class="n">PragmaKernel</span><span class="p">(</span><span class="s">&quot;vector_add_annotated.cu&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;vector_add&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;float&quot;</span><span class="p">}),</span>
+<span class="w">        </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">PragmaKernel</span></code> class implements the <code class="docutils literal notranslate"><span class="pre">IKernelDescriptor</span></code> interface, as described in <a class="reference internal" href="registry.html"><span class="doc">Kernel Registry</span></a>.
+This class reads the specified file, extracts the Kernel Launcher pragmas from the source code, and compiles the kernel.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">launch</span></code> function launches the kernel and, as discussed in <a class="reference internal" href="registry.html"><span class="doc">Kernel Registry</span></a>, it uses the default registry to cache kernel compilations.
+This means that the kernel is only compiled once, even if the same kernel is called from different locations in the program.</p>
+</section>
+<section id="list-of-pragmas">
+<h2>List of pragmas<a class="headerlink" href="#list-of-pragmas" title="Permalink to this heading"></a></h2>
+<p>The table below lists the valid directives.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Directive</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tune</span></code></p></td>
+<td><p>Add a new tunable variable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set</span></code></p></td>
+<td><p>Add a new variable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">buffers</span></code></p></td>
+<td><p>Specify the size of buffer arguments. This directive may occur multiple times.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tuning_key</span></code></p></td>
+<td><p>Specify the tuning key used to search for the corresponding wisdom file.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">problem_size</span></code></p></td>
+<td><p>An N-dimensional vector that indicates workload size.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">grid_size</span></code></p></td>
+<td><p>An N-dimensional vector that indicates the CUDA grid size.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">block_size</span></code></p></td>
+<td><p>An N-dimensional vector that indicates the CUDA thread block size.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">grid_divisor</span></code></p></td>
+<td><p>Alternative way of specifying the grid size. The problem size is divided by the grid divisors to obtain the grid dimensions.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">restriction</span></code></p></td>
+<td><p>Boolean expression that must evaluate to <code class="docutils literal notranslate"><span class="pre">true</span></code> for a kernel configuration to be valid.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="registry.html" class="btn btn-neutral float-left" title="Kernel Registry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, The kernel-launcher Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -82,9 +82,11 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/add_global_capture_pattern.html#_CPPv4N15kernel_launcher26add_global_capture_patternENSt6stringE">kernel_launcher::add_global_capture_pattern (C++ function)</a>
+      <li><a href="api/add_global_capture_pattern.html#_CPPv4N15kernel_launcher26add_global_capture_patternE11CaptureRule">kernel_launcher::add_global_capture_pattern (C++ function)</a>
 </li>
       <li><a href="api/append_global_wisdom_directory.html#_CPPv4N15kernel_launcher30append_global_wisdom_directoryENSt6stringE">kernel_launcher::append_global_wisdom_directory (C++ function)</a>
+</li>
+      <li><a href="api/build_pragma_kernel.html#_CPPv4N15kernel_launcher19build_pragma_kernelERKNSt6stringERK12KernelSourceRKNSt6vectorI5ValueEERK10FileLoader">kernel_launcher::build_pragma_kernel (C++ function)</a>
 </li>
       <li><a href="api/capture_file_exists.html#_CPPv4N15kernel_launcher19capture_file_existsERKNSt6stringERKNSt6stringE11ProblemSize">kernel_launcher::capture_file_exists (C++ function)</a>
 </li>
@@ -178,9 +180,7 @@
 </li>
       <li><a href="api/DefaultLoader.html#_CPPv4NK15kernel_launcher13DefaultLoader4loadERKNSt6stringE">kernel_launcher::DefaultLoader::load (C++ function)</a>
 </li>
-      <li><a href="api/DefaultOracle.html#_CPPv4N15kernel_launcher13DefaultOracleE">kernel_launcher::DefaultOracle (C++ struct)</a>
-</li>
-      <li><a href="api/export_capture_file.html#_CPPv4N15kernel_launcher19export_capture_fileERKNSt6stringERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">kernel_launcher::export_capture_file (C++ function)</a>
+      <li><a href="api/export_capture_file.html#_CPPv4N15kernel_launcher19export_capture_fileERKNSt6stringERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI9KernelArgEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">kernel_launcher::export_capture_file (C++ function)</a>
 </li>
       <li><a href="api/FileLoader.html#_CPPv4N15kernel_launcher10FileLoaderE">kernel_launcher::FileLoader (C++ struct)</a>
 </li>
@@ -208,7 +208,7 @@
 </li>
       <li><a href="api/Kernel.html#_CPPv4N15kernel_launcher6Kernel7compileERK13KernelBuilderRK6ConfigRK9ICompiler17CudaContextHandle">kernel_launcher::Kernel::compile (C++ function)</a>
 </li>
-      <li><a href="api/Kernel.html#_CPPv4N15kernel_launcher6Kernel6launchE12cudaStream_tDpRR4Args">kernel_launcher::Kernel::launch (C++ function)</a>, <a href="api/Kernel.html#_CPPv4N15kernel_launcher6Kernel6launchEDp4Args">[1]</a>
+      <li><a href="api/Kernel.html#_CPPv4N15kernel_launcher6Kernel6launchE12cudaStream_tDp4Args">kernel_launcher::Kernel::launch (C++ function)</a>, <a href="api/Kernel.html#_CPPv4N15kernel_launcher6Kernel6launchEDp4Args">[1]</a>
 </li>
       <li><a href="api/KernelArg.html#_CPPv4N15kernel_launcher9KernelArgE">kernel_launcher::KernelArg (C++ struct)</a>
 </li>
@@ -242,12 +242,12 @@
 </li>
       <li><a href="api/KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilder13grid_divisorsE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">kernel_launcher::KernelBuilder::grid_divisors (C++ function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilder9grid_sizeE9TypedExprI8uint32_tE9TypedExprI8uint32_tE9TypedExprI8uint32_tE">kernel_launcher::KernelBuilder::grid_size (C++ function)</a>
 </li>
       <li><a href="api/KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilder14include_headerE12KernelSource">kernel_launcher::KernelBuilder::include_header (C++ function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/KernelBuilder.html#_CPPv4NK15kernel_launcher13KernelBuilder11kernel_nameEv">kernel_launcher::KernelBuilder::kernel_name (C++ function)</a>
 </li>
       <li><a href="api/KernelBuilder.html#_CPPv4N15kernel_launcher13KernelBuilder13KernelBuilderENSt6stringE12KernelSource11ConfigSpace">kernel_launcher::KernelBuilder::KernelBuilder (C++ function)</a>
@@ -286,7 +286,15 @@
 </li>
       <li><a href="api/NvrtcException.html#_CPPv4N15kernel_launcher14NvrtcExceptionE">kernel_launcher::NvrtcException (C++ struct)</a>
 </li>
-      <li><a href="api/Oracle.html#_CPPv4N15kernel_launcher6OracleE">kernel_launcher::Oracle (C++ struct)</a>
+      <li><a href="api/PragmaKernel.html#_CPPv4N15kernel_launcher12PragmaKernelE">kernel_launcher::PragmaKernel (C++ struct)</a>
+</li>
+      <li><a href="api/PragmaKernel.html#_CPPv4NK15kernel_launcher12PragmaKernel5buildEv">kernel_launcher::PragmaKernel::build (C++ function)</a>
+</li>
+      <li><a href="api/PragmaKernel.html#_CPPv4NK15kernel_launcher12PragmaKernel6equalsERK17IKernelDescriptor">kernel_launcher::PragmaKernel::equals (C++ function)</a>
+</li>
+      <li><a href="api/PragmaKernel.html#_CPPv4NK15kernel_launcher12PragmaKernel4hashEv">kernel_launcher::PragmaKernel::hash (C++ function)</a>
+</li>
+      <li><a href="api/PragmaKernel.html#_CPPv4N15kernel_launcher12PragmaKernel12PragmaKernelENSt6stringENSt6stringENSt6vectorI5ValueEE">kernel_launcher::PragmaKernel::PragmaKernel (C++ function)</a>
 </li>
       <li><a href="api/ProblemSize.html#_CPPv4N15kernel_launcher11ProblemSizeE">kernel_launcher::ProblemSize (C++ struct)</a>
 </li>
@@ -388,9 +396,11 @@
 </li>
       <li><a href="api/WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernelE">kernel_launcher::WisdomKernel (C++ struct)</a>
 </li>
+      <li><a href="api/WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernel19capture_next_launchEi">kernel_launcher::WisdomKernel::capture_next_launch (C++ function)</a>
+</li>
       <li><a href="api/WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernel5clearEv">kernel_launcher::WisdomKernel::clear (C++ function)</a>
 </li>
-      <li><a href="api/WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle">kernel_launcher::WisdomKernel::compile (C++ function)</a>
+      <li><a href="api/WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernel7compileE11ProblemSizeNSt6vectorI8TypeInfoEE17CudaContextHandle">kernel_launcher::WisdomKernel::compile (C++ function)</a>, <a href="api/WisdomKernel.html#_CPPv4N15kernel_launcher12WisdomKernel7compileENSt6vectorI9KernelArgEE17CudaContextHandle">[1]</a>
 </li>
       <li><a href="api/WisdomKernel.html#_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEv12cudaStream_tDpRR4Args">kernel_launcher::WisdomKernel::launch (C++ function)</a>, <a href="api/WisdomKernel.html#_CPPv4IDpEN15kernel_launcher12WisdomKernel6launchEvDpRR4Args">[1]</a>
 </li>
@@ -400,9 +410,9 @@
 </li>
       <li><a href="api/WisdomSettings.html#_CPPv4N15kernel_launcher14WisdomSettingsE">kernel_launcher::WisdomSettings (C++ struct)</a>
 </li>
-      <li><a href="api/WisdomSettings.html#_CPPv4NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI8TypeInfoEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">kernel_launcher::WisdomSettings::capture_kernel (C++ function)</a>
+      <li><a href="api/WisdomSettings.html#_CPPv4NK15kernel_launcher14WisdomSettings14capture_kernelERKNSt6stringERK13KernelBuilder11ProblemSizeRKNSt6vectorI9KernelArgEERKNSt6vectorINSt6vectorI7uint8_tEEEERKNSt6vectorINSt6vectorI7uint8_tEEEE">kernel_launcher::WisdomSettings::capture_kernel (C++ function)</a>
 </li>
-      <li><a href="api/WisdomSettings.html#_CPPv4NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePb">kernel_launcher::WisdomSettings::load_config (C++ function)</a>
+      <li><a href="api/WisdomSettings.html#_CPPv4NK15kernel_launcher14WisdomSettings11load_configERKNSt6stringERK11ConfigSpace11ProblemSize10CudaDevicePi">kernel_launcher::WisdomSettings::load_config (C++ function)</a>
 </li>
   </ul></td>
 </tr></table>
