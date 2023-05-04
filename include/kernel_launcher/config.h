@@ -204,17 +204,32 @@ struct ConfigSpace {
     void restriction(TypedExpr<bool> e);
 
     /**
+     * Returns the restrictions added by `restriction()`
+     */
+    const std::vector<TypedExpr<bool>>& restrictions() const {
+        return restrictions_;
+    }
+
+    /**
      * Returns the default configuration for this configuration space.
      */
     Config default_config() const;
 
     /**
-     *  Check if the given configuration is a valid member of this configuration
-     *  space. This method essentially checks three things:
+     *  Check if the given configuration is a member of this configuration
+     *  space. This method essentially checks two things:
      *
      *  * Does the configuration contain the correct parameters.
      *  * Do these parameter contain valid values.
-     *  * Does the configuration meet the restrictions.
+     *
+     *  However, it does _not_ check if the configuration satisfies the
+     *  restrictions.
+     */
+    bool contains(const Eval& config) const;
+
+    /**
+     *  Check if the given configuration is a valid member of this configuration
+     *  space and also meets the restrictions.
      */
     bool is_valid(const Eval& config) const;
 
