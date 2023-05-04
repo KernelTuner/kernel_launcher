@@ -5,8 +5,8 @@
 namespace kernel_launcher {
 
 KernelBuilder build_pragma_kernel(
-    const KernelSource& source,
     const std::string& kernel_name,
+    const KernelSource& source,
     const std::vector<Value>& template_args,
     const FileLoader& fs) {
     // Read file
@@ -36,8 +36,8 @@ KernelBuilder build_pragma_kernel(
 }
 
 PragmaKernel::PragmaKernel(
-    std::string path,
     std::string kernel_name,
+    std::string path,
     std::vector<Value> template_args) :
     kernel_name_(std::move(kernel_name)),
     template_args_(std::move(template_args)) {
@@ -53,8 +53,8 @@ PragmaKernel::PragmaKernel(
 
 KernelBuilder PragmaKernel::build() const {
     return build_pragma_kernel(
-        KernelSource(file_path_),
         kernel_name_,
+        KernelSource(file_path_),
         template_args_);
 }
 

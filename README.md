@@ -61,7 +61,7 @@ int main() {
     // be specified, they are calculated from the kernel specifications and
     // run-time arguments.
     kl::launch(
-        kl::PragmaKernel("kernel.cu", "vector_add", {"float"}),
+        kl::PragmaKernel("vector_add", "kernel.cu", {"float"}),
         n, dev_C, dev_A, dev_B
     );
 }

@@ -10,15 +10,15 @@ namespace kernel_launcher {
  * with the given `kernel_name`, extract the KernelLauncher-specific pragmas
  * for that kernel, and returns `KernelBuilder`.
  *
- * @param source The source code. Can be either a filename (like `"kernel.cu"`)
- * or a filename+content pair (like `{"kernel.cu", "#include <stdin.h>..."}`).
  * @param kernel_name The name of the kernel in the source code. It may contain
  * namespaces such as `mypackage::kernels::vector_add`.
+ * @param source The source code. Can be either a filename (like `"kernel.cu"`)
+ * or a filename+content pair (like `{"kernel.cu", "#include <stdin.h>..."}`).
  * @param template_args Optional; template arguments passed to the kernel.
  */
 KernelBuilder build_pragma_kernel(
-    const KernelSource& source,
     const std::string& kernel_name,
+    const KernelSource& source,
     const std::vector<Value>& template_args = {},
     const FileLoader& fs = DefaultLoader {});
 
@@ -36,8 +36,8 @@ struct PragmaKernel: IKernelDescriptor {
      * @param template_args Optional; template arguments passed to the kernel.
      */
     PragmaKernel(
-        std::string path,
         std::string kernel_name,
+        std::string path,
         std::vector<Value> template_args = {});
 
     KernelBuilder build() const override;

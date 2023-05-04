@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
     // Call kernel
     kl::launch(
-        kl::PragmaKernel("kernel_annotated.cu", "vector_add", {"float"}),
+        kl::PragmaKernel("vector_add", "kernel_annotated.cu", {"float"}),
         n,
         C_dev,
         (const float*)A_dev,
