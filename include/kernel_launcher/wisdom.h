@@ -15,8 +15,9 @@ namespace kernel_launcher {
 struct WisdomRecordImpl;
 
 /**
- * Represents a record read from a wisdom file. Use methods such as
- * ``problem_size()`` and ``device_name()`` to retrieve fields of this record.
+ * Use by ``process_wisdom_file``. Represents a record read from a wisdom
+ * file. Use methods such as ``problem_size()`` and ``device_name()`` to
+ * retrieve fields of this record.
  */
 struct WisdomRecord {
     WisdomRecord(const WisdomRecordImpl& impl) : impl_(impl) {}
@@ -105,87 +106,145 @@ inline Config load_best_config(
         result);
 }
 
-struct Oracle {
-    virtual ~Oracle() = default;
+/**
+* The interface that describes how to load a configuration and how to
+ * capture a kernel launch for a ``WisdomKernel``.
+ *
+ * If you want to implement your own ``IWisdomSettings``, it is best to
+ * extend ``DefaultWisdomSettings`` and override the necessary methods.
+ */
+struct IWisdomSettings {
+    virtual ~IWisdomSettings() = default;
 
     virtual Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out) const = 0;
+        int* capture_skip_out = nullptr) const = 0;
 
     virtual void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const = 0;
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const = 0;
 };
 
-struct DefaultOracle: Oracle {
-    static DefaultOracle from_env();
+/**
+ * A rule that describes which kernels should be captured.
+ */
+struct CaptureRule {
+    CaptureRule(
+        std::string pattern,
+        bool force = false,
+        int skip_launches = 0) :
+        pattern(std::move(pattern)),
+        force(force),
+        skip_launches(skip_launches) {}
 
-    DefaultOracle();
-    DefaultOracle(
+    CaptureRule(const char* pattern) : CaptureRule(std::string(pattern)) {}
+
+    std::string pattern;
+    bool force = false;
+    int skip_launches = 0;
+};
+
+/**
+ * The interface that describes how to load a configuration and how to
+ * capture a kernel launch for a ``WisdomKernel``.
+ */
+struct DefaultWisdomSettings: IWisdomSettings {
+    static DefaultWisdomSettings from_env();
+
+    DefaultWisdomSettings();
+    DefaultWisdomSettings(
         std::vector<std::string> wisdom_dirs,
         std::string capture_dir,
-        std::vector<std::string> capture_patterns = {},
-        bool force_capture = false);
+        std::vector<CaptureRule> capture_rules = {});
 
-    virtual ~DefaultOracle() = default;
+    ~DefaultWisdomSettings() override = default;
 
-    virtual Config load_config(
+    /**
+     * Loads a configuration for a given kernel instance.
+     *
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param space The configuration space of the kernel instance.
+     * @param problem_size The current problem size.
+     * @param device The current device.
+     * @param capture_skip_out Optional, indicates if the kernel should be
+     * captured. If negative, the kernel will not be captured. Otherwise,
+     * the kernel will be captured after the `capture_skip_out` kernel launches.
+     */
+    Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out) const override;
+        int* capture_skip_launches_out) const override;
 
-    virtual void capture_kernel(
+    /**
+     * Called to export a captured kernel launch to a file.
+     *
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param builder The builder of the kernel instance.
+     * @param problem_size The current problem size.
+     * @param arguments The kernel arguments.
+     * @param input_arrays The input arrays associated with the arguments.
+     * @param output_arrays The output arrays associated with the arguments.
+     */
+    void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const override;
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const override;
 
+    /**
+     * Returns ``true`` if the given kernel instance should be captured in the
+     * future. This method is called after ``load_config`` loads a
+     * configuration for a kernel.
+     *
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param problem_size The problem size of the kernel instance.
+     * @param result The result from ``load_best_config``.
+     * @param capture_skip_launches_out Out parameter. If set to `n`, the
+     * first `n` kernel launches will be skipped and the `n+1`-th kernel launch
+     * will be captured.
+     */
     virtual bool should_capture_kernel(
         const std::string& tuning_key,
         ProblemSize problem_size,
-        WisdomResult result) const;
+        WisdomResult result,
+        int& capture_skip_launches_out) const;
 
-    bool should_capture_kernel(
-        const std::string& tuning_key,
-        ProblemSize problem_size) const {
-        return should_capture_kernel(
-            tuning_key,
-            problem_size,
-            WisdomResult::NotFound);
-    }
-
+    /**
+     * Returns the directories that will be searched to find wisdom files.
+     */
     const std::vector<std::string>& wisdom_directories() const {
         return wisdom_dirs_;
     }
 
+    /**
+     * Returns the directory where kernel captures will be stored.
+     */
     const std::string& capture_directory() const {
         return capture_dir_;
     }
 
-    const std::vector<std::string>& capture_patterns() const {
-        return capture_patterns_;
-    }
-
-    bool is_capture_forced() const {
-        return force_capture_;
+    /**
+     * Returns the active capture rules.
+     */
+    const std::vector<CaptureRule>& capture_rules() const {
+        return capture_rules_;
     }
 
   private:
     std::vector<std::string> wisdom_dirs_;
     std::string capture_dir_;
-    std::vector<std::string> capture_patterns_;
-    bool force_capture_;
+    std::vector<CaptureRule> capture_rules_;
 };
 
 /**
@@ -197,67 +256,68 @@ struct WisdomSettings {
     WisdomSettings(
         std::string wisdom_dir,
         std::string capture_dir,
-        std::vector<std::string> capture_patterns = {},
-        bool force_capture = false);
-    WisdomSettings(std::shared_ptr<Oracle> oracle);
+        std::vector<CaptureRule> capture_rules = {});
+    WisdomSettings(std::shared_ptr<IWisdomSettings> oracle);
 
     template<typename T>
     WisdomSettings(std::shared_ptr<T> ptr) :
-        WisdomSettings(std::shared_ptr<Oracle> {std::move(ptr)}) {}
+        WisdomSettings(std::shared_ptr<IWisdomSettings> {std::move(ptr)}) {}
 
     WisdomSettings(const WisdomSettings&) = default;
 
     /**
      * Load the configuration for the given parameters.
      *
-     * @param tuning_key The tuning key of the kernel.
-     * @param space The configuration space of the kernel.
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param space The configuration space of the kernel instance.
      * @param problem_size The current problem size.
      * @param device The current device.
-     * @param should_capture_out Optional. Indicates if kernel must be captured.
+     * @param capture_skip_out Optional, indicates if the kernel should be
+     * captured. If negative, the kernel will not be captured. Otherwise,
+     * the kernel will be captured after the `capture_skip_out` kernel launches.
      */
     Config load_config(
         const std::string& tuning_key,
         const ConfigSpace& space,
         ProblemSize problem_size,
         CudaDevice device,
-        bool* should_capture_out = nullptr) const {
+        int* capture_skip_out = nullptr) const {
         return impl_->load_config(
             tuning_key,
             space,
             problem_size,
             device,
-            should_capture_out);
+            capture_skip_out);
     }
 
     /**
+     * Called to export a captured kernel launch to a file.
      *
-     *
-     * @param tuning_key
-     * @param builder
-     * @param problem_size
-     * @param param_types
-     * @param inputs
-     * @param outputs
+     * @param tuning_key The tuning key of the kernel instance.
+     * @param builder The builder of the kernel instance.
+     * @param problem_size The current problem size.
+     * @param arguments The kernel arguments.
+     * @param input_arrays The input arrays associated with the arguments.
+     * @param output_arrays The output arrays associated with the arguments.
      */
     void capture_kernel(
         const std::string& tuning_key,
         const KernelBuilder& builder,
         ProblemSize problem_size,
-        const std::vector<TypeInfo>& param_types,
-        const std::vector<std::vector<uint8_t>>& inputs,
-        const std::vector<std::vector<uint8_t>>& outputs) const {
+        const std::vector<KernelArg>& arguments,
+        const std::vector<std::vector<uint8_t>>& input_arrays,
+        const std::vector<std::vector<uint8_t>>& output_arrays) const {
         return impl_->capture_kernel(
             tuning_key,
             builder,
             problem_size,
-            param_types,
-            inputs,
-            outputs);
+            arguments,
+            input_arrays,
+            output_arrays);
     }
 
   private:
-    std::shared_ptr<Oracle> impl_;
+    std::shared_ptr<IWisdomSettings> impl_;
 };
 
 /**
@@ -270,6 +330,8 @@ WisdomSettings default_wisdom_settings();
  * returned by `default_wisdom_settings`.
  */
 void append_global_wisdom_directory(std::string);
+
+// Deprecated
 void set_global_wisdom_directory(std::string);
 
 /**
@@ -282,7 +344,7 @@ void set_global_capture_directory(std::string);
  * Add capture pattern to the `WisdomSettings` returned by
  * `default_wisdom_settings`.
  */
-void add_global_capture_pattern(std::string);
+void add_global_capture_pattern(CaptureRule rule);
 
 }  // namespace kernel_launcher
 

@@ -39,7 +39,7 @@ struct DeviceAttrEval: Eval {
 
     bool lookup(const Variable& v, Value& out) const override {
         if (const auto* that = dynamic_cast<const DeviceAttributeExpr*>(&v)) {
-            out = CudaDevice::current().attribute(that->get());
+            out = device_.attribute(that->get());
             return true;
         }
 
@@ -102,6 +102,35 @@ void KernelInstance::launch(
         ptrs[i] = args[i].as_void_ptr();
     }
 
+    if (log_debug_enabled()) {
+        auto p = problem_size;
+        auto b = block_size;
+        auto g = grid_size;
+
+        log_debug() << "launching kernel " << module_.function_name() << "\n";
+        log_debug() << " - device: " << CudaDevice::current().name() << "\n";
+        log_debug() << " - problem size: ["  //
+                    << p.x << ", " << p.y << ", " << p.z << "]\n";
+        log_debug() << " - grid size: ["  //
+                    << g.x << ", " << g.y << ", " << g.z << "]\n";
+        log_debug() << " - block size: ["  //
+                    << b.x << ", " << b.y << ", " << b.z << "]\n";
+
+        if (smem > 0) {
+            log_debug() << " - shared memory: " << smem << " bytes\n";
+        }
+
+        if (stream != nullptr) {
+            log_debug() << " - stream: " << stream << "\n";
+        }
+
+        log_debug() << " - using " << args.size() << " arguments:\n";
+
+        for (const auto& arg : args) {
+            log_debug() << " - - " << arg << "\n";
+        }
+    }
+
     module_.launch(stream, grid_size, block_size, smem, ptrs.data());
 }
 
@@ -127,8 +156,7 @@ KernelBuilder::KernelBuilder(
 KernelBuilder& KernelBuilder::argument_processor(ArgumentsProcessor f) {
     if (!f) {
         throw std::runtime_error(
-            "null pointer given in "
-            "`KernelBuilder::argument_processor(...)`");
+            "null pointer given in `KernelBuilder::argument_processor(...)`");
     }
 
     args_processors_.push_back(std::move(f));
@@ -417,7 +445,6 @@ KernelInstance KernelBuilder::compile(
     const ICompiler& compiler,
     CudaContextHandle ctx) const {
     DeviceAttrEval eval = {ctx.device(), config};
-    CudaModule module = compiler.compile(ctx, build(eval, param_types));
 
     if (!is_valid(eval)) {
         std::stringstream ss;
@@ -437,6 +464,7 @@ KernelInstance KernelBuilder::compile(
 
     TypedExpr<uint32_t> shared_mem = shared_mem_.resolve(eval);
 
+    CudaModule module = compiler.compile(ctx, build(eval, param_types));
     return {
         std::move(module),
         std::move(block_size),

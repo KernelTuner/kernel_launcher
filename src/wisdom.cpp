@@ -374,44 +374,105 @@ Config load_best_config(
         result_out);
 }
 
-std::shared_ptr<DefaultOracle> global_default_wisdom = nullptr;
+std::shared_ptr<DefaultWisdomSettings> global_default_wisdom = nullptr;
 
-static std::shared_ptr<DefaultOracle> set_global_wisdom(DefaultOracle oracle) {
-    auto ptr = std::make_shared<DefaultOracle>(std::move(oracle));
+static std::shared_ptr<DefaultWisdomSettings>
+set_global_wisdom(DefaultWisdomSettings oracle) {
+    auto ptr = std::make_shared<DefaultWisdomSettings>(std::move(oracle));
     atomic_store(&global_default_wisdom, ptr);
     return ptr;
 }
 
-static std::shared_ptr<DefaultOracle> get_global_wisdom() {
+static std::shared_ptr<DefaultWisdomSettings> get_global_wisdom() {
     auto ptr = atomic_load(&global_default_wisdom);
 
     if (!ptr) {
-        ptr = set_global_wisdom(DefaultOracle::from_env());
+        ptr = set_global_wisdom(DefaultWisdomSettings::from_env());
     }
 
     return ptr;
 }
 
-DefaultOracle::DefaultOracle() : DefaultOracle(*get_global_wisdom()) {}
+DefaultWisdomSettings::DefaultWisdomSettings() :
+    DefaultWisdomSettings(*get_global_wisdom()) {}
 
-DefaultOracle::DefaultOracle(
+DefaultWisdomSettings::DefaultWisdomSettings(
     std::vector<std::string> wisdom_dirs,
     std::string capture_dir,
-    std::vector<std::string> capture_patterns,
-    bool force_capture) :
+    std::vector<CaptureRule> capture_rules) :
     wisdom_dirs_(std::move(wisdom_dirs)),
     capture_dir_(std::move(capture_dir)),
-    capture_patterns_(std::move(capture_patterns)),
-    force_capture_(force_capture) {}
+    capture_rules_(std::move(capture_rules)) {}
 
-DefaultOracle DefaultOracle::from_env() {
+static std::vector<CaptureRule> determine_capture_rules() {
+    const char* value;
+    int skip = 0;
+
+    if ((value = getenv("KERNEL_LAUNCHER_CAPTURE_SKIP")) != nullptr
+        || (value = getenv("KERNEL_LAUNCHER_SKIP")) != nullptr) {
+        bool valid;
+
+        try {
+            skip = std::stoi(value);
+            valid = skip >= 0;
+        } catch (const std::exception& e) {
+            valid = false;
+        }
+
+        if (!valid) {
+            log_warning() << "failed to parse KERNEL_LAUNCHER_CAPTURE_SKIP, "
+                             "kernel capturing is now be disabled";
+            return {};
+        }
+    }
+
+    std::vector<CaptureRule> result = {};
+
+    // Try the following environment keys
+    const char* env_keys[6] = {
+        "KERNEL_LAUNCHER_CAPTURE_FORCE",
+        "KERNEL_LAUNCHER_CAPTURE",
+        "KERNEL_LAUNCHER_FORCE_CAPTURE",
+        "KERNEL_LAUNCHER_TUNE_FORCE",
+        "KERNEL_LAUNCHER_FORCE_TUNE",
+        "KERNEL_LAUNCHER_TUNE",
+    };
+
+    for (const char* key : env_keys) {
+        // Check if variable exists
+        if ((value = getenv(key)) == nullptr) {
+            continue;
+        }
+
+        bool force = strstr(key, "FORCE") != nullptr;
+        std::string patterns = value;
+
+        // Some patterns are special cased
+        if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
+            patterns = "*";
+        }
+
+        if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
+            patterns = "";
+        }
+
+        for (auto pattern : string_split(patterns.c_str(), {',', '|', ';'})) {
+            if (!pattern.empty()) {
+                result.emplace_back(std::move(pattern), force, skip);
+            }
+        }
+    }
+
+    return result;
+}
+
+DefaultWisdomSettings DefaultWisdomSettings::from_env() {
     std::vector<std::string> wisdom_dirs = {"."};
     std::string capture_dir = ".";
-    std::vector<std::string> capture_patterns = {};
     const char* value;
 
     if ((value = getenv("KERNEL_LAUNCHER_WISDOM")) != nullptr) {
-        for (std::string dir : string_split(value, ':')) {
+        for (std::string dir : string_split(value, {':', ';', ','})) {
             if (!dir.empty()) {
                 wisdom_dirs.emplace_back(std::move(dir));
             }
@@ -422,72 +483,37 @@ DefaultOracle DefaultOracle::from_env() {
         }
     }
 
-    if ((value = getenv("KERNEL_LAUNCHER_DIR")) != nullptr) {
+    // capture directory
+    if ((value = getenv("KERNEL_LAUNCHER_CAPTURE_DIR")) != nullptr
+        || (value = getenv("KERNEL_LAUNCHER_DIR")) != nullptr) {
         capture_dir = value;
     }
 
-    std::string patterns;
-    bool force = false;
-
-    // Try the following environment keys in order
-    const char* env_keys[4] = {
-        "KERNEL_LAUNCHER_CAPTURE_FORCE",
-        "KERNEL_LAUNCHER_CAPTURE",
-        "KERNEL_LAUNCHER_TUNE_FORCE",
-        "KERNEL_LAUNCHER_TUNE",
-    };
-
-    for (const char* key : env_keys) {
-        if ((value = getenv(key)) == nullptr) {
-            continue;
-        }
-
-        if (!patterns.empty()) {
-            log_warning() << "environment key " << key << " was ignored\n";
-            continue;
-        }
-
-        patterns = value;
-        force = strstr(value, "FORCE") != nullptr;
-    }
-
-    if (patterns == "1" || patterns == "true" || patterns == "TRUE") {
-        patterns = "*";
-    }
-
-    if (patterns == "0" || patterns == "false" || patterns == "FALSE") {
-        patterns = "";
-    }
-
-    for (std::string pattern : string_split(patterns.c_str(), ',')) {
-        if (pattern.empty()) {
-            continue;
-        }
-
-        capture_patterns.push_back(std::move(pattern));
-    }
+    auto capture_rules = determine_capture_rules();
 
     // Print info message on which kernels will be tuned.
-    if (!capture_patterns.empty()) {
-        std::stringstream ss;
+    if (!capture_rules.empty() && log_info_enabled()) {
+        std::vector<std::string> names;
+        for (const auto& p : capture_rules) {
+            names.push_back(p.pattern);
+        }
 
-        log_info() << "capture enabled for the following kernels: "
-                   << string_comma_join(capture_patterns) << "\n";
+        log_info() << "the following kernels will be captured: "
+                   << string_comma_join(names) << "\n";
     }
 
-    return DefaultOracle(
+    return DefaultWisdomSettings(
         std::move(wisdom_dirs),
         std::move(capture_dir),
-        std::move(capture_patterns),
-        force);
+        std::move(capture_rules));
 }
 
-Config DefaultOracle::load_config(
+Config DefaultWisdomSettings::load_config(
     const std::string& tuning_key,
     const ConfigSpace& space,
     ProblemSize problem_size,
     CudaDevice device,
-    bool* should_capture_out) const {
+    int* capture_skip_launches_out) const {
     WisdomResult result = WisdomResult::Ok;
     Config config = load_best_config(
         wisdom_dirs_,
@@ -498,51 +524,65 @@ Config DefaultOracle::load_config(
         problem_size,
         &result);
 
-    if (should_capture_out != nullptr) {
-        *should_capture_out =
-            this->should_capture_kernel(tuning_key, problem_size, result);
+    if (capture_skip_launches_out != nullptr) {
+        int skip;
+
+        if (!this->should_capture_kernel(
+                tuning_key,
+                problem_size,
+                result,
+                skip)) {
+            skip = -1;
+        }
+
+        *capture_skip_launches_out = skip;
     }
 
     return config;
 }
 
-void DefaultOracle::capture_kernel(
+void DefaultWisdomSettings::capture_kernel(
     const std::string& tuning_key,
     const KernelBuilder& builder,
     ProblemSize problem_size,
-    const std::vector<TypeInfo>& param_types,
-    const std::vector<std::vector<uint8_t>>& inputs,
-    const std::vector<std::vector<uint8_t>>& outputs) const {
+    const std::vector<KernelArg>& arguments,
+    const std::vector<std::vector<uint8_t>>& input_arrays,
+    const std::vector<std::vector<uint8_t>>& output_arrays) const {
     export_capture_file(
         capture_dir_,
         tuning_key,
         builder,
         problem_size,
-        param_types,
-        inputs,
-        outputs);
+        arguments,
+        input_arrays,
+        output_arrays);
 }
 
-bool DefaultOracle::should_capture_kernel(
+bool DefaultWisdomSettings::should_capture_kernel(
     const std::string& tuning_key,
     ProblemSize problem_size,
-    WisdomResult result) const {
+    WisdomResult result,
+    int& skip_launches_out) const {
     bool matches = false;
+    bool forced = false;
+    int skip = std::numeric_limits<int>::max();
 
-    // If wisdom was found for this kernel and we do not force tuning,
-    // then there is no need to tune this kernel.
-    if (result == WisdomResult::Ok && !force_capture_) {
-        return false;
-    }
-
-    for (const std::string& pattern : capture_patterns_) {
-        if (string_match(pattern.c_str(), tuning_key.c_str())) {
+    for (const auto& rule : capture_rules_) {
+        if (string_match(rule.pattern.c_str(), tuning_key.c_str())) {
             matches = true;
-            break;
+            forced |= rule.force;
+            skip = std::min(skip, rule.skip_launches);
         }
     }
 
+    // No rule matches. We are done.
     if (!matches) {
+        return false;
+    }
+
+    // If wisdom was found for this kernel, and we do not force tuning,
+    // then there is no need to capture this kernel.
+    if (result == WisdomResult::Ok && !forced) {
         return false;
     }
 
@@ -550,6 +590,7 @@ bool DefaultOracle::should_capture_kernel(
         return false;
     }
 
+    skip_launches_out = skip;
     return true;
 }
 
@@ -559,43 +600,39 @@ void append_global_wisdom_directory(std::string dir) {
     auto dirs = wisdom->wisdom_directories();
     dirs.push_back(std::move(dir));
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         std::move(dirs),
         wisdom->capture_directory(),
-        wisdom->capture_patterns(),
-        wisdom->is_capture_forced()));
+        wisdom->capture_rules()));
 }
 
 void set_global_wisdom_directory(std::string dir) {
     auto wisdom = get_global_wisdom();
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         std::vector<std::string> {std::move(dir)},
         wisdom->capture_directory(),
-        wisdom->capture_patterns(),
-        wisdom->is_capture_forced()));
+        wisdom->capture_rules()));
 }
 
 void set_global_capture_directory(std::string dir) {
     auto wisdom = get_global_wisdom();
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         wisdom->wisdom_directories(),
         std::move(dir),
-        wisdom->capture_patterns(),
-        wisdom->is_capture_forced()));
+        wisdom->capture_rules()));
 }
 
-void add_global_capture_pattern(std::string pattern) {
+void add_global_capture_pattern(CaptureRule rule) {
     auto wisdom = get_global_wisdom();
-    std::vector<std::string> patterns = wisdom->capture_patterns();
-    patterns.push_back(std::move(pattern));
+    std::vector<CaptureRule> rules = wisdom->capture_rules();
+    rules.push_back(std::move(rule));
 
-    set_global_wisdom(DefaultOracle(
+    set_global_wisdom(DefaultWisdomSettings(
         wisdom->wisdom_directories(),
         wisdom->capture_directory(),
-        patterns,
-        wisdom->is_capture_forced()));
+        rules));
 }
 
 WisdomSettings default_wisdom_settings() {
@@ -604,7 +641,7 @@ WisdomSettings default_wisdom_settings() {
 
 WisdomSettings::WisdomSettings() : WisdomSettings(get_global_wisdom()) {}
 
-WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
+WisdomSettings::WisdomSettings(std::shared_ptr<IWisdomSettings> oracle) :
     impl_(std::move(oracle)) {
     if (!impl_) {
         throw std::runtime_error("Oracle cannot be null");
@@ -614,12 +651,10 @@ WisdomSettings::WisdomSettings(std::shared_ptr<Oracle> oracle) :
 WisdomSettings::WisdomSettings(
     std::string wisdom_dir,
     std::string capture_dir,
-    std::vector<std::string> capture_patterns,
-    bool force_capture) :
-    WisdomSettings(std::make_shared<DefaultOracle>(
+    std::vector<CaptureRule> capture_rules) :
+    WisdomSettings(std::make_shared<DefaultWisdomSettings>(
         std::vector<std::string> {std::move(wisdom_dir)},
         std::move(capture_dir),
-        std::move(capture_patterns),
-        force_capture)) {}
+        std::move(capture_rules))) {}
 
 }  // namespace kernel_launcher

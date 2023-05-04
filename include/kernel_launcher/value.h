@@ -54,6 +54,7 @@ struct Value {
     static constexpr DataType type_bool = DataType::bool_;
 
     Value() = default;
+    Value(std::nullptr_t) : Value() {}
 
     Value(const Value& val) {
         *this = val;

@@ -46,6 +46,12 @@ static const char* data_type_name(Value::DataType dtype) {
 }
 
 const std::string& intern_string(const char* input) {
+    if (input == nullptr) {
+        throw std::runtime_error(
+            "cannot create kernel_launcher::Value "
+            "from NULL pointer as string");
+    }
+
     static constexpr size_t initial_capacity = 64;
     auto equal = [](const char* a, const char* b) { return strcmp(a, b) == 0; };
     auto hash = [](const char* v) { return hash_string(v, ::strlen(v)); };

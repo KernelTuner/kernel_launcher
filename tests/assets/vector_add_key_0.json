@@ -1,11 +1,11 @@
 {
     "key": "vector_add_key",
     "environment": {
-        "host_name": "node025",
-        "date": "2022-08-01T12:14:40+0200",
-        "runtime_version": 11010,
-        "driver_version": 11040,
-        "nvrtc_version": 11010
+        "host_name": "node026",
+        "date": "2023-04-19T15:25:10+0200",
+        "runtime_version": 11070,
+        "driver_version": 11070,
+        "nvrtc_version": 11070
     },
     "config_space": {
         "parameters": [
@@ -98,7 +98,19 @@
         "source": "\n    template <typename T>\n    __global__\n    void vector_add(int n, int *c, const int* a, const int* b) {\n        for (int k = 0; k < ELEMENTS_PER_THREAD; k++) {\n            int index = (blockIdx.x * ELEMENTS_PER_THREAD + k) * blockDim.x + threadIdx.x;\n\n            if (index < n) {\n                c[index] = a[index] + b[index];\n            }\n        }\n    }\n    ",
         "name": "vector_add",
         "compile_flags": [],
+        "shared_memory": 0,
+        "template_args": [
+            "int"
+        ],
         "headers": [],
+        "defines": {
+            "ELEMENTS_PER_THREAD": {
+                "operator": "parameter",
+                "operands": [
+                    "elements_per_thread"
+                ]
+            }
+        },
         "block_size": [
             {
                 "operator": "parameter",
@@ -116,7 +128,7 @@
                     {
                         "operator": "/",
                         "operands": [
-                            1024,
+                            0,
                             {
                                 "operator": "*",
                                 "operands": [
@@ -142,7 +154,7 @@
                             {
                                 "operator": "%",
                                 "operands": [
-                                    1024,
+                                    0,
                                     {
                                         "operator": "*",
                                         "operands": [
@@ -169,19 +181,7 @@
             },
             1,
             1
-        ],
-        "shared_memory": 0,
-        "template_args": [
-            "int"
-        ],
-        "defines": {
-            "ELEMENTS_PER_THREAD": {
-                "operator": "parameter",
-                "operands": [
-                    "elements_per_thread"
-                ]
-            }
-        }
+        ]
     },
     "arguments": [
         {
@@ -189,36 +189,49 @@
             "kind": "scalar",
             "data": [
                 0,
-                4,
+                0,
                 0,
                 0
             ]
         },
         {
-            "type": "float*",
-            "kind": "array",
-            "hash": "1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d",
-            "file": "vector_add_key_3g6deeqn.bin.gz",
-            "reference_file": "vector_add_key_9ehr6p5i.bin",
-            "reference_hash": "14c1b905d46846f68a71f5bca482cb38171b43b9"
+            "type": "decltype(nullptr)",
+            "kind": "scalar",
+            "data": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "type": "float const*",
+            "kind": "scalar",
+            "data": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
         },
         {
             "type": "float const*",
             "kind": "array",
-            "hash": "81afb94d38ce9521dfbbfaa36a5fe609f802bb03",
-            "file": "vector_add_key_pe2mtp0a.bin"
-        },
-        {
-            "type": "float const*",
-            "kind": "array",
-            "hash": "6e61fc0e7da493354e9f995796462cf2cc15ac20",
-            "file": "vector_add_key_up6lg48m.bin"
+            "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "file": "vector_add_key_i1j63muv.bin"
         }
     ],
     "problem_size": [
-        1024,
+        0,
         1,
         1
     ]
 }
-

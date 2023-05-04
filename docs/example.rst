@@ -9,4 +9,5 @@ Guides
    examples/basic
    examples/wisdom
    examples/registry
+   examples/pragma
 

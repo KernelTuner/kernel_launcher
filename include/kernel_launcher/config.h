@@ -14,7 +14,7 @@ struct ConfigSpace;
 
 /**
  * A particular configuration from a `ConfigSpace`. This class is essentially
- * a table that maps `TunableParam`s to `Value`s.
+ * a lookup table that maps `TunableParam`s to `Value`s.
  */
 struct Config: Eval {
     using const_iterator = typename TunableMap::const_iterator;

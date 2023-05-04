@@ -24,11 +24,18 @@ void cuda_check(CUresult result, const char* msg) {
     }
 }
 
-CudaModule::CudaModule(const char* image, const char* fun_name) {
+CudaModule::CudaModule(
+    const char* image,
+    const char* lowered_name,
+    const char* human_name) {
+    if (human_name != nullptr) {
+        fun_name_ = human_name;
+    }
+
     KERNEL_LAUNCHER_CUDA_CHECK(
         cuModuleLoadDataEx(&module_, image, 0, nullptr, nullptr));
     KERNEL_LAUNCHER_CUDA_CHECK(
-        cuModuleGetFunction(&fun_ptr_, module_, fun_name));
+        cuModuleGetFunction(&fun_ptr_, module_, lowered_name));
 }
 
 CudaModule::~CudaModule() {

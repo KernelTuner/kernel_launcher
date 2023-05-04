@@ -83,56 +83,56 @@ struct ParamExpr: BaseExpr {
 };
 
 namespace detail {
-    std::true_type is_expr_helper(const BaseExpr*);
-    std::false_type is_expr_helper(...);
+std::true_type is_expr_helper(const BaseExpr*);
+std::false_type is_expr_helper(...);
 
-    template<typename T>
-    constexpr bool is_expr = decltype(detail::is_expr_helper(
-        std::declval<typename std::decay<T>::type*>()))::value;
+template<typename T>
+constexpr bool is_expr = decltype(detail::is_expr_helper(
+    std::declval<typename std::decay<T>::type*>()))::value;
 
-    template<typename I, typename T, typename Enabled = void>
-    struct into_expr_helper;
+template<typename I, typename T, typename Enabled = void>
+struct into_expr_helper;
 
-    // TunableParam -> ParamExpr
-    template<typename I, typename T>
-    struct into_expr_helper<
-        I,
-        T,
-        typename std::enable_if<
-            std::is_same<typename std::decay<I>::type, TunableParam>::value>::
-            type> {
-        using type = ParamExpr;
+// TunableParam -> ParamExpr
+template<typename I, typename T>
+struct into_expr_helper<
+    I,
+    T,
+    typename std::enable_if<
+        std::is_same<typename std::decay<I>::type, TunableParam>::value>::
+        type> {
+    using type = ParamExpr;
 
-        static type call(const TunableParam& p) {
-            return ParamExpr(std::move(p));
-        }
-    };
+    static type call(const TunableParam& p) {
+        return ParamExpr(std::move(p));
+    }
+};
 
-    // TypedExpr -> TypedExpr
-    template<typename E, typename T>
-    struct into_expr_helper<
-        E,
-        T,
-        typename std::enable_if<detail::is_expr<E>>::type> {
-        using type = typename std::decay<E>::type;
+// TypedExpr -> TypedExpr
+template<typename E, typename T>
+struct into_expr_helper<
+    E,
+    T,
+    typename std::enable_if<detail::is_expr<E>>::type> {
+    using type = typename std::decay<E>::type;
 
-        static type call(E&& expr) {
-            return std::forward<E>(expr);
-        }
-    };
+    static type call(E&& expr) {
+        return std::forward<E>(expr);
+    }
+};
 
-    // R -> ScalarExpr (Where R is convertible to T)
-    template<typename R, typename T>
-    struct into_expr_helper<
-        R,
-        T,
-        typename std::enable_if<std::is_convertible<R, T>::value>::type> {
-        using type = ScalarExpr;
+// R -> ScalarExpr (Where R is convertible to T)
+template<typename R, typename T>
+struct into_expr_helper<
+    R,
+    T,
+    typename std::enable_if<std::is_convertible<R, T>::value>::type> {
+    using type = ScalarExpr;
 
-        static ScalarExpr call(R&& value) {
-            return ScalarExpr(T(std::forward<R>(value)));
-        }
-    };
+    static ScalarExpr call(R&& value) {
+        return ScalarExpr(T(std::forward<R>(value)));
+    }
+};
 }  // namespace detail
 
 struct SharedExpr: BaseExpr {
@@ -289,23 +289,23 @@ inline ArgExpr arg(uint8_t i) {
 }
 
 namespace detail {
-    template<typename T>
-    struct ArgsHelper;
+template<typename T>
+struct ArgsHelper;
 
-    template<size_t... Is>
-    struct ArgsHelper<std::index_sequence<Is...>> {
-        using type = std::tuple<typename std::enable_if<
-            Is <= std::numeric_limits<uint8_t>::max(),
-            ArgExpr>::type...>;
+template<size_t... Is>
+struct ArgsHelper<std::index_sequence<Is...>> {
+    using type = std::tuple<typename std::enable_if<
+        Is <= std::numeric_limits<uint8_t>::max(),
+        ArgExpr>::type...>;
 
-        static type call() {
-            return {Is...};
-        }
+    static type call() {
+        return {Is...};
+    }
 
-        static type call(std::string* names) {
-            return {{Is, std::move(names[Is])}...};
-        }
-    };
+    static type call(std::string* names) {
+        return {{Is, std::move(names[Is])}...};
+    }
+};
 }  // namespace detail
 
 template<size_t N>

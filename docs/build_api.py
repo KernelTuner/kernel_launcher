@@ -77,7 +77,7 @@ groups = {
         "KernelSource",
         "Kernel",
     ],
-    "Wisdom": [
+    "Wisdom Kernels": [
         "WisdomKernel",
         "WisdomSettings",
         "WisdomRecord",
@@ -91,6 +91,10 @@ groups = {
         "add_global_capture_pattern",
         "export_capture_file",
         "capture_file_exists",
+    ],
+    "Pragma Kernels": [
+        "PragmaKernel",
+        "build_pragma_kernel"
     ],
     "Registry": [
         "KernelRegistry",

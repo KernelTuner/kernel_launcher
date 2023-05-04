@@ -82,22 +82,35 @@ bool write_file(
     const char* content,
     size_t nbytes,
     bool overwrite) {
-    std::ofstream stream(path, std::ios::ate);
+    std::fstream stream;
 
-    if (stream) {
-        if (stream.tellp() < 0 || (stream.tellp() > 0 && !overwrite)) {
+    // Check if the file already exists. Note that there exists a race condition here where it is possible that the file
+    // is created between the check and opening for writing. However, there is no portable way to perform this check
+    // atomically until `std::ios::noreplace` is stable.
+    if (!overwrite) {
+        stream.open(path, std::ios::in);
+        bool exists = (bool)stream;
+        stream.close();
+
+        if (exists) {
             return false;
-        }
-
-        stream.write(content, std::streamsize(nbytes));
-
-        // Check if the stream is still valid after writing
-        if (stream) {
-            return true;
         }
     }
 
-    return false;
+    // Open file for writing.
+    stream.open(path, std::ios::out | std::ios::binary);
+    if (!stream) {
+        return false;
+    }
+
+    // Write data
+    stream.write(content, static_cast<std::streamsize>(nbytes));
+    if (!stream) {
+        return false;
+    }
+
+    stream.close();
+    return true;
 }
 
 static void add_env_directories(std::vector<std::string>& result) {
@@ -109,31 +122,10 @@ static void add_env_directories(std::vector<std::string>& result) {
         return;
     }
 
-    while (true) {
-        if (paths[0] == '\0') {
-            break;
+    for (std::string path : string_split(paths, {':', ',', ';'})) {
+        if (!path.empty()) {
+            result.push_back(path);
         }
-
-        if (paths[0] == ';') {
-            paths++;
-            continue;
-        }
-
-        size_t count = 0;
-
-        while (true) {
-            char c = paths[count];
-            if (c == '\0' || c == ';') {
-                break;
-            }
-            count++;
-        }
-
-        if (count > 0) {
-            result.emplace_back(paths, count);
-        }
-
-        paths += count;
     }
 }
 
