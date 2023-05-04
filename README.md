@@ -92,13 +92,13 @@ int main() {
     // Namespace alias.
     namespace kl = kernel_launcher;
 
-    // Create a kernel builder
-    auto builder = kl::KernelBuilder("vector_add", "kernel.cu");
-
     // Define the variables that can be tuned for this kernel.
-    auto threads_per_block = builder.tune("block_size", {32, 64, 128, 256, 512, 1024});
+    auto space = kl::ConfigSpace();
+    auto threads_per_block = space.tune("block_size", {32, 64, 128, 256, 512, 1024});
 
-    // Set kernel properties such as block size, grid divisor, template arguments, etc.
+    // Create a kernel builder and set kernel properties such as block size,
+    // grid divisor, template arguments, etc.
+    auto builder = kl::KernelBuilder("vector_add", "kernel.cu", space);
     builder
         .template_args(kl::type_of<float>())
         .problem_size(kl::arg0)
