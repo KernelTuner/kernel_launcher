@@ -215,7 +215,7 @@ static Expr parse_prim(TokenStream& stream, const Context& ctx) {
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 static Expr parse_binop(TokenStream& stream, const Context& ctx, int prec) {
-    // TODO: == != <= >= && || %
+    // TODO: %
     Expr lhs = parse_prim(stream, ctx);
 
     while (true) {
@@ -416,6 +416,20 @@ static void parse_tuning_key_directive(
     builder.tuning_key(std::move(key));
 }
 
+template<typename... Ts>
+static bool one_of(const std::string& value, Ts&... items) {
+    static constexpr size_t N = sizeof...(Ts);
+    const char* array[N] = {items...};
+
+    for (size_t i = 0; i < N; i++) {
+        if (value == array[i]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static void
 process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
     while (!stream.next_if(TokenKind::DirectiveEnd)) {
@@ -424,25 +438,28 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
 
         if (name == "tune") {
             parse_tune_directive(stream, builder, ctx);
-        } else if (name == "set") {
+        } else if (one_of(name, "set", "let")) {
             parse_set_directive(stream, ctx);
-        } else if (name == "buffers" || name == "buffer") {
+        } else if (one_of(name, "buffer", "buffers")) {
             parse_buffer_directive(stream, builder, ctx);
         } else if (name == "tuning_key") {
             parse_tuning_key_directive(stream, builder, ctx);
-        } else if (name == "grid_size" || name == "grid_dim") {
+        } else if (one_of(name, "grid_size", "grid_dim")) {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_size(l[0], l[1], l[2]);
-        } else if (name == "block_size" || name == "block_dim") {
+        } else if (one_of(name, "block_size", "block_dim")) {
             auto l = parse_expr_list3(stream, ctx);
             builder.block_size(l[0], l[1], l[2]);
-        } else if (name == "grid_divisor" || name == "grid_divisors") {
+        } else if (one_of(name, "grid_divisor", "grid_divisors")) {
             auto l = parse_expr_list3(stream, ctx);
             builder.grid_divisors(l[0], l[1], l[2]);
-        } else if (name == "problem_size" || name == "problem_dim") {
+        } else if (one_of(name, "problem_size", "problem_dim")) {
             auto l = parse_expr_list3(stream, ctx);
             builder.problem_size(l[0], l[1], l[2]);
-        } else if (name == "restriction" || name == "restrictions") {
+        } else if (
+            name == "if"
+            || one_of(name, "restriction", "restrictions", "restrict")
+            || one_of(name, "assertion", "assertions", "assert")) {
             for (const auto& expr : parse_expr_list(stream, ctx)) {
                 builder.restriction(expr);
             }
