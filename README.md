@@ -12,7 +12,7 @@
 
 
 
-_Kernel Launcher_ is a C++ library that enables dynamic compilation _CUDA_ kernels at run time (using [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)) and launching them in an easy type-safe way using C++ magic.
+_Kernel Launcher_ is a C++ library that enables dynamic compilation of _CUDA_ kernels at run time (using [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)) and launching them in an easy type-safe way using C++ magic.
 On top of that, Kernel Launcher supports _capturing_ kernel launches, to enable tuning by [Kernel Tuner](https://github.com/KernelTuner/kernel_tuner), and importing the tuning results, known as _wisdom_ files, back into the application.
 The result: highly efficient GPU applications with maximum portability.
 
@@ -25,7 +25,7 @@ Recommended installation is using CMake. See the [installation guide](https://ke
 
 ## Example
 
-There are many ways of using Kernel Launcher. See the documentation for [examples](https://kerneltuner.github.io/kernel_launcher/example.html) or check out the [examples](https://github.com/KernelTuner/kernel_launcher/tree/master/examples) directory.
+There are many ways of using Kernel Launcher. See the documentation for [examples](https://kerneltuner.github.io/kernel_launcher/example.html) or check out the [examples/](https://github.com/KernelTuner/kernel_launcher/tree/master/examples) directory.
 
 
 ### Pragma-based API
@@ -37,9 +37,9 @@ Below shows an example of using the pragma-based API, which allows existing CUDA
 #pragma kernel block_size(threads_per_block)
 #pragma kernel problem_size(n)
 #pragma kernel buffers(A[n], B[n], C[n])
-template <typename T>
+template <typename T, int threads_per_block>
 __global__ void vector_add(int n, T *C, const T *A, const T *B) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * threads_per_block + threadIdx.x;
     if (i < n) {
         C[i] = A[i] + B[i];
     }
