@@ -17,6 +17,7 @@ def host_name():
 
 def device_name(device=0):
     import pycuda.driver as drv
+
     drv.init()
     return drv.Device(device).name()
 
@@ -28,11 +29,15 @@ def should_skip_kernel(args, problem):
     device = device_name()
     problem_size = problem.problem_size
 
-    wisdom = kl.read_wisdom(args.output_dir, problem.key, problem.space.params, error_if_missing=False)
+    wisdom = kl.read_wisdom(
+        args.output_dir, problem.key, problem.space.params, error_if_missing=False
+    )
 
     for record in wisdom:
-        if record.get("problem_size") == problem_size and \
-                record.get("environment", dict()).get("device_name") == device:
+        if (
+            record.get("problem_size") == problem_size
+            and record.get("environment", dict()).get("device_name") == device
+        ):
             return True
 
     return False
@@ -44,13 +49,15 @@ def tune_kernel(filename, args):
     problem = kl.load_tuning_problem(filename, data_dir=args.data_dir)
 
     if should_skip_kernel(args, problem):
-        print(f"warning: skipping kernel {problem.key} ({filename}), wisdom already available")
+        print(
+            f"warning: skipping kernel {problem.key} ({filename}), wisdom already available"
+        )
         return
 
     options = dict(
-            iterations=args.iterations,
-            verify=args.verify,
-            atol=args.atol,
+        iterations=args.iterations,
+        verify=args.verify,
+        atol=args.atol,
     )
 
     print(f"host name: {socket.gethostname()}")
@@ -61,9 +68,7 @@ def tune_kernel(filename, args):
     # Run kernel once with default configuration.
     default_config = problem.space.default_config()
     default_params = dict((k, [v]) for k, v in default_config.items())
-    results, env = problem.tune(
-            default_params,
-            strategy="brute_force")
+    results, env = problem.tune(default_params, strategy="brute_force")
 
     if args.strategy == "block":
         block_params = dict()
@@ -82,7 +87,8 @@ def tune_kernel(filename, args):
             block_params,
             strategy="brute_force",
             strategy_options=strategy_options,
-            **options)
+            **options,
+        )
         results += more_results
 
         after = datetime.datetime.now()
@@ -101,22 +107,17 @@ def tune_kernel(filename, args):
                 time_limit=time_remaining,
             )
             more_results, _ = problem.tune(
-                more_params,
-                strategy_options=strategy_options,
-                **options)
+                more_params, strategy_options=strategy_options, **options
+            )
 
             results += more_results
 
     elif args.strategy == "random":
-        strategy_options = dict(
-            time_limit=args.time_limit,
-            fraction=1
-        )
+        strategy_options = dict(time_limit=args.time_limit, fraction=1)
 
         more_results, _ = problem.tune(
-            strategy="random_sample",
-            strategy_options=strategy_options,
-            **options)
+            strategy="random_sample", strategy_options=strategy_options, **options
+        )
         results += more_results
 
     elif args.strategy == "bayes":
@@ -126,9 +127,8 @@ def tune_kernel(filename, args):
         )
 
         more_results, _ = problem.tune(
-            strategy="bayes_opt",
-            strategy_options=strategy_options,
-            **options)
+            strategy="bayes_opt", strategy_options=strategy_options, **options
+        )
         results += more_results
 
     else:
@@ -141,8 +141,14 @@ def tune_kernel(filename, args):
 
     print("writing wisdom file")
     merge = args.conflict == "combine"
-    kl.write_wisdom_for_problem(args.output_dir, problem, results, env,
-                                max_results=1, merge_existing_results=merge)
+    kl.write_wisdom_for_problem(
+        args.output_dir,
+        problem,
+        results,
+        env,
+        max_results=1,
+        merge_existing_results=merge,
+    )
 
 
 def parse_time(input):
@@ -166,35 +172,88 @@ def parse_time(input):
 
 def main():
     parser = argparse.ArgumentParser(
-            description="Tune given kernel files and store the results in wisdom files")
-    parser.add_argument("--strategy", "-s", default="bayes", choices=["block", "bayes", "random"],
-                        help="The strategy to use for tuning:\n"
-                             " - random: try random configurations until time runs out.\n"
-                             " - bayes: use Bayesian optimization to try configurations until time runs out.\n"
-                             " - block: brute-force search block sizes and then optimize the remaining parameters.\n")
-    parser.add_argument("--time", "-t", type=parse_time, default="15:00", dest="time_limit",
-                        help="Maximum time in seconds spend on tuning each kernel.")
-    parser.add_argument("--conflict", "-c", default="ignore", choices=["overwrite", "ignore", "combine"],
-                        help="What to do when tuning a kernel for which wisdom is already available:\n"
-                        " - ignore: skip the specific kernel.\n"
-                        " - overwrite: tune the kernel and overwrite the existing wisdom.\n"
-                        " - combine: tune the kernel and combine results with the existing wisdom.\n")
-    parser.add_argument("--combine", "-a", dest="conflict", action="store_const", const="combine",
-                        help="Alias for `--conflict combine`")
-    parser.add_argument("--force", "-f", dest="conflict", action="store_const", const="overwrite",
-                        help="Alias for `--conflict overwrite`")
+        description="Tune given kernel files and store the results in wisdom files"
+    )
+    parser.add_argument(
+        "--strategy",
+        "-s",
+        default="bayes",
+        choices=["block", "bayes", "random"],
+        help="The strategy to use for tuning:\n"
+        " - random: try random configurations until time runs out.\n"
+        " - bayes: use Bayesian optimization to try configurations until time runs out.\n"
+        " - block: brute-force search block sizes and then optimize the remaining parameters.\n",
+    )
+    parser.add_argument(
+        "--time",
+        "-t",
+        type=parse_time,
+        default="15:00",
+        dest="time_limit",
+        help="Maximum time in seconds spend on tuning each kernel.",
+    )
+    parser.add_argument(
+        "--conflict",
+        "-c",
+        default="ignore",
+        choices=["overwrite", "ignore", "combine"],
+        help="What to do when tuning a kernel for which wisdom is already available:\n"
+        " - ignore: skip the specific kernel.\n"
+        " - overwrite: tune the kernel and overwrite the existing wisdom.\n"
+        " - combine: tune the kernel and combine results with the existing wisdom.\n",
+    )
+    parser.add_argument(
+        "--combine",
+        "-a",
+        dest="conflict",
+        action="store_const",
+        const="combine",
+        help="Alias for `--conflict combine`",
+    )
+    parser.add_argument(
+        "--force",
+        "-f",
+        dest="conflict",
+        action="store_const",
+        const="overwrite",
+        help="Alias for `--conflict overwrite`",
+    )
 
-    parser.add_argument("--output", "-o", default=".", dest="output_dir",
-                        help="Directory where to store resulting wisdom files.")
-    parser.add_argument("--data-dir", "-d", default=None,
-                        help="Directory where data files (.bin) are located.")
+    parser.add_argument(
+        "--output",
+        "-o",
+        default=".",
+        dest="output_dir",
+        help="Directory where to store resulting wisdom files.",
+    )
+    parser.add_argument(
+        "--data-dir",
+        "-d",
+        default=None,
+        help="Directory where data files (.bin) are located.",
+    )
 
-    parser.add_argument("--iterations", "-i", type=int, default=5,
-                        help="Number of benchmark iterations for each kernel")
-    parser.add_argument("--no-verify", action="store_false", default=True, dest="verify",
-                        help="Skip verification if the output of each kernel launch is correct.")
-    parser.add_argument("--tolerance", "--atol", dest="atol", type=float,
-                        help="Absolute tolerance used for verification as interpreted by `numpy.isclose`.")
+    parser.add_argument(
+        "--iterations",
+        "-i",
+        type=int,
+        default=5,
+        help="Number of benchmark iterations for each kernel",
+    )
+    parser.add_argument(
+        "--no-verify",
+        action="store_false",
+        default=True,
+        dest="verify",
+        help="Skip verification if the output of each kernel launch is correct.",
+    )
+    parser.add_argument(
+        "--tolerance",
+        "--atol",
+        dest="atol",
+        type=float,
+        help="Absolute tolerance used for verification as interpreted by `numpy.isclose`.",
+    )
     parser.add_argument("files", nargs="*")
 
     args = parser.parse_args()

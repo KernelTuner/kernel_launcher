@@ -17,9 +17,10 @@ WISDOM_VERSION = "1.0"
 WISDOM_OBJECTIVE = "time"
 
 
-def write_wisdom_for_problem(path: str, problem: TuningProblem, results: list,
-                             env: dict, **kwargs):
-    """Write the results of ``TuningProblem.tune`` to a wisdom file. This function calls ``write_wisdom``
+def write_wisdom_for_problem(
+    path: str, problem: TuningProblem, results: list, env: dict, **kwargs
+):
+    """Write the results of ``TuningProblem.tune`` to a wisdom file. This function just wraps ``write_wisdom``
 
     :param path: Directory were wisdom files are stored. Alternatively, this can be a file name ending with ``.wisdom``.
     :param problem: The ``TuningProblem``.
@@ -27,11 +28,28 @@ def write_wisdom_for_problem(path: str, problem: TuningProblem, results: list,
     :param env: The environment returned by ``kernel_tuner.tune_kernel``.
     :param kwargs: Additional keyword arguments passed to `write_wisdom`.
     """
-    return write_wisdom(path, problem.key, problem.space.params, problem.problem_size, results, env, **kwargs)
+    return write_wisdom(
+        path,
+        problem.key,
+        problem.space.params,
+        problem.problem_size,
+        results,
+        env,
+        **kwargs,
+    )
 
 
-def write_wisdom(path: str, key: str, params: dict, problem_size: list, results: list, env: dict, *,
-                 max_results=5, merge_existing_results=False):
+def write_wisdom(
+    path: str,
+    key: str,
+    params: dict,
+    problem_size: list,
+    results: list,
+    env: dict,
+    *,
+    max_results=5,
+    merge_existing_results=False,
+):
     """Write the results of ``kernel_tuner.tune_kernel`` to a wisdom file.
 
     :param path: Directory were wisdom files are stored. Alternatively, this can be a file name ending with ``.wisdom``.
@@ -42,7 +60,8 @@ def write_wisdom(path: str, key: str, params: dict, problem_size: list, results:
     :param env: The environment returned by ``kernel_tuner.tune_kernel``
     :param max_results: Only the top ``max_results`` results are written in the wisdom file.
     :param merge_existing_results: If ``True``, existing results in the wisdom file for the same problem size and
-                                   environment are merged with the provided ``results``.
+                                   environment are merged with the provided ``results``. If ``False``, existing
+                                   results for the same problem size and environment are overwritten.
 
     """
     device_name = env["device_name"]
@@ -60,9 +79,11 @@ def write_wisdom(path: str, key: str, params: dict, problem_size: list, results:
 
             for line, record in _parse_wisdom(handle):
                 # Skip lines that have a matching problem_size and device_name
-                if not record or \
-                        record["problem_size"] != problem_size or \
-                        record["environment"].get("device_name") != device_name:
+                if (
+                    not record
+                    or record["problem_size"] != problem_size
+                    or record["environment"].get("device_name") != device_name
+                ):
                     lines.append(line)
                 elif merge_existing_results:
                     index = tuple(record["config"])
@@ -105,7 +126,9 @@ def write_wisdom(path: str, key: str, params: dict, problem_size: list, results:
         handle.writelines(line + "\n" for line in lines)
 
 
-def read_wisdom(path: str, key: str = None, params: dict = None, *, error_if_missing: bool = True) -> list:
+def read_wisdom(
+    path: str, key: str = None, params: dict = None, *, error_if_missing: bool = True
+) -> list:
     """
     Read the results of a wisdom file.
 
@@ -168,26 +191,31 @@ def _check_header(line: str, key: str, params: dict):
     if key is not None:
         if data.get("key") != key:
             print(data)
-            raise RuntimeError(f"invalid key in wisdom file: {key} != {data.get('key')}")
+            raise RuntimeError(
+                f"invalid key in wisdom file: {key} != {data.get('key')}"
+            )
 
     keys = data.get("tunable_parameters", [])
     if params is not None:
         if set(keys) != set(params.keys()):
-            raise RuntimeError("invalid tunable parameters in wisdom file: " +
-                               f"{list(params.keys())} != {keys}")
+            raise RuntimeError(
+                "invalid tunable parameters in wisdom file: "
+                + f"{list(params.keys())} != {keys}"
+            )
 
     return keys
 
 
 def _create_header(key: str, param_keys: list) -> str:
-    """Header of wisdom file (ie, the first line).
-    """
-    return json.dumps({
-        "version": WISDOM_VERSION,
-        "objective": WISDOM_OBJECTIVE,
-        "tunable_parameters": list(param_keys),
-        "key": key,
-    })
+    """Header of wisdom file (ie, the first line)."""
+    return json.dumps(
+        {
+            "version": WISDOM_VERSION,
+            "objective": WISDOM_OBJECTIVE,
+            "tunable_parameters": list(param_keys),
+            "key": key,
+        }
+    )
 
 
 def _is_valid_config(config):
@@ -230,7 +258,9 @@ def _wisdom_file(path, key):
         filename = re.sub("[^0-9a-zA-Z_.-]", "_", key) + ".wisdom"
         return os.path.join(path, filename)
     else:
-        raise ValueError(f"path must be a directory or a file ending with .wisdom: {path}")
+        raise ValueError(
+            f"path must be a directory or a file ending with .wisdom: {path}"
+        )
 
 
 def _build_environment(env):
@@ -243,6 +273,7 @@ def _build_environment(env):
     # Kernel tuner related
     try:
         import kernel_tuner
+
         env["kernel_tuner_version"] = kernel_tuner.__version__
     except AttributeError as e:
         logger.warning(f"ignore error: kernel_tuner.__version__ is not available: {e}")
@@ -250,6 +281,7 @@ def _build_environment(env):
     # CUDA related
     try:
         import pycuda.driver
+
         env["cuda_driver_version"] = pycuda.driver.get_driver_version()
 
         major, minor, patch = pycuda.driver.get_version()

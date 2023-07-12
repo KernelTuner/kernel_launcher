@@ -163,7 +163,9 @@ def _parse_scalar_argument(entry):
     return np.frombuffer(bytes(data), dtype=dtype)[0]
 
 
-def _parse_array_file(file_name: str, data_dir: str, expect_hash: str, dtype, validate: bool):
+def _parse_array_file(
+    file_name: str, data_dir: str, expect_hash: str, dtype, validate: bool
+):
     file_path = os.path.join(data_dir, file_name)
 
     if file_name.endswith(".gz"):
@@ -190,15 +192,21 @@ def _parse_array_argument(entry: dict, data_dir: str, validate_checksum: bool):
         dtype = _type_name_to_dtype(type_name[:-1])
 
     if dtype is None:
-        logger.warning(f"unknown type \"{type_name}\", falling back to byte array")
+        logger.warning(f'unknown type "{type_name}", falling back to byte array')
         dtype = np.byte
 
-    arg = _parse_array_file(entry["file"], data_dir, entry.get("file_hash"),
-                            dtype, validate_checksum)
+    arg = _parse_array_file(
+        entry["file"], data_dir, entry.get("file_hash"), dtype, validate_checksum
+    )
 
     if "reference_file" in entry:
-        answer = _parse_array_file(entry["reference_file"], data_dir, entry.get("reference_hash"),
-                                   dtype, validate_checksum)
+        answer = _parse_array_file(
+            entry["reference_file"],
+            data_dir,
+            entry.get("reference_hash"),
+            dtype,
+            validate_checksum,
+        )
     else:
         answer = None
 
@@ -230,7 +238,15 @@ class TuningProblem:
             self.args.append(arg)
             self.answers.append(answer)
 
-    def _tune_options(self, working_dir=None, lang="cupy", compiler_options=None, defines=None, device=0, **kwargs):
+    def _tune_options(
+        self,
+        working_dir=None,
+        lang="cupy",
+        compiler_options=None,
+        defines=None,
+        device=0,
+        **kwargs,
+    ):
         if working_dir is None:
             working_dir = os.getcwd()
 
@@ -277,20 +293,21 @@ class TuningProblem:
         restrictions = [e.resolve(**context) for e in self.space.restrictions]
 
         options = dict(
-                kernel_name=self.kernel.generate_name(),
-                kernel_source=self.kernel.generate_source(working_dir),
-                arguments=self.args,
-                problem_size=grid_size,
-                restrictions=lambda config: all(f(config) for f in restrictions),
-                defines=all_defines,
-                compiler_options=compiler_options,
-                block_size_names=block_size_names,
-                grid_div_x=[],
-                grid_div_y=[],
-                grid_div_z=[],
-                lang=lang,
-                device=device,
-                **kwargs)
+            kernel_name=self.kernel.generate_name(),
+            kernel_source=self.kernel.generate_source(working_dir),
+            arguments=self.args,
+            problem_size=grid_size,
+            restrictions=lambda config: all(f(config) for f in restrictions),
+            defines=all_defines,
+            compiler_options=compiler_options,
+            block_size_names=block_size_names,
+            grid_div_x=[],
+            grid_div_y=[],
+            grid_div_z=[],
+            lang=lang,
+            device=device,
+            **kwargs,
+        )
 
         os.chdir(working_dir)
         return extra_params, options
@@ -351,16 +368,25 @@ class TuningProblem:
             strategy = "brute_force" if total_configs < 100 else "bayes_opt"
 
         return kernel_tuner.tune_kernel(
-                tune_params=params,
-                strategy=strategy,
-                answer=answer,
-                verify=verify,
-                **options)
+            tune_params=params,
+            strategy=strategy,
+            answer=answer,
+            verify=verify,
+            **options,
+        )
 
 
 def _fancy_verify(answers, outputs, *, atol=None):
-    INTEGRAL_DTYPES = [np.int8, np.int16, np.int32, np.int64,
-                       np.uint8, np.uint16, np.uint32, np.uint64]
+    INTEGRAL_DTYPES = [
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
+        np.uint8,
+        np.uint16,
+        np.uint32,
+        np.uint64,
+    ]
     FLOATING_DTYPES = [np.float16, np.float32, np.float64]
     PRINT_TOP_VALUES = 25
     DEFAULT_ATOL = 1e-8
@@ -378,7 +404,9 @@ def _fancy_verify(answers, outputs, *, atol=None):
             continue
 
         if output.dtype != expected.dtype or output.shape != expected.shape:
-            raise RuntimeError(f"arrays data type or shape do not match: {output} and {expected}")
+            raise RuntimeError(
+                f"arrays data type or shape do not match: {output} and {expected}"
+            )
 
         if output.dtype in INTEGRAL_DTYPES:
             matches = output == expected
@@ -401,14 +429,18 @@ def _fancy_verify(answers, outputs, *, atol=None):
         # indices = indices[np.argsort(errors[indices], kind="stable")][::-1]
 
         percentage = nerrors / len(output) * 100
-        print(f"argument {index + 1} fails validation: {nerrors} incorrect values" +
-              f"({percentage:.5}%)")
+        print(
+            f"argument {index + 1} fails validation: {nerrors} incorrect values"
+            + f"({percentage:.5}%)"
+        )
 
         errors = np.abs(output - expected)
 
         for index in indices[:PRINT_TOP_VALUES]:
-            print(f" * at index {index}: {output[index]} != {expected[index]} " +
-                  f"(error: {errors[index]})")
+            print(
+                f" * at index {index}: {output[index]} != {expected[index]} "
+                + f"(error: {errors[index]})"
+            )
 
         if nerrors > PRINT_TOP_VALUES:
             print(f" * ({nerrors - PRINT_TOP_VALUES} more entries have been omitted)")
@@ -583,22 +615,27 @@ class ProblemExpr(Expr):
 
 class DeviceAttributeExpr(Expr):
     # Map cuda.h names to cupy names
-    NAME_MAPPING = dict([
-        ('MAX_THREADS_PER_BLOCK', 'MaxThreadsPerBlock'),
-        ('MAX_BLOCK_DIM_X', 'MaxBlockDimX'),
-        ('MAX_BLOCK_DIM_Y', 'MaxBlockDimY'),
-        ('MAX_BLOCK_DIM_Z', 'MaxBlockDimZ'),
-        ('MAX_GRID_DIM_X', 'MaxGridDimX'),
-        ('MAX_GRID_DIM_Y', 'MaxGridDimY'),
-        ('MAX_GRID_DIM_Z', 'MaxGridDimZ'),
-        ('MAX_SHARED_MEMORY_PER_BLOCK', 'MaxSharedMemoryPerBlock'),
-        ('WARP_SIZE', 'WarpSize'),
-        ('MAX_REGISTERS_PER_BLOCK', 'MaxRegistersPerBlock'),
-        ('MULTIPROCESSOR_COUNT', 'MultiProcessorCount'),
-        ('MAX_THREADS_PER_MULTIPROCESSOR', 'MaxThreadsPerMultiProcessor'),
-        ('MAX_SHARED_MEMORY_PER_MULTIPROCESSOR', 'MaxSharedMemoryPerMultiprocessor'),
-        ('MAX_REGISTERS_PER_MULTIPROCESSOR', 'MaxRegistersPerMultiprocessor'),
-    ])
+    NAME_MAPPING = dict(
+        [
+            ("MAX_THREADS_PER_BLOCK", "MaxThreadsPerBlock"),
+            ("MAX_BLOCK_DIM_X", "MaxBlockDimX"),
+            ("MAX_BLOCK_DIM_Y", "MaxBlockDimY"),
+            ("MAX_BLOCK_DIM_Z", "MaxBlockDimZ"),
+            ("MAX_GRID_DIM_X", "MaxGridDimX"),
+            ("MAX_GRID_DIM_Y", "MaxGridDimY"),
+            ("MAX_GRID_DIM_Z", "MaxGridDimZ"),
+            ("MAX_SHARED_MEMORY_PER_BLOCK", "MaxSharedMemoryPerBlock"),
+            ("WARP_SIZE", "WarpSize"),
+            ("MAX_REGISTERS_PER_BLOCK", "MaxRegistersPerBlock"),
+            ("MULTIPROCESSOR_COUNT", "MultiProcessorCount"),
+            ("MAX_THREADS_PER_MULTIPROCESSOR", "MaxThreadsPerMultiProcessor"),
+            (
+                "MAX_SHARED_MEMORY_PER_MULTIPROCESSOR",
+                "MaxSharedMemoryPerMultiprocessor",
+            ),
+            ("MAX_REGISTERS_PER_MULTIPROCESSOR", "MaxRegistersPerMultiprocessor"),
+        ]
+    )
 
     def __init__(self, name):
         self.name = name
@@ -630,8 +667,10 @@ class SelectExpr(Expr):
         index = self.condition.evaluate(config)
 
         if not is_int_like(index) or index < 0 or index >= len(self.options):
-            raise RuntimeError("expression must yield an integer in " +
-                               f"range 0..{len(self.options)}: {self}")
+            raise RuntimeError(
+                "expression must yield an integer in "
+                + f"range 0..{len(self.options)}: {self}"
+            )
 
         return self.options[int(index)].evaluate(config)
 
@@ -641,8 +680,7 @@ class SelectExpr(Expr):
 
 def _parse_expr(entry) -> Expr:
     # literal int, str or float becomes ValueExpr.
-    if isinstance(entry, (int, str, float)) or \
-            entry is None:
+    if isinstance(entry, (int, str, float)) or entry is None:
         return ValueExpr(entry)
 
     # Otherwise it must be an operator expression
