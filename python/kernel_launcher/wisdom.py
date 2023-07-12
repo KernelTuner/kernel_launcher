@@ -4,6 +4,7 @@ import logging
 import math
 import numpy as np
 import os.path
+import re
 import socket
 import subprocess
 
@@ -223,10 +224,11 @@ def _convert_config(config: dict, keys: list):
 
 
 def _wisdom_file(path, key):
-    if os.path.isdir(path) and key is not None:
-        return os.path.join(path, key + ".wisdom")
-    elif path.endswith(".wisdom"):
+    if path.endswith(".wisdom"):
         return path
+    elif os.path.isdir(path) and key is not None:
+        filename = re.sub("[^0-9a-zA-Z_.-]", "_", key) + ".wisdom"
+        return os.path.join(path, filename)
     else:
         raise ValueError(f"path must be a directory or a file ending with .wisdom: {path}")
 
