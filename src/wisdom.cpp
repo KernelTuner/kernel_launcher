@@ -204,6 +204,8 @@ static bool process_wisdom_file_impl(
         return false;
     }
 
+    log_debug() << "wisdom file found, processing file: " << path << "\n";
+
     std::string line;
     if (!std::getline(stream, line)) {
         log_debug() << "error while reading wisdom file: " << path << "\n";
@@ -217,8 +219,8 @@ static bool process_wisdom_file_impl(
     try {
         parse_header(path, line, tuning_key, space, params, objective_key);
     } catch (const std::exception& e) {
-        log_warning() << path << ":1: file is ignored, error while parsing: "
-                      << e.what() << "\n";
+        log_warning() << "error while parsing header of wisdom file: " << path
+                      << ": " << e.what() << "\n";
         return false;
     }
 
@@ -286,7 +288,8 @@ Config load_best_config(
     ProblemSize best_problem_size;
     uint64_t best_distance = std::numeric_limits<uint64_t>::max();
 
-    log_debug() << "parsing " << tuning_key << "\n";
+    log_debug() << "searching wisdom file for kernel " << tuning_key << "\n";
+
     auto callback = [&](const WisdomRecord& record) {
         double score = record.objective();
         const std::string& row_device = record.device_name();
