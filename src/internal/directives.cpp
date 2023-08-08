@@ -449,7 +449,7 @@ process_directive(TokenStream& stream, KernelBuilder& builder, Context& ctx) {
         } else {
             stream.throw_unexpected_token(
                 t,
-                "this directive is not supported by kernel_launcher");
+                "this directive is not supported by kernel launcher");
         }
     }
 }

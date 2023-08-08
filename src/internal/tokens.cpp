@@ -399,7 +399,8 @@ void TokenStream::throw_unexpected_token(
 
     std::stringstream msg;
     msg << "error:" << file_ << ":" << line_col.first << ":" << line_col.second
-        << ": found invalid token \"" << clean_string(span(begin, end)) << "\"";
+        << ": error occured at token \"" << clean_string(span(begin, end))
+        << "\"";
 
     if (!reason.empty()) {
         msg << ", " << reason;

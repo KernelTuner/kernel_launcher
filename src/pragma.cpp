@@ -32,7 +32,7 @@ KernelBuilder build_pragma_kernel(
 
     throw std::runtime_error(
         "kernel '" + kernel_name + "' was not found in file \'" + filename
-        + "\'");
+        + "\' or was not annotated correctly");
 }
 
 PragmaKernel::PragmaKernel(
