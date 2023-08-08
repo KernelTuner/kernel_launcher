@@ -140,7 +140,7 @@ struct EmbeddedData {
     }
 
     ~EmbeddedData() {
-        if (app_) {
+        if (app_ != nullptr) {
             dlclose(app_);
         }
     }
@@ -154,10 +154,10 @@ struct EmbeddedData {
             i = key.find_first_of(illegal_symbols, i + 1);
         }
 
-        if (app_) {
+        if (app_ != nullptr) {
             const char* data = (const char*)dlsym(app_, key.c_str());
 
-            if (data) {
+            if (data != nullptr) {
                 return data;
             }
         }
@@ -165,17 +165,15 @@ struct EmbeddedData {
         return nullptr;
     }
 
-    bool find(const std::string& key, std::vector<char>& result) {
+    bool find(const std::string& key, std::string& result) const {
         const char* begin = resolve_symbol("_binary_" + key + "_start");
         const char* end = resolve_symbol("_binary_" + key + "_end");
 
-        if (!begin || !end || begin > end) {
+        if (begin == nullptr || end == nullptr || begin > end) {
             return false;
         }
 
-        size_t length = end - begin;
-        result.resize(length);
-        std::copy(begin, end, result.data());
+        result = std::string(begin, end);
         return true;
     }
 

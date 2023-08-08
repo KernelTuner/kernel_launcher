@@ -21,10 +21,7 @@ int main() {
         B[i] = TF(i % 13);
     }
 
-    std::string this_file = __FILE__;
-    std::string this_directory = this_file.substr(0, this_file.rfind('/'));
-
-    kl::KernelBuilder builder("matmul_kernel", this_directory + "/matmul.cu");
+    kl::KernelBuilder builder("matmul_kernel", "matmul.cu");
 
     auto bx = builder.tune("block_size_x", {16, 32, 48}, 32);
     auto by = builder.tune("block_size_y", {1, 2, 4, 8, 16, 32}, 32);
