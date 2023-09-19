@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <typeindex>
 #include <vector>
+#include <stdint.h>
 
 namespace kernel_launcher {
 
