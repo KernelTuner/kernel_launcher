@@ -192,7 +192,7 @@ struct CudaDevice {
  */
 struct CudaContextHandle {
     CudaContextHandle() = default;
-    CudaContextHandle(CUcontext c) : context_(c) {};
+    CudaContextHandle(CUcontext c);
 
     /**
      * Returns the current CUDA context or throws an error if CUDA has not
@@ -205,8 +205,6 @@ struct CudaContextHandle {
      */
     CudaDevice device() const;
 
-    void with(std::function<void()> f) const;
-
     /**
      * Returns the underlying `CUcontext`.
      */
@@ -214,8 +212,18 @@ struct CudaContextHandle {
         return context_;
     }
 
+    bool operator==(const CudaContextHandle& that) const;
+    bool operator!=(const CudaContextHandle& that) const;
+
   private:
     CUcontext context_ = nullptr;
+    unsigned long long id_ = ~0ULL;
+};
+
+struct CudaContextGuard {
+    CudaContextGuard(CudaContextHandle ctx) : CudaContextGuard(ctx.get()) {}
+    CudaContextGuard(CUcontext ctx);
+    ~CudaContextGuard();
 };
 
 /**

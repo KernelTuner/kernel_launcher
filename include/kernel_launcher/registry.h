@@ -53,13 +53,27 @@ struct KernelDescriptor {
     KernelDescriptor(KernelDescriptor&) noexcept = default;
     KernelDescriptor(const KernelDescriptor&) = default;
 
-    template<typename D>
-    KernelDescriptor(D&& descriptor) {
-        using T = typename std::decay<D>::type;
-        descriptor_type_ = type_of<T>();
-        descriptor_ = std::make_shared<T>(std::forward<D>(descriptor));
-        hash_ = hash_fields(descriptor_type_, descriptor_->hash());
+    KernelDescriptor(
+        std::shared_ptr<IKernelDescriptor> descriptor,
+        CudaContextHandle ctx = CudaContextHandle::current()) :
+        ctx_(ctx),
+        descriptor_(std::move(descriptor)) {
+        const IKernelDescriptor& inner = *descriptor_;
+        hash_ = hash_fields(
+            typeid(inner).hash_code(),
+            descriptor_->hash(),
+            ctx_.get());
     }
+
+    template<typename D>
+    KernelDescriptor(std::shared_ptr<D> descriptor) :
+        KernelDescriptor(
+            std::shared_ptr<IKernelDescriptor>(std::move(descriptor))) {}
+
+    template<typename D>
+    KernelDescriptor(D&& descriptor) :
+        KernelDescriptor(
+            std::make_shared<std::decay_t<D>>(std::forward<D>(descriptor))) {}
 
     const IKernelDescriptor& get() const {
         return *descriptor_;
@@ -70,7 +84,7 @@ struct KernelDescriptor {
     }
 
     bool operator==(const KernelDescriptor& that) const {
-        return that.hash_ == hash_ && that.descriptor_type_ == descriptor_type_
+        return that.hash_ == hash_ && that.ctx_ == ctx_
             && that.descriptor_->equals(*descriptor_);
     }
 
@@ -80,7 +94,7 @@ struct KernelDescriptor {
 
   private:
     hash_t hash_;
-    TypeInfo descriptor_type_;
+    CudaContextHandle ctx_;
     std::shared_ptr<IKernelDescriptor> descriptor_;
 };
 }  // namespace kernel_launcher

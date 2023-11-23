@@ -8,19 +8,23 @@
 
 namespace kernel_launcher {
 
+CudaException build_cuda_exception(CUresult& result, const char* msg) {
+    const char* name = "???";
+    const char* description = "???";
+
+    // Ignore error since we are already handling another error
+    cuGetErrorName(result, &name);
+    cuGetErrorString(result, &description);
+
+    std::stringstream display;
+    display << "CUDA error: " << name << " (" << description << "): " << msg;
+    auto e = CudaException(result, display.str());
+    return e;
+}
+
 void cuda_check(CUresult result, const char* msg) {
     if (result != CUDA_SUCCESS) {
-        const char* name = "???";
-        const char* description = "???";
-
-        // Ignore error since we are already handling another error
-        cuGetErrorName(result, &name);
-        cuGetErrorString(result, &description);
-
-        std::stringstream display;
-        display << "CUDA error: " << name << " (" << description
-                << "): " << msg;
-        throw CudaException(result, display.str());
+        throw build_cuda_exception(result, msg);
     }
 }
 
@@ -129,7 +133,15 @@ std::string CudaDevice::uuid() const {
 CudaArch CudaDevice::arch() const {
     int minor = attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR);
     int major = attribute(CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR);
-    return CudaArch(major, minor);
+    return {major, minor};
+}
+
+CudaContextHandle::CudaContextHandle(CUcontext c) {
+    context_ = c;
+
+#if CUDA_VERSION >= 12000
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetId(context_, &id_));
+#endif
 }
 
 CudaContextHandle CudaContextHandle::current() {
@@ -146,21 +158,27 @@ CudaContextHandle CudaContextHandle::current() {
 }
 
 CudaDevice CudaContextHandle::device() const {
+    CudaContextGuard guard {context_};
     CUdevice d = -1;
-    with([&]() { KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetDevice(&d)); });
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxGetDevice(&d));
     return CudaDevice(d);
 }
 
-void CudaContextHandle::with(std::function<void()> f) const {
-    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxPushCurrent(context_));
-    try {
-        f();
-        KERNEL_LAUNCHER_CUDA_CHECK(cuCtxPopCurrent(nullptr));
-    } catch (...) {
-        // Ignore errors. There is not much we can do at this point.
-        cuCtxPopCurrent(nullptr);
-        throw;
-    }
+bool CudaContextHandle::operator==(const CudaContextHandle& that) const {
+    return id_ == that.id_ && context_ == that.context_;
+}
+
+bool CudaContextHandle::operator!=(const CudaContextHandle& that) const {
+    return !(*this == that);
+}
+
+CudaContextGuard::CudaContextGuard(CUcontext ctx) {
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxPushCurrent(ctx));
+}
+
+CudaContextGuard::~CudaContextGuard() {
+    CUcontext current;
+    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxPopCurrent(&current));
 }
 
 void cuda_raw_copy(const void* src, void* dst, size_t num_bytes) {
