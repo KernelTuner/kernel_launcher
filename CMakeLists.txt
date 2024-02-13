@@ -10,12 +10,10 @@ endif()
 
 file(GLOB sources "${PROJECT_SOURCE_DIR}/src/*.cpp" "${PROJECT_SOURCE_DIR}/src/*/*.cpp")
 add_library(${PROJECT_NAME} STATIC ${sources})
-set(KERNEL_LAUNCHER_CLANG_TIDY clang-tidy -checks=-*,readability-*,bugprone-*,-readability-magic-numbers,-readability-use-anyofallof,-readability-else-after-return)
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/thirdparty")
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Wconversion -Werror -Wno-unused-parameter)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_CLANG_TIDY "${KERNEL_LAUNCHER_CLANG_TIDY}")
 
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
@@ -90,6 +88,15 @@ endfunction()
 function(kernel_launcher_embed_directory target directory)
     kernel_launcher_embed_glob(target directory "*")
 endfunction()
+
+# Enable clang-tidy only if `KERNEL_LAUNCHER_CLANG_TIDY` is not defined
+if (NOT DEFINED KERNEL_LAUNCHER_CLANG_TIDY)
+    set(KERNEL_LAUNCHER_CLANG_TIDY clang-tidy -checks=-*,readability-*,bugprone-*,-readability-magic-numbers,-readability-use-anyofallof,-readability-else-after-return,-readability-identifier-length,-bugprone-easily-swappable-parameters,-bugprone-assignment-in-if-condition)
+endif()
+
+if (KERNEL_LAUNCHER_CLANG_TIDY)
+    set_target_properties(${PROJECT_NAME} PROPERTIES CXX_CLANG_TIDY "${KERNEL_LAUNCHER_CLANG_TIDY}")
+endif()
 
 if (NOT DEFINED KERNEL_LAUNCHER_EMBEDDED_DATA)
     set(KERNEL_LAUNCHER_EMBEDDED_DATA 1)
