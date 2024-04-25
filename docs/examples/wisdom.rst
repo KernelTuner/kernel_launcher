@@ -6,6 +6,7 @@ Wisdom Files
 
 In the previous example, we demonstrated how to compile a kernel by providing both a  ``KernelBuilder`` instance (describing the `blueprint` for the kernel) and a ``Config`` instance (describing the configuration of the tunable parameters).
 
+
 However, determining the optimal configuration can often be challenging, as it depends on both the problem size and the specific type of GPU being used. 
 To address this problem, Kernel Launcher provides a solution in the form of **wisdom files** (terminology borrowed from `FFTW <http://www.fftw.org/>`_).
 
@@ -86,7 +87,7 @@ To do so, we need to run the program with the environment variable ``KERNEL_LAUN
 This generates a file called ``vector_add_1000000.json`` in the directory set by ``set_global_capture_directory``.
 
 Alternatively, it is possible to capture several kernels at once by using the wildcard ``*``.
-For example, the following command export all kernels that are start with ``vector_``::
+For example, the following command exports all kernels that start with ``vector_``::
 
     $ KERNEL_LAUNCHER_CAPTURE=vector_* ./main
 
