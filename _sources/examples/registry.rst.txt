@@ -7,11 +7,11 @@ Kernel Registry
 .. The kernel registry essentially acts like a global cache of compiled kernels.
 
 In the previous example, we saw how to use wisdom files by creating a ``WisdomKernel`` object.
-This object will compile the kernel code on the first call and the keep the kernel loaded as long as the object exists.
+This object will compile the kernel code on the first call and then keep the kernel loaded as long as the object exists.
 Typically, one would define the ``WisdomKernel`` object as part of a class or as a global variable.
 
 However, in certain scenarios, it is inconvenient or impractical to store ``WisdomKernel`` objects.
-In these cases, it is possible to use the ``KernelRegistry``, that essentially acts like a global table of compiled kernel instances.
+In these cases, it is possible to use the ``KernelRegistry`` that essentially acts like a global table of compiled kernel instances.
 
 
 Source code
@@ -36,8 +36,8 @@ Defining a kernel descriptor
    :lines: 6-43
    :lineno-start: 6
 
-This part of the code defines a ``IKernelDescriptor``:
-a class that encapsulate the information required to compile a kernel.
+This part of the code defines an ``IKernelDescriptor``:
+a class that encapsulates the information required to compile a kernel.
 This class should override two methods:
 
 - ``build`` to instantiate a ``KernelBuilder``,
@@ -64,7 +64,7 @@ kernel is only compiled once and stored in the registry.
    :lineno-start: 59
 
 Alternatively, it is possible to use the above short-hand syntax.
-This syntax also make it is easy to replace the element type ``float`` to some other type such as ``int``::
+This syntax also makes it easy to replace the element type ``float`` with some other type such as ``int``::
 
     kl::launch(VectorAddDescriptor::for_type<int>(), n, dev_C, dev_A, dev_B);
 
@@ -75,4 +75,4 @@ It is even possible to define a templated function that passes type ``T`` on to 
         kl::launch(VectorAddDescriptor::for_type<T>(), n, C, A, B);
     }
 
-Instead of using the global kernel registery, it is also possible to create local registry by creating a ``KernelRegistry`` instance.
+Instead of using the global kernel registry, it is also possible to create a local registry by creating a ``KernelRegistry`` instance.

@@ -30,8 +30,8 @@ Code Explanation
    :lineno-start: 8
 
 First, we need to define a ``KernelBuilder`` instance.
-A ``KernelBuilder`` is essentially a `blueprint` that describes the information required to compile the CUDA kernel.
-The constructor takes the name of the kernel function and the `.cu` file where the code is located.
+A ``KernelBuilder`` is essentially a ``blueprint`` that describes the information required to compile the CUDA kernel.
+The constructor takes the name of the kernel function and the ``.cu`` file where the code is located.
 Optionally, we can also provide the kernel source as the third parameter.
 
 
@@ -40,7 +40,7 @@ Optionally, we can also provide the kernel source as the third parameter.
    :lineno-start: 11
 
 CUDA kernels often have tunable parameters that can impact their performance, such as block size, thread granularity, register usage, and the use of shared memory. 
-Here, we define two tunable parameters: the number of threads per blocks and the number of elements processed per thread.
+Here, we define two tunable parameters: the number of threads per block and the number of elements processed per thread.
 
 
 
@@ -48,7 +48,7 @@ Here, we define two tunable parameters: the number of threads per blocks and the
    :lines: 15-16
    :lineno-start: 15
 
-The values returned by ``tune`` are placeholder objecs.
+The values returned by ``tune`` are placeholder objects.
 These objects can be combined using C++ operators to create new expressions objects.
 Note that ``elements_per_block`` does not actually contain a specific value;
 instead, it is an abstract expression that, upon kernel instantiation, is evaluated as the product of ``threads_per_block`` and ``elements_per_thread``.
@@ -64,7 +64,7 @@ The following properties are supported:
 
 * ``problem_size``: This is an N-dimensional vector that represents the size of the problem. In this case, is one-dimensional and ``kl::arg0`` means that the size is specified as the first kernel argument (`argument 0`).
 * ``block_size``: A triplet ``(x, y, z)`` representing the block dimensions.
-* ``grid_divsor``: This property is used to calculate the size of the grid (i.e., the number of blocks along each axis). For each kernel launch, the problem size is divided by the divisors to calculate the grid size. In other words, this property expresses the number of elements processed per thread block.
+* ``grid_divisor``: This property is used to calculate the size of the grid (i.e., the number of blocks along each axis). For each kernel launch, the problem size is divided by the divisors to calculate the grid size. In other words, this property expresses the number of elements processed per thread block.
 * ``template_args``: This property specifies template arguments, which can be type names and integral values.
 * ``define``: Define preprocessor constants.
 * ``shared_memory``: Specify the amount of shared memory required, in bytes.

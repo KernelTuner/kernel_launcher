@@ -96,7 +96,7 @@
   <section id="pragma-kernels">
 <h1>Pragma Kernels<a class="headerlink" href="#pragma-kernels" title="Permalink to this heading"></a></h1>
 <p>In the previous examples, we demonstrated how a tunable kernel can be specified by defining a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance in the host-side code.
-While this API offers flexiblity, it can be cumbersome and requires keeping the kernel code in CUDA in sync with the host-side code in C++.</p>
+While this API offers flexibility, it can be cumbersome and requires keeping the kernel code in CUDA in sync with the host-side code in C++.</p>
 <p>Kernel Launcher also provides a way to define kernel specifications directly in the CUDA code by using pragma directives to annotate the kernel code.
 Although this method is less flexible than the <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> API, it is much more convenient and suitable for most CUDA kernels.</p>
 <section id="source-code">
@@ -133,7 +133,7 @@ The <code class="docutils literal notranslate"><span class="pre">#pragma</span><
 </pre></div>
 </div>
 <p>The tune directives specify the tunable parameters: <code class="docutils literal notranslate"><span class="pre">threads_per_block</span></code> and <code class="docutils literal notranslate"><span class="pre">items_per_thread</span></code>.
-Since <code class="docutils literal notranslate"><span class="pre">items_per_thread</span></code> is also the name of the template parameter, so it is passed to the kernel as a compile-time constant via this parameter.
+Since <code class="docutils literal notranslate"><span class="pre">items_per_thread</span></code> is also the name of the template parameter, it is passed to the kernel as a compile-time constant via this parameter.
 The value of <code class="docutils literal notranslate"><span class="pre">threads_per_block</span></code> is not passed to the kernel but is used by subsequent pragmas.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">3</span><span class="cp">#pragma kernel set(items_per_block=threads_per_block * items_per_thread)</span>
 </pre></div>
@@ -145,7 +145,7 @@ In this case, the constant <code class="docutils literal notranslate"><span clas
 <span class="linenos">6</span><span class="cp">#pragma kernel grid_divisor(items_per_block)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">problem_size</span></code> directive defines the problem size (as discussed in as discussed in <a class="reference internal" href="basic.html"><span class="doc">Basic Example</span></a>), <code class="docutils literal notranslate"><span class="pre">block_size</span></code> specifies the thread block size, and <code class="docutils literal notranslate"><span class="pre">grid_divisor</span></code> specifies how the problem size should be divided to obtain the thread grid size.
+<p>The <code class="docutils literal notranslate"><span class="pre">problem_size</span></code> directive defines the problem size (as discussed in <a class="reference internal" href="basic.html"><span class="doc">Basic Example</span></a>), <code class="docutils literal notranslate"><span class="pre">block_size</span></code> specifies the thread block size, and <code class="docutils literal notranslate"><span class="pre">grid_divisor</span></code> specifies how the problem size should be divided to obtain the thread grid size.
 Alternatively, <code class="docutils literal notranslate"><span class="pre">grid_size</span></code> can be used to specify the grid size directly.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="linenos">7</span><span class="cp">#pragma kernel buffers(C[n], A[n], B[n])</span>
 </pre></div>
@@ -161,7 +161,7 @@ In this example, the tuning key is <code class="docutils literal notranslate"><s
 </section>
 <section id="host-code">
 <h2>Host Code<a class="headerlink" href="#host-code" title="Permalink to this heading"></a></h2>
-<p>The below code shows how to call the kernel from the host in C++:</p>
+<p>The code below shows how to call the kernel from the host in C++:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel_launcher/pragma.h&quot;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">kl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">kernel_launcher</span><span class="p">;</span>
 

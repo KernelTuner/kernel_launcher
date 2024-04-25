@@ -98,10 +98,10 @@
   <section id="kernel-registry">
 <h1>Kernel Registry<a class="headerlink" href="#kernel-registry" title="Permalink to this heading"></a></h1>
 <p>In the previous example, we saw how to use wisdom files by creating a <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> object.
-This object will compile the kernel code on the first call and the keep the kernel loaded as long as the object exists.
+This object will compile the kernel code on the first call and then keep the kernel loaded as long as the object exists.
 Typically, one would define the <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> object as part of a class or as a global variable.</p>
 <p>However, in certain scenarios, it is inconvenient or impractical to store <code class="docutils literal notranslate"><span class="pre">WisdomKernel</span></code> objects.
-In these cases, it is possible to use the <code class="docutils literal notranslate"><span class="pre">KernelRegistry</span></code>, that essentially acts like a global table of compiled kernel instances.</p>
+In these cases, it is possible to use the <code class="docutils literal notranslate"><span class="pre">KernelRegistry</span></code> that essentially acts like a global table of compiled kernel instances.</p>
 <section id="source-code">
 <h2>Source code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h2>
 <p>Consider the following code snippet:</p>
@@ -218,8 +218,8 @@ In the second part, this class is searched in the global kernel registry.</p>
 <span class="linenos">43</span><span class="p">};</span>
 </pre></div>
 </div>
-<p>This part of the code defines a <code class="docutils literal notranslate"><span class="pre">IKernelDescriptor</span></code>:
-a class that encapsulate the information required to compile a kernel.
+<p>This part of the code defines an <code class="docutils literal notranslate"><span class="pre">IKernelDescriptor</span></code>:
+a class that encapsulates the information required to compile a kernel.
 This class should override two methods:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">build</span></code> to instantiate a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code>,</p></li>
@@ -244,7 +244,7 @@ kernel is only compiled once and stored in the registry.</p>
 </pre></div>
 </div>
 <p>Alternatively, it is possible to use the above short-hand syntax.
-This syntax also make it is easy to replace the element type <code class="docutils literal notranslate"><span class="pre">float</span></code> to some other type such as <code class="docutils literal notranslate"><span class="pre">int</span></code>:</p>
+This syntax also makes it easy to replace the element type <code class="docutils literal notranslate"><span class="pre">float</span></code> with some other type such as <code class="docutils literal notranslate"><span class="pre">int</span></code>:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">kl</span><span class="o">::</span><span class="n">launch</span><span class="p">(</span><span class="n">VectorAddDescriptor</span><span class="o">::</span><span class="n">for_type</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">dev_C</span><span class="p">,</span><span class="w"> </span><span class="n">dev_A</span><span class="p">,</span><span class="w"> </span><span class="n">dev_B</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -255,7 +255,7 @@ This syntax also make it is easy to replace the element type <code class="docuti
 <span class="linenos">4</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>Instead of using the global kernel registery, it is also possible to create local registry by creating a <code class="docutils literal notranslate"><span class="pre">KernelRegistry</span></code> instance.</p>
+<p>Instead of using the global kernel registry, it is also possible to create a local registry by creating a <code class="docutils literal notranslate"><span class="pre">KernelRegistry</span></code> instance.</p>
 </section>
 </section>
 </section>

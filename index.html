@@ -83,8 +83,8 @@
 </div>
 <section id="kernel-launcher">
 <h1>Kernel Launcher<a class="headerlink" href="#kernel-launcher" title="Permalink to this heading"></a></h1>
-<a class="reference internal image-reference" href="_images/logo.png"><img alt="kernel launcher" src="_images/logo.png" style="width: 670px;" /></a>
-<p><strong>Kernel Launcher</strong> is a C++ library that makes it easy to dynamically compile <em>CUDA</em> kernels at runtime (using <a class="reference external" href="https://docs.nvidia.com/cuda/nvrtc/index.html">NVRTC</a>) and launching them in a type-safe manner using C++ magic. There are two main reasons for using runtime compilation:</p>
+<a class="reference internal image-reference" href="_images/logo.png"><img alt="Kernel Launcher logo" src="_images/logo.png" style="width: 670px;" /></a>
+<p><strong>Kernel Launcher</strong> is a C++ library designed to dynamically compile <em>CUDA</em> kernels at runtime (using <a class="reference external" href="https://docs.nvidia.com/cuda/nvrtc/index.html">NVRTC</a>) and to launch them in a type-safe manner using C++ magic. Runtime compilation offers two significant advantages:</p>
 <ul class="simple">
 <li><p>Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration  depends on dynamic factors such as the GPU type and problem size.</p></li>
 <li><p>Improve performance by injecting runtime values as compile-time constant values into kernel code (dimensions, array strides, weights, etc.).</p></li>
@@ -92,15 +92,17 @@
 </section>
 <section id="kernel-tuner-integration">
 <h1>Kernel Tuner Integration<a class="headerlink" href="#kernel-tuner-integration" title="Permalink to this heading"></a></h1>
-<a class="reference internal image-reference" href="_images/kernel_tuner_integration.png"><img alt="kernel launcher integration" src="_images/kernel_tuner_integration.png" style="width: 670px;" /></a>
-<p>Kernel Launcher’s tight integration with <a class="reference external" href="https://kerneltuner.github.io/">Kernel Tuner</a> results in highly-tuned kernels, as visualized above.
-Kernel Launcher <strong>captures</strong> kernel launches within your application, which are then <strong>tuned</strong> by Kernel Tuner and saved as <strong>wisdom</strong> files.
-These files are processed by Kernel Launcher during execution to <strong>compile</strong> the tuned kernel at runtime.</p>
+<a class="reference internal image-reference" href="_images/kernel_tuner_integration.png"><img alt="Kernel Launcher and Kernel Tuner integration" src="_images/kernel_tuner_integration.png" style="width: 670px;" /></a>
+<p>The tight integration of <strong>Kernel Launcher</strong> with <a class="reference external" href="https://kerneltuner.github.io/">Kernel Tuner</a> ensures that kernels are highly optimized, as illustrated in the image above.
+Kernel Launcher can <strong>capture</strong> kernel launches within your application at runtime.
+These captured kernels can then be <strong>tuned</strong> by Kernel Tuner and the tuning results are saved as <strong>wisdom</strong> files.
+These wisdom files are used by Kernel Launcher during execution to <strong>compile</strong> the tuned kernel at runtime.</p>
 <p>See <a class="reference internal" href="examples/wisdom.html"><span class="doc">Wisdom Files</span></a> for an example of how this works in practise.</p>
 </section>
 <section id="basic-example">
 <h1>Basic Example<a class="headerlink" href="#basic-example" title="Permalink to this heading"></a></h1>
-<p>This sections hows a basic code example. See <a class="reference internal" href="example.html#example"><span class="std std-ref">Guides</span></a> for a more advance example.</p>
+<p>This section presents a simple code example illustrating how to use the Kernel Launcher.
+For a more detailed example, refer to <a class="reference internal" href="example.html#example"><span class="std std-ref">Guides</span></a>.</p>
 <p>Consider the following CUDA kernel for vector addition.
 This kernel has a template parameter <code class="docutils literal notranslate"><span class="pre">T</span></code> and a tunable parameter <code class="docutils literal notranslate"><span class="pre">ELEMENTS_PER_THREAD</span></code>.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
@@ -116,7 +118,7 @@ This kernel has a template parameter <code class="docutils literal notranslate">
 <span class="linenos">11</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The following C++ snippet shows how to use <em>Kernel Launcher</em> in host code:</p>
+<p>The following C++ snippet demonstrates how to use the Kernel Launcher in the host code:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel_launcher.h&quot;</span>
 <span class="linenos"> 2</span>
 <span class="linenos"> 3</span><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
@@ -155,7 +157,7 @@ This kernel has a template parameter <code class="docutils literal notranslate">
 </div>
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
+<h1>Indices and Tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>

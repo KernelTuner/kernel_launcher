@@ -19,9 +19,9 @@ Kernel Launcher
 
 .. image:: /logo.png
    :width: 670
-   :alt: kernel launcher
+   :alt: Kernel Launcher logo
 
-**Kernel Launcher** is a C++ library that makes it easy to dynamically compile *CUDA* kernels at runtime (using `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_) and launching them in a type-safe manner using C++ magic. There are two main reasons for using runtime compilation:
+**Kernel Launcher** is a C++ library designed to dynamically compile *CUDA* kernels at runtime (using `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_) and to launch them in a type-safe manner using C++ magic. Runtime compilation offers two significant advantages:
 
 * Kernels that have tunable parameters (block size, elements per thread, loop unroll factors, etc.) where the optimal configuration  depends on dynamic factors such as the GPU type and problem size.
 
@@ -33,12 +33,14 @@ Kernel Tuner Integration
 
 .. image:: /kernel_tuner_integration.png
    :width: 670
-   :alt: kernel launcher integration
+   :alt: Kernel Launcher and Kernel Tuner integration
 
 
-Kernel Launcher's tight integration with `Kernel Tuner <https://kerneltuner.github.io/>`_ results in highly-tuned kernels, as visualized above. 
-Kernel Launcher **captures** kernel launches within your application, which are then **tuned** by Kernel Tuner and saved as **wisdom** files. 
-These files are processed by Kernel Launcher during execution to **compile** the tuned kernel at runtime.
+The tight integration of **Kernel Launcher** with `Kernel Tuner <https://kerneltuner.github.io/>`_ ensures that kernels are highly optimized, as illustrated in the image above.
+Kernel Launcher can **capture** kernel launches within your application at runtime.
+These captured kernels can then be **tuned** by Kernel Tuner and the tuning results are saved as **wisdom** files. 
+These wisdom files are used by Kernel Launcher during execution to **compile** the tuned kernel at runtime.
+
 
 See :doc:`examples/wisdom` for an example of how this works in practise.
 
@@ -48,7 +50,8 @@ See :doc:`examples/wisdom` for an example of how this works in practise.
 Basic Example
 =============
 
-This sections hows a basic code example. See :ref:`example` for a more advance example.
+This section presents a simple code example illustrating how to use the Kernel Launcher. 
+For a more detailed example, refer to :ref:`example`.
 
 Consider the following CUDA kernel for vector addition.
 This kernel has a template parameter ``T`` and a tunable parameter ``ELEMENTS_PER_THREAD``.
@@ -56,13 +59,13 @@ This kernel has a template parameter ``T`` and a tunable parameter ``ELEMENTS_PE
 .. literalinclude:: examples/vector_add.cu
 
 
-The following C++ snippet shows how to use *Kernel Launcher* in host code:
+The following C++ snippet demonstrates how to use the Kernel Launcher in the host code:
 
 .. literalinclude:: examples/index.cpp
 
 
 
-Indices and tables
+Indices and Tables
 ============
 
 * :ref:`genindex`

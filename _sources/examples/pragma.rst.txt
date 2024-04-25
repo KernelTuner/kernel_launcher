@@ -2,7 +2,7 @@ Pragma Kernels
 ===========================
 
 In the previous examples, we demonstrated how a tunable kernel can be specified by defining a ``KernelBuilder`` instance in the host-side code.
-While this API offers flexiblity, it can be cumbersome and requires keeping the kernel code in CUDA in sync with the host-side code in C++.
+While this API offers flexibility, it can be cumbersome and requires keeping the kernel code in CUDA in sync with the host-side code in C++.
 
 Kernel Launcher also provides a way to define kernel specifications directly in the CUDA code by using pragma directives to annotate the kernel code.
 Although this method is less flexible than the ``KernelBuilder`` API, it is much more convenient and suitable for most CUDA kernels.
@@ -30,7 +30,7 @@ The kernel contains the following ``pragma`` directives:
    :lineno-start: 1
 
 The tune directives specify the tunable parameters: ``threads_per_block`` and ``items_per_thread``.
-Since ``items_per_thread`` is also the name of the template parameter, so it is passed to the kernel as a compile-time constant via this parameter.
+Since ``items_per_thread`` is also the name of the template parameter, it is passed to the kernel as a compile-time constant via this parameter.
 The value of ``threads_per_block`` is not passed to the kernel but is used by subsequent pragmas.
 
 .. literalinclude:: vector_add_annotated.cu
@@ -44,7 +44,7 @@ In this case, the constant ``items_per_block`` is defined as the product of ``th
    :lines: 4-6
    :lineno-start: 4
 
-The ``problem_size`` directive defines the problem size (as discussed in as discussed in :doc:`basic`), ``block_size`` specifies the thread block size, and ``grid_divisor`` specifies how the problem size should be divided to obtain the thread grid size.
+The ``problem_size`` directive defines the problem size (as discussed in :doc:`basic`), ``block_size`` specifies the thread block size, and ``grid_divisor`` specifies how the problem size should be divided to obtain the thread grid size.
 Alternatively, ``grid_size`` can be used to specify the grid size directly.
 
 
@@ -67,7 +67,7 @@ In this example, the tuning key is ``"vector_add_" + T``, where ``T`` is the nam
 Host Code
 ---------
 
-The below code shows how to call the kernel from the host in C++::
+The code below shows how to call the kernel from the host in C++::
 
     #include "kernel_launcher/pragma.h"
     using namespace kl = kernel_launcher;
