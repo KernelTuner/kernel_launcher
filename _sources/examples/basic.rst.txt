@@ -49,7 +49,7 @@ Here, we define two tunable parameters: the number of threads per block and the 
    :lineno-start: 15
 
 The values returned by ``tune`` are placeholder objects.
-These objects can be combined using C++ operators to create new expressions objects.
+These objects can be combined using C++ operators to create new expression objects.
 Note that ``elements_per_block`` does not actually contain a specific value;
 instead, it is an abstract expression that, upon kernel instantiation, is evaluated as the product of ``threads_per_block`` and ``elements_per_thread``.
 
@@ -59,10 +59,10 @@ instead, it is an abstract expression that, upon kernel instantiation, is evalua
 
 Next, we define properties of the kernel such as block size and template arguments. 
 These properties can take on expressions, as demonstrated above. 
-The full list of properties is documented as :doc:`api/KernelBuilder`
+The full list of properties is documented as :doc:`api/KernelBuilder`.
 The following properties are supported:
 
-* ``problem_size``: This is an N-dimensional vector that represents the size of the problem. In this case, is one-dimensional and ``kl::arg0`` means that the size is specified as the first kernel argument (`argument 0`).
+* ``problem_size``: This is an N-dimensional vector that represents the size of the problem. In this case, is it one-dimensional and ``kl::arg0`` means that the size is specified as the first kernel argument (`argument 0`).
 * ``block_size``: A triplet ``(x, y, z)`` representing the block dimensions.
 * ``grid_divisor``: This property is used to calculate the size of the grid (i.e., the number of blocks along each axis). For each kernel launch, the problem size is divided by the divisors to calculate the grid size. In other words, this property expresses the number of elements processed per thread block.
 * ``template_args``: This property specifies template arguments, which can be type names and integral values.
@@ -76,7 +76,7 @@ The following properties are supported:
    :lineno-start: 26
 
 The configuration defines the values of the tunable parameters to be used for compilation.
-Here, the ``Config`` instance is constructed manually, but it could also be loaded from file or a tuning database.
+Here, the ``Config`` instance is constructed manually, but it could also be loaded from a file or a tuning database.
 
 .. literalinclude:: basic.cpp
    :lines: 31-33
@@ -91,12 +91,12 @@ The ``Kernel`` instance should be stored, for example, in a class and only compi
 
 To launch the kernel, we simply call ``launch``.
 
-Alternatively, it is also possible to use the short-hand form::
+Alternatively, it is also possible to use the shorthand form::
 
         // Launch the kernel!
         vector_add_kernel(n, dev_C, dev_A, dev_B);
 
-To pass a CUDA stream use::
+To pass a CUDA stream, use::
 
         // Launch the kernel!
         vector_add_kernel(stream, n, dev_C, dev_A, dev_B);

@@ -98,12 +98,12 @@
              
   <section id="wisdom-files">
 <h1>Wisdom Files<a class="headerlink" href="#wisdom-files" title="Permalink to this heading"></a></h1>
-<p>In the previous example, we demonstrated how to compile a kernel by providing both a  <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance (describing the <cite>blueprint</cite> for the kernel) and a <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance (describing the configuration of the tunable parameters).</p>
+<p>In the previous example, we demonstrated how to compile a kernel by providing both a <code class="docutils literal notranslate"><span class="pre">KernelBuilder</span></code> instance (describing the <em>blueprint</em> for the kernel) and a <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance (describing the configuration of the tunable parameters).</p>
 <p>However, determining the optimal configuration can often be challenging, as it depends on both the problem size and the specific type of GPU being used.
 To address this problem, Kernel Launcher provides a solution in the form of <strong>wisdom files</strong> (terminology borrowed from <a class="reference external" href="http://www.fftw.org/">FFTW</a>).</p>
 <p>To use the Kernel Launcher’s wisdom files, we need to run the application twice.
 First, we <strong>capture</strong> the kernels that we want to tune, and then we use Kernel Tuner to tune those kernels.
-Second, when we run the application again, but this time the kernel configuration is <strong>selected</strong> from the wisdom file that was generated during the tuning process.</p>
+Second, we run the application again, but this time the kernel configuration is <strong>selected</strong> from the wisdom file that was generated during the tuning process.</p>
 <p>Let’s see this in action.</p>
 <section id="source-code">
 <h2>Source code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h2>
@@ -172,7 +172,7 @@ Second, when we run the application again, but this time the kernel configuratio
 </section>
 <section id="code-explanation">
 <h2>Code Explanation<a class="headerlink" href="#code-explanation" title="Permalink to this heading"></a></h2>
-<p>Notice how this example is similar to the previous example, with some minor differences such that <code class="docutils literal notranslate"><span class="pre">kl::Kernel</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">kl::WisdomKernel</span></code>.
+<p>Notice how this example is similar to the previous example, with some minor differences, such that <code class="docutils literal notranslate"><span class="pre">kl::Kernel</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">kl::WisdomKernel</span></code>.
 We now highlight the important lines of this code example.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 6</span><span class="n">kl</span><span class="o">::</span><span class="n">KernelBuilder</span><span class="w"> </span><span class="nf">build_kernel</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="linenos"> 7</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">KernelBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">(</span><span class="s">&quot;vector_add&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;vector_add.cu&quot;</span><span class="p">);</span>
@@ -206,10 +206,10 @@ If no wisdom file can be found, the default configuration is used (in this examp
 <span class="linenos">26</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">set_global_capture_directory</span><span class="p">(</span><span class="s">&quot;captures/&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The following two lines of code set global configuration for the application.</p>
+<p>The following two lines of code set the global configuration for the application.</p>
 <p>The function <code class="docutils literal notranslate"><span class="pre">set_global_wisdom_directory</span></code> sets the directory where Kernel Launcher will search for wisdom files associated with a compiled kernel.
 In this example, the directory <code class="docutils literal notranslate"><span class="pre">wisdom/</span></code> is set as the wisdom directory, and Kernel Launcher will search for the file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add_float.wisdom</span></code> since <code class="docutils literal notranslate"><span class="pre">vector_add_float</span></code> is the tuning key.</p>
-<p>The function <code class="docutils literal notranslate"><span class="pre">set_global_capture_directory</span></code> sets the directory where Kernel Launcher will store resulting files when capturing a kernel launch.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">set_global_capture_directory</span></code> sets the directory where Kernel Launcher will store the resulting files when capturing a kernel launch.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">28</span><span class="w">    </span><span class="c1">// Define the kernel.</span>
 <span class="linenos">29</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">KernelBuilder</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">build_kernel</span><span class="p">();</span>
 <span class="linenos">30</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">WisdomKernel</span><span class="w"> </span><span class="nf">vector_add_kernel</span><span class="p">(</span><span class="n">builder</span><span class="p">);</span>
@@ -234,7 +234,7 @@ For example, the following command exports all kernels that start with <code cla
 </section>
 <section id="tune-the-kernel">
 <h2>Tune the kernel<a class="headerlink" href="#tune-the-kernel" title="Permalink to this heading"></a></h2>
-<p>To tune the kernel, run the Python script <code class="docutils literal notranslate"><span class="pre">tune.py</span></code> in the directory <code class="docutils literal notranslate"><span class="pre">python/</span></code> which uses <a class="reference external" href="https://kerneltuner.github.io/">Kernel Tuner</a> to tune the kernel.
+<p>To tune the kernel, run the Python script <code class="docutils literal notranslate"><span class="pre">tune.py</span></code> in the directory <code class="docutils literal notranslate"><span class="pre">python/</span></code>, which uses <a class="reference external" href="https://kerneltuner.github.io/">Kernel Tuner</a> to tune the kernel.
 To view all available options, use <code class="docutils literal notranslate"><span class="pre">--help</span></code>.
 For example, to spend 10 minutes tuning the kernel for the current GPU, use the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>tune.py<span class="w"> </span>captures/vector_add_1000000.json<span class="w"> </span>--output<span class="w"> </span>wisdom/<span class="w"> </span>--time<span class="w"> </span><span class="m">10</span>:00
@@ -246,7 +246,7 @@ For example, to spend 10 minutes tuning the kernel for the current GPU, use the 
 </div>
 <p>If everything goes well, the script should run for ten minutes and eventually generate a file <code class="docutils literal notranslate"><span class="pre">wisdom/vector_add_float.wisdom</span></code> containing the tuning results.
 Note that it is possible to tune the same kernel for different GPUs and problem sizes, and all results will be saved in the same wisdom file.
-After tuning, the files in the <code class="docutils literal notranslate"><span class="pre">captures/</span></code> directory can be removed safely.</p>
+After tuning, the files in the <code class="docutils literal notranslate"><span class="pre">captures/</span></code> directory can be safely removed.</p>
 </section>
 <section id="import-the-wisdom">
 <h2>Import the wisdom<a class="headerlink" href="#import-the-wisdom" title="Permalink to this heading"></a></h2>

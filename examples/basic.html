@@ -185,7 +185,7 @@ Here, we define two tunable parameters: the number of threads per block and the 
 </pre></div>
 </div>
 <p>The values returned by <code class="docutils literal notranslate"><span class="pre">tune</span></code> are placeholder objects.
-These objects can be combined using C++ operators to create new expressions objects.
+These objects can be combined using C++ operators to create new expression objects.
 Note that <code class="docutils literal notranslate"><span class="pre">elements_per_block</span></code> does not actually contain a specific value;
 instead, it is an abstract expression that, upon kernel instantiation, is evaluated as the product of <code class="docutils literal notranslate"><span class="pre">threads_per_block</span></code> and <code class="docutils literal notranslate"><span class="pre">elements_per_thread</span></code>.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">18</span><span class="w">    </span><span class="c1">// Define kernel properties</span>
@@ -199,10 +199,10 @@ instead, it is an abstract expression that, upon kernel instantiation, is evalua
 </div>
 <p>Next, we define properties of the kernel such as block size and template arguments.
 These properties can take on expressions, as demonstrated above.
-The full list of properties is documented as <span class="xref std std-doc">api/KernelBuilder</span>
+The full list of properties is documented as <span class="xref std std-doc">api/KernelBuilder</span>.
 The following properties are supported:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">problem_size</span></code>: This is an N-dimensional vector that represents the size of the problem. In this case, is one-dimensional and <code class="docutils literal notranslate"><span class="pre">kl::arg0</span></code> means that the size is specified as the first kernel argument (<cite>argument 0</cite>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_size</span></code>: This is an N-dimensional vector that represents the size of the problem. In this case, is it one-dimensional and <code class="docutils literal notranslate"><span class="pre">kl::arg0</span></code> means that the size is specified as the first kernel argument (<cite>argument 0</cite>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">block_size</span></code>: A triplet <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">z)</span></code> representing the block dimensions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">grid_divisor</span></code>: This property is used to calculate the size of the grid (i.e., the number of blocks along each axis). For each kernel launch, the problem size is divided by the divisors to calculate the grid size. In other words, this property expresses the number of elements processed per thread block.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">template_args</span></code>: This property specifies template arguments, which can be type names and integral values.</p></li>
@@ -217,7 +217,7 @@ The following properties are supported:</p>
 </pre></div>
 </div>
 <p>The configuration defines the values of the tunable parameters to be used for compilation.
-Here, the <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance is constructed manually, but it could also be loaded from file or a tuning database.</p>
+Here, the <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance is constructed manually, but it could also be loaded from a file or a tuning database.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">31</span><span class="w">    </span><span class="c1">// Compile kernel</span>
 <span class="linenos">32</span><span class="w">    </span><span class="n">kl</span><span class="o">::</span><span class="n">Kernel</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">vector_add_kernel</span><span class="p">;</span>
 <span class="linenos">33</span><span class="w">    </span><span class="n">vector_add_kernel</span><span class="p">.</span><span class="n">compile</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">);</span>
@@ -232,12 +232,12 @@ The <code class="docutils literal notranslate"><span class="pre">Kernel</span></
 </pre></div>
 </div>
 <p>To launch the kernel, we simply call <code class="docutils literal notranslate"><span class="pre">launch</span></code>.</p>
-<p>Alternatively, it is also possible to use the short-hand form:</p>
+<p>Alternatively, it is also possible to use the shorthand form:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1">// Launch the kernel!</span>
 <span class="linenos">2</span><span class="n">vector_add_kernel</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">dev_C</span><span class="p">,</span><span class="w"> </span><span class="n">dev_A</span><span class="p">,</span><span class="w"> </span><span class="n">dev_B</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>To pass a CUDA stream use:</p>
+<p>To pass a CUDA stream, use:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1">// Launch the kernel!</span>
 <span class="linenos">2</span><span class="n">vector_add_kernel</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">dev_C</span><span class="p">,</span><span class="w"> </span><span class="n">dev_A</span><span class="p">,</span><span class="w"> </span><span class="n">dev_B</span><span class="p">);</span>
 </pre></div>
