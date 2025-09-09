@@ -181,6 +181,62 @@ __global__ void spaz(int n, const float* input, float* output) {
     CHECK(stream.span(spaz.template_params[0].name) == "tiling_factor");
 }
 
+/*
+, 
+	
+	
+	
+	
+	
+	*/
+
+TEST_CASE("parser difficult parameters") {
+    std::string input = R"(
+#pragma kernel_tuner tune(block_size=32, 64, 128, 256) default(128)
+#pragma kernel_tuner problem_size(n)
+__global__ void foo(
+	int n,
+	float __restrict__* a,
+	my_type<float> b,
+	bar::my_type<const float>* c,
+	bar::my_type<const float, baz::tuple<int, float>> d,
+	tuple<tuple<tuple<int>, float>, double, tuple<short, tuple<>>> e
+) {
+    if (threadIdx.x < 10) {
+        return a[threadIdx.x];
+    }
+}
+    )";
+
+    auto stream = internal::TokenStream("<stdin>", input);
+    auto result = extract_annotated_kernels(stream);
+
+    const auto& kernels = result.kernels;
+    REQUIRE(kernels.size() == 1);
+
+    const auto& foo = kernels[0];
+    CHECK(foo.qualified_name == "foo");
+    REQUIRE(foo.fun_params.size() == 6);
+
+    CHECK(stream.span(foo.fun_params[0].name) == "n");
+    CHECK(stream.span(foo.fun_params[1].name) == "a");
+    CHECK(stream.span(foo.fun_params[2].name) == "b");
+    CHECK(stream.span(foo.fun_params[3].name) == "c");
+    CHECK(stream.span(foo.fun_params[4].name) == "d");
+    CHECK(stream.span(foo.fun_params[5].name) == "e");
+
+    CHECK(foo.fun_params[0].type == "int");
+    CHECK(foo.fun_params[1].type == "float __restrict__*");
+    CHECK(foo.fun_params[2].type == "my_type<float>");
+    CHECK(foo.fun_params[3].type == "bar::my_type<const float>*");
+    CHECK(
+        foo.fun_params[4].type
+        == "bar::my_type<const float, baz::tuple<int, float>>");
+    CHECK(
+        foo.fun_params[5].type
+        == "tuple<tuple<tuple<int>, float>, double, tuple<short, tuple<>>>");
+}
+
 TEST_CASE("directives") {
     std::string input = R"(
     namespace bar {

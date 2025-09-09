@@ -111,7 +111,7 @@ Config ConfigSpace::default_config() const {
     return config;
 }
 
-bool ConfigSpace::is_valid(const Eval& config) const {
+bool ConfigSpace::contains(const Eval& config) const {
     for (const auto& p : params_) {
         Value v;
 
@@ -122,6 +122,14 @@ bool ConfigSpace::is_valid(const Eval& config) const {
         if (!p.has_value(v)) {
             return false;
         }
+    }
+
+    return true;
+}
+
+bool ConfigSpace::is_valid(const Eval& config) const {
+    if (!contains(config)) {
+        return false;
     }
 
     for (const auto& r : restrictions_) {

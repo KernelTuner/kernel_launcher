@@ -44,8 +44,9 @@ TEST_CASE("KernelDescriptor", "[CUDA]") {
     KERNEL_LAUNCHER_CUDA_CHECK(cuCtxCreate(&ctx, 0, 0));
     auto a = KernelDescriptor(VectorAddDescriptor());
     auto b = KernelDescriptor(std::make_shared<MatrixMulDescriptor>(1));
-    auto c = KernelDescriptor(std::shared_ptr<IKernelDescriptor>(
-        std::make_shared<MatrixMulDescriptor>(1)));
+    auto c = KernelDescriptor(
+        std::shared_ptr<IKernelDescriptor>(
+            std::make_shared<MatrixMulDescriptor>(1)));
     auto d = KernelDescriptor(MatrixMulDescriptor(2));
 
     // A KernelDescriptor is based on the current CUDA context.

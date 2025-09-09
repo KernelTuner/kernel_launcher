@@ -2,6 +2,7 @@
 #define KERNEL_LAUNCHER_BUILDER_H
 
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "kernel_launcher/arg.h"
@@ -24,11 +25,13 @@ struct KernelInstance {
         CudaModule module,
         std::array<TypedExpr<uint32_t>, 3> block_size,
         std::array<TypedExpr<uint32_t>, 3> grid_size,
-        TypedExpr<uint32_t> shared_mem) :
+        TypedExpr<uint32_t> shared_mem = 0,
+        std::vector<TypedExpr<bool>> assertions = {}) :
         module_(std::move(module)),
         block_size_(std::move(block_size)),
         grid_size_(std::move(grid_size)),
-        shared_mem_(std::move(shared_mem)) {}
+        shared_mem_(std::move(shared_mem)),
+        assertions_(std::move(assertions)) {}
 
     void launch(
         cudaStream_t stream,
@@ -52,6 +55,7 @@ struct KernelInstance {
     std::array<TypedExpr<uint32_t>, 3> block_size_ = {1, 1, 1};
     std::array<TypedExpr<uint32_t>, 3> grid_size_ = {0, 0, 0};
     TypedExpr<uint32_t> shared_mem_ = 0;
+    std::vector<TypedExpr<bool>> assertions_;
 };
 
 struct KernelBuilderSerializerHack;

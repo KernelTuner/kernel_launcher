@@ -37,7 +37,7 @@ KernelArg::KernelArg(KernelArg&& that) noexcept : KernelArg() {
 
 KernelArg::~KernelArg() {
     if (is_scalar() && !is_inline_scalar(type_)) {
-        delete[](char*) data_.large_scalar;
+        delete[] (char*)data_.large_scalar;
     }
 }
 
