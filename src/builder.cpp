@@ -180,6 +180,14 @@ KernelBuilder& KernelBuilder::buffer_size(ArgExpr arg, TypedExpr<size_t> len) {
         ArgsEval eval {args, fallback};
         size_t i = arg.get();
         size_t n = eval(len);
+
+        if (i >= args.size()) {
+            throw std::runtime_error(
+                "argument " + std::to_string(i)
+                + " is out of bounds for kernel that has only "
+                + std::to_string(args.size()) + " parameters");
+        }
+
         args[i] = args[i].to_array(n);
     });
 }
