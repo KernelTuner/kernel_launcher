@@ -101,8 +101,9 @@ struct Compiler: ICompiler {
      */
     template<typename C>
     Compiler(C&& compiler) :
-        inner_(std::make_shared<typename std::decay<C>::type>(
-            std::forward<C>(compiler))) {}
+        inner_(
+            std::make_shared<typename std::decay<C>::type>(
+                std::forward<C>(compiler))) {}
 
     void compile_ptx(
         KernelDef def,

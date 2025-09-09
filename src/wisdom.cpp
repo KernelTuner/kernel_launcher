@@ -655,9 +655,10 @@ WisdomSettings::WisdomSettings(
     std::string wisdom_dir,
     std::string capture_dir,
     std::vector<CaptureRule> capture_rules) :
-    WisdomSettings(std::make_shared<DefaultWisdomSettings>(
-        std::vector<std::string> {std::move(wisdom_dir)},
-        std::move(capture_dir),
-        std::move(capture_rules))) {}
+    WisdomSettings(
+        std::make_shared<DefaultWisdomSettings>(
+            std::vector<std::string> {std::move(wisdom_dir)},
+            std::move(capture_dir),
+            std::move(capture_rules))) {}
 
 }  // namespace kernel_launcher

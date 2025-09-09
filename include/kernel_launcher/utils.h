@@ -2,6 +2,7 @@
 #define KERNEL_LAUNCHER_UTILS_H
 
 #include <cuda_runtime_api.h>
+#include <stdint.h>
 
 #include <functional>
 #include <iosfwd>
@@ -11,7 +12,6 @@
 #include <type_traits>
 #include <typeindex>
 #include <vector>
-#include <stdint.h>
 
 namespace kernel_launcher {
 
