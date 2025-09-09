@@ -4,7 +4,7 @@
 Wisdom Files
 ============
 
-In the previous example, we demonstrated how to compile a kernel by providing both a  ``KernelBuilder`` instance (describing the `blueprint` for the kernel) and a ``Config`` instance (describing the configuration of the tunable parameters).
+In the previous example, we demonstrated how to compile a kernel by providing both a ``KernelBuilder`` instance (describing the *blueprint* for the kernel) and a ``Config`` instance (describing the configuration of the tunable parameters).
 
 
 However, determining the optimal configuration can often be challenging, as it depends on both the problem size and the specific type of GPU being used. 
@@ -12,7 +12,7 @@ To address this problem, Kernel Launcher provides a solution in the form of **wi
 
 To use the Kernel Launcher's wisdom files, we need to run the application twice. 
 First, we **capture** the kernels that we want to tune, and then we use Kernel Tuner to tune those kernels. 
-Second, when we run the application again, but this time the kernel configuration is **selected** from the wisdom file that was generated during the tuning process.
+Second, we run the application again, but this time the kernel configuration is **selected** from the wisdom file that was generated during the tuning process.
 
 Let's see this in action.
 
@@ -34,7 +34,7 @@ main.cpp
 Code Explanation
 ----------------
 
-Notice how this example is similar to the previous example, with some minor differences such that ``kl::Kernel`` has been replaced by ``kl::WisdomKernel``.
+Notice how this example is similar to the previous example, with some minor differences, such that ``kl::Kernel`` has been replaced by ``kl::WisdomKernel``.
 We now highlight the important lines of this code example.
 
 .. literalinclude:: wisdom.cpp
@@ -59,12 +59,12 @@ If no wisdom file can be found, the default configuration is used (in this examp
    :lines: 25-26
    :lineno-start: 25
    
-The following two lines of code set global configuration for the application.
+The following two lines of code set the global configuration for the application.
 
 The function ``set_global_wisdom_directory`` sets the directory where Kernel Launcher will search for wisdom files associated with a compiled kernel. 
 In this example, the directory ``wisdom/`` is set as the wisdom directory, and Kernel Launcher will search for the file ``wisdom/vector_add_float.wisdom`` since ``vector_add_float`` is the tuning key.
 
-The function ``set_global_capture_directory`` sets the directory where Kernel Launcher will store resulting files when capturing a kernel launch.
+The function ``set_global_capture_directory`` sets the directory where Kernel Launcher will store the resulting files when capturing a kernel launch.
 
 .. literalinclude:: wisdom.cpp
    :lines: 28-30
@@ -97,7 +97,7 @@ See :doc:`../env_vars` for an overview and description of additional environment
 
 Tune the kernel
 ---------------
-To tune the kernel, run the Python script ``tune.py`` in the directory ``python/`` which uses `Kernel Tuner <https://kerneltuner.github.io/>`_ to tune the kernel.
+To tune the kernel, run the Python script ``tune.py`` in the directory ``python/``, which uses `Kernel Tuner <https://kerneltuner.github.io/>`_ to tune the kernel.
 To view all available options, use ``--help``.
 For example, to spend 10 minutes tuning the kernel for the current GPU, use the following command::
 
@@ -109,7 +109,7 @@ To tune multiple kernels at once, use a wildcard::
 
 If everything goes well, the script should run for ten minutes and eventually generate a file ``wisdom/vector_add_float.wisdom`` containing the tuning results.
 Note that it is possible to tune the same kernel for different GPUs and problem sizes, and all results will be saved in the same wisdom file.
-After tuning, the files in the ``captures/`` directory can be removed safely.
+After tuning, the files in the ``captures/`` directory can be safely removed.
 
 
 
