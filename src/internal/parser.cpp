@@ -46,8 +46,18 @@ static std::vector<FunctionParam> parse_kernel_params(TokenStream& stream) {
         Token before_name = begin;
         Token name = stream.next();
         Token end = stream.peek();
+        int template_depth = 0;
 
-        while (end.kind != TokenKind::Comma && end.kind != TokenKind::ParenR) {
+        while (template_depth > 0
+               || !(
+                   end.kind == TokenKind::Comma
+                   || end.kind == TokenKind::ParenR)) {
+            if (name.kind == TokenKind::AngleL) {
+                template_depth++;
+            } else if (name.kind == TokenKind::AngleR && template_depth > 0) {
+                template_depth--;
+            }
+
             before_name = name;
             name = stream.next();
             end = stream.peek();
