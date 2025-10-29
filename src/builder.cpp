@@ -131,18 +131,6 @@ void KernelInstance::launch(
         }
     }
 
-    // We check for assertions now after printing the debug information. This
-    // allows one to check the debugging output to see what where the arguments
-    // provided to kernel that caused the assertion to fail.
-    for (const auto& assertion : assertions_) {
-        if (!eval(assertion)) {
-            std::stringstream ss;
-            ss << "failed to launch kernel `" << module_.function_name()
-               << "`, assertion failed: `" << assertion.to_string() << "`";
-            throw std::runtime_error(ss.str());
-        }
-    }
-
     module_.launch(stream, grid_size, block_size, smem, ptrs.data());
 }
 
@@ -464,34 +452,7 @@ KernelInstance KernelBuilder::compile(
     const std::vector<TypeInfo>& param_types,
     const ICompiler& compiler,
     CudaContextHandle ctx) const {
-    if (!contains(config)) {
-        std::stringstream ss;
-        ss << "invalid configuration: `" << config << "`";
-        throw std::runtime_error(ss.str());
-    }
-
     DeviceAttrEval eval = {ctx.device(), config};
-    std::vector<TypedExpr<bool>> assertions;
-
-    for (const auto& restriction : restrictions()) {
-        auto r = restriction.resolve(eval);
-
-        if (!r.is_constant()) {
-            // Any restriction that contain kernel arguments cannot be resolved
-            // now at this moment. We add these to the list of assertions
-            // that will be checked each time the kernel gets launched.
-            assertions.emplace_back(r);
-            continue;
-        }
-
-        if (!r.eval(eval)) {
-            std::stringstream ss;
-            ss << "configuration `" << config
-               << "` does not meet the following restriction: `"
-               << restriction.to_string() << "`";
-            throw std::runtime_error(ss.str());
-        }
-    }
 
     if (!is_valid(eval)) {
         std::stringstream ss;
@@ -516,8 +477,7 @@ KernelInstance KernelBuilder::compile(
         std::move(module),
         std::move(block_size),
         std::move(grid_size),
-        std::move(shared_mem),
-        std::move(assertions)};
+        shared_mem};
 }
 
 }  // namespace kernel_launcher

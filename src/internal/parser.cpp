@@ -52,9 +52,9 @@ static std::vector<FunctionParam> parse_kernel_params(TokenStream& stream) {
                || !(
                    end.kind == TokenKind::Comma
                    || end.kind == TokenKind::ParenR)) {
-            if (name.kind == TokenKind::AngleL) {
+            if (end.kind == TokenKind::AngleL) {
                 template_depth++;
-            } else if (name.kind == TokenKind::AngleR && template_depth > 0) {
+            } else if (end.kind == TokenKind::AngleR && template_depth > 0) {
                 template_depth--;
             }
 

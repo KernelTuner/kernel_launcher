@@ -121,6 +121,8 @@ struct NvrtcException: std::runtime_error {
     NvrtcException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
+enum struct SymbolLookupMode { NameAndTypes = 0, NameOnly = 1 };
+
 /**
  * `ICompiler` that uses [NVRTC](https://docs.nvidia.com/cuda/nvrtc/index.html)
  * to compile CUDA kernels.
@@ -128,7 +130,8 @@ struct NvrtcException: std::runtime_error {
 struct NvrtcCompiler: ICompiler {
     NvrtcCompiler(
         std::vector<std::string> options = {},
-        std::shared_ptr<FileLoader> fs = {});
+        std::shared_ptr<FileLoader> fs = {},
+        SymbolLookupMode symbol_mode = SymbolLookupMode::NameAndTypes);
 
     static int version();
 
@@ -141,6 +144,7 @@ struct NvrtcCompiler: ICompiler {
   private:
     std::shared_ptr<FileLoader> fs_;
     std::vector<std::string> default_options_;
+    SymbolLookupMode symbol_mode_;
 };
 
 /**

@@ -81,9 +81,11 @@ static void nvrtc_check(nvrtcResult result) {
 
 NvrtcCompiler::NvrtcCompiler(
     std::vector<std::string> options,
-    std::shared_ptr<FileLoader> fs) :
+    std::shared_ptr<FileLoader> fs,
+    SymbolLookupMode symbol_mode) :
     fs_(fs ? std::move(fs) : std::make_shared<DefaultLoader>()),
-    default_options_(std::move(options)) {}
+    default_options_(std::move(options)),
+    symbol_mode_(symbol_mode) {}
 
 // RAII wrapper to ensure nvrtcDestroy is always called
 struct NvrtcProgramDestroyer {
@@ -174,6 +176,32 @@ static bool nvrtc_compile(
 
 static std::string generate_expression(
     const std::string& kernel_name,
+    const std::vector<TemplateArg>& template_args) {
+    std::ostringstream oss;
+    oss << kernel_name;
+
+    if (!template_args.empty()) {
+        oss << "<(";
+
+        bool is_first = true;
+        for (const TemplateArg& arg : template_args) {
+            if (!is_first) {
+                oss << "),(";
+            } else {
+                is_first = false;
+            }
+
+            oss << arg.get();
+        }
+
+        oss << ")>";
+    }
+
+    return oss.str();
+}
+
+static std::string generate_typed_expression(
+    const std::string& kernel_name,
     const std::vector<TemplateArg>& template_args,
     const std::vector<TypeInfo>& parameter_types) {
     std::stringstream oss;
@@ -191,24 +219,7 @@ static std::string generate_expression(
     }
 
     oss << "))";
-    oss << kernel_name;
-
-    if (!template_args.empty()) {
-        oss << "<";
-
-        is_first = true;
-        for (const TemplateArg& arg : template_args) {
-            if (!is_first) {
-                oss << ",";
-            } else {
-                is_first = false;
-            }
-
-            oss << arg.get();
-        }
-
-        oss << ">";
-    }
+    oss << generate_expression(kernel_name, template_args);
 
     return oss.str();
 }
@@ -328,8 +339,12 @@ void NvrtcCompiler::compile_ptx(
     std::string& symbol_out) const {
     constexpr size_t max_attempts = 25;
 
-    std::string expression =
-        generate_expression(def.name, def.template_args, def.param_types);
+    std::string expression = symbol_mode_ == SymbolLookupMode::NameOnly
+        ? generate_expression(def.name, def.template_args)
+        : generate_typed_expression(
+              def.name,
+              def.template_args,
+              def.param_types);
     std::string log;
 
     std::vector<std::string> options;
