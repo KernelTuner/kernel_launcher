@@ -97,6 +97,15 @@ void KernelInstance::launch(
 
     uint32_t smem = eval(shared_mem_);
 
+    for (const TypedExpr<bool>& assertion : assertions_) {
+        if (!eval(assertion)) {
+            std::stringstream ss;
+            ss << "assertion failed while launching kernel "
+               << module_.function_name() << ": " << assertion.to_string();
+            throw std::runtime_error(ss.str());
+        }
+    }
+
     std::vector<void*> ptrs {args.size()};
     for (size_t i = 0; i < args.size(); i++) {
         ptrs[i] = args[i].as_void_ptr();
@@ -472,12 +481,33 @@ KernelInstance KernelBuilder::compile(
 
     TypedExpr<uint32_t> shared_mem = shared_mem_.resolve(eval);
 
+    std::vector<TypedExpr<bool>> assertions;
+    assertions.reserve(assertions_.size());
+    for (const TypedExpr<bool>& a : assertions_) {
+        TypedExpr<bool> resolved = a.resolve(eval);
+
+        // If the assertion no longer depends on any runtime state (that is,
+        // it resolved to a constant), check it right away instead of
+        // deferring it to every future launch.
+        if (resolved.is_constant()) {
+            if (!eval(resolved)) {
+                std::stringstream ss;
+                ss << "assertion failed while compiling kernel " << kernel_name_
+                   << ": " << a.to_string();
+                throw std::runtime_error(ss.str());
+            }
+        } else {
+            assertions.push_back(std::move(resolved));
+        }
+    }
+
     CudaModule module = compiler.compile(ctx, build(eval, param_types));
     return {
         std::move(module),
         std::move(block_size),
         std::move(grid_size),
-        shared_mem};
+        shared_mem,
+        std::move(assertions)};
 }
 
 }  // namespace kernel_launcher

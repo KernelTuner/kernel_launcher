@@ -235,6 +235,13 @@ struct KernelBuilder: ConfigSpace {
      */
     KernelBuilder& shared_memory(TypedExpr<uint32_t> smem);
 
+    /**
+     * Add an assertion that must hold for the kernel to be launched. If this
+     * assertion evaluates to `false` when launching the kernel, an exception
+     * is thrown and the kernel will not be launched. The assertion may even
+     * include launch arguments or device-specific expressions.
+     * @return `this`
+     */
     KernelBuilder& assertion(TypedExpr<bool> e);
 
     /**
