@@ -35,6 +35,7 @@ def write_wisdom_for_problem(
         problem.problem_size,
         results,
         env,
+        features=problem.features,
         **kwargs,
     )
 
@@ -47,6 +48,7 @@ def write_wisdom(
     results: list,
     env: dict,
     *,
+    features=None,
     max_results=5,
     merge_existing_results=False,
 ):
@@ -58,13 +60,16 @@ def write_wisdom(
     :param problem_size: The problem size as passed to ``kernel_tuner.tune_kernel``
     :param results: The results returned by ``kernel_tuner.tune_kernel``
     :param env: The environment returned by ``kernel_tuner.tune_kernel``
+    :param features: The features of the problem as a dictionary. If ``None``, the problem has no features.
     :param max_results: Only the top ``max_results`` results are written in the wisdom file.
-    :param merge_existing_results: If ``True``, existing results in the wisdom file for the same problem size and
-                                   environment are merged with the provided ``results``. If ``False``, existing
-                                   results for the same problem size and environment are overwritten.
+    :param merge_existing_results: If ``True``, existing results in the wisdom file for the same problem size,
+                                   features, and environment are merged with the provided ``results``. If ``False``,
+                                   existing results for the same problem size, features, and environment are
+                                   overwritten.
 
     """
     device_name = env["device_name"]
+    features = features or dict()
     config2result = dict()
 
     # Path to the wisdom file
@@ -73,15 +78,16 @@ def write_wisdom(
     # If wisdom file exists, read the lines in the file
     if os.path.exists(filename):
         with open(filename, "r") as handle:
-            line = next(handle)
+            line = next(handle).strip()
             lines = [line]
             param_keys = _check_header(line, key, params)
 
             for line, record in _parse_wisdom(handle):
-                # Skip lines that have a matching problem_size and device_name
+                # Skip lines that have a matching problem_size, features, and device_name
                 if (
                     not record
                     or record["problem_size"] != problem_size
+                    or (record.get("features") or dict()) != features
                     or record["environment"].get("device_name") != device_name
                 ):
                     lines.append(line)
@@ -107,6 +113,9 @@ def write_wisdom(
             "time": result[WISDOM_OBJECTIVE],
             "environment": environment,
         }
+
+        if features:
+            record["features"] = features
 
         index = tuple(config)
         config2result[index] = record
@@ -263,18 +272,38 @@ def _wisdom_file(path, key):
         )
 
 
+def _compute_capability(env):
+    # The CUDA backends of Kernel Tuner provide the compute capability (e.g. "80").
+    if "compute_capability" in env:
+        return f"sm_{env['compute_capability']}"
+
+    # The HIP backend provides the architecture, which may be followed by target features
+    # (e.g. "gfx90a:sramecc+:xnack-").
+    props = env.get("device_properties")
+    if isinstance(props, dict) and props.get("gcnArchName"):
+        return props["gcnArchName"].split(":")[0]
+
+    return None
+
+
 def _build_environment(env):
+    compute_capability = _compute_capability(env)
+
     env = {
         "date": datetime.now().isoformat(),
         "device_name": env["device_name"],
-        "compute_capability": int(env["compute_capability"]),
     }
+
+    if compute_capability is not None:
+        env["compute_capability"] = compute_capability
 
     # Kernel tuner related
     try:
         import kernel_tuner
 
         env["kernel_tuner_version"] = kernel_tuner.__version__
+    except ImportError:
+        pass  # Ignore error if kernel_tuner is not installed
     except AttributeError as e:
         logger.warning(f"ignore error: kernel_tuner.__version__ is not available: {e}")
 

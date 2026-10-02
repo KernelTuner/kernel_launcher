@@ -1,30 +1,41 @@
-#include "kernel_launcher/registry.h"
+#include "kernel_launcher/registry.hpp"
+
+#include <mutex>
+#include <unordered_map>
 
 namespace kernel_launcher {
-KernelRegistry* global_default_registry = nullptr;
 
-const KernelRegistry& default_registry() {
-    if (global_default_registry == nullptr) {
-        global_default_registry = new KernelRegistry;
+struct DescriptorKeyHash {
+    size_t operator()(const DescriptorKey& k) const noexcept {
+        return k.hash();
+    }
+};
+
+struct Registry::Impl {
+    Impl(KernelSettings&& settings) : settings(std::move(settings)) {}
+
+    std::mutex mutex;
+    KernelSettings settings;
+    std::unordered_map<DescriptorKey, Kernel, DescriptorKeyHash> kernels;
+};
+
+Registry::Registry(KernelSettings settings) : impl_(std::make_shared<Impl>(std::move(settings))) {}
+
+Kernel Registry::lookup(DescriptorKey key) {
+    std::lock_guard guard {impl_->mutex};
+
+    if (auto it = impl_->kernels.find(key); it != impl_->kernels.end()) {
+        return it->second;
     }
 
-    return *global_default_registry;
+    Kernel kernel(key.get().build(), impl_->settings);
+    impl_->kernels.emplace(std::move(key), kernel);
+    return kernel;
 }
 
-WisdomKernel& KernelRegistry::lookup_internal(KernelDescriptor key) const {
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    auto it = cache_.find(key);
-    if (it != cache_.end()) {
-        return *it->second;
-    }
-
-    WisdomKernel kernel(key.get().build(), compiler_, settings_);
-
-    auto entry = cache_.emplace(
-        std::move(key),
-        std::make_unique<WisdomKernel>(std::move(kernel)));
-    return *entry.first->second;
+Registry& default_registry() {
+    static Registry registry;
+    return registry;
 }
 
 }  // namespace kernel_launcher

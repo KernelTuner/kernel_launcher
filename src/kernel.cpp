@@ -1,245 +1,316 @@
-#include "kernel_launcher/kernel.h"
+#include "kernel_launcher/kernel.hpp"
 
-#include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <memory>
 #include <mutex>
-
-#include "kernel_launcher/wisdom.h"
+#include <unordered_map>
 
 namespace kernel_launcher {
 
-struct WisdomKernelImpl {
-    std::mutex mutex_;
-    bool compiled_;
-    KernelBuilder builder_;
-    KernelInstance instance_;
-    ProblemProcessor problem_processor_;
-    Compiler compiler_;
-    std::vector<TypeInfo> param_types_;
-    WisdomSettings settings_;
-    bool capture_required_;
-    int capture_skip_;
+struct RawKernelInstance::PendingCapture {
+    PendingCapture(
+        std::shared_ptr<WisdomProvider> wisdom,
+        KernelBuilder builder,
+        size_t skip_launches) :
+        wisdom(std::move(wisdom)),
+        builder(std::move(builder)),
+        skip_launches(skip_launches) {}
+
+    // Called before a launch. Returns false if this launch is not captured,
+    // either because it is skipped or because the arguments do not match
+    // `problem`.
+    bool
+    pre_launch(const ProblemKey& problem, GPUStream stream, const std::vector<KernelArg>& args);
+
+    // Called after a launch for which `pre_launch` returned true.
+    void post_launch(const ProblemKey& problem, GPUStream stream);
+
+    std::shared_ptr<WisdomProvider> wisdom;
+    KernelBuilder builder;
+
+    // The members below are only accessed by the thread that has taken this
+    // capture out of `State::pending_capture`.
+
+    // Number of launches left to skip before capturing.
+    size_t skip_launches;
+    // Set by `pre_launch` for use by `post_launch`.
+    std::vector<KernelArg> sized_args;
+    std::vector<std::vector<std::byte>> inputs;
 };
 
-WisdomKernel::WisdomKernel() = default;
-WisdomKernel::WisdomKernel(WisdomKernel&&) noexcept = default;
-WisdomKernel::~WisdomKernel() = default;
+RawKernelInstance::State::State(
+    std::shared_ptr<GPUKernel> kernel,
+    ProblemKey problem,
+    Config config,
+    LaunchConfig launch_config) :
+    kernel(std::move(kernel)),
+    problem(std::move(problem)),
+    config(std::move(config)),
+    launch_config(launch_config) {}
 
-void WisdomKernel::initialize(
+RawKernelInstance::State::~State() {
+    delete pending_capture.load();
+}
+
+RawKernelInstance::RawKernelInstance(
+    std::shared_ptr<GPUKernel> kernel,
+    ProblemKey problem,
+    Config config,
+    LaunchConfig launch_config) :
+    state_(
+        std::make_shared<const State>(
+            std::move(kernel),
+            std::move(problem),
+            std::move(config),
+            launch_config)) {}
+
+void RawKernelInstance::capture_next_launch(
+    std::shared_ptr<WisdomProvider> wisdom,
     KernelBuilder builder,
-    Compiler compiler,
-    WisdomSettings settings) {
-    auto problem_processor = builder.problem_processor();
-    impl_ = std::unique_ptr<WisdomKernelImpl>(new WisdomKernelImpl {
-        {},
-        false,
-        std::move(builder),
-        KernelInstance {},
-        std::move(problem_processor),
-        std::move(compiler),
-        std::vector<TypeInfo> {},
-        std::move(settings),
-        false,
-        0});
+    size_t skip_launches) const {
+    if (!wisdom) {
+        throw std::invalid_argument("wisdom provider cannot be null");
+    }
+
+    auto next =
+        std::make_unique<PendingCapture>(std::move(wisdom), std::move(builder), skip_launches);
+    std::unique_ptr<PendingCapture> previous {state_->pending_capture.exchange(next.release())};
 }
 
-void WisdomKernel::clear() {
-    if (impl_) {
-        std::lock_guard<std::mutex> guard(impl_->mutex_);
-        impl_->compiled_ = false;
+static void launch_kernel(
+    const GPUKernel& kernel,
+    const LaunchConfig& config,
+    GPUStream stream,
+    const std::vector<KernelArg>& args) {
+    auto raw_args = std::make_unique<const void*[]>(args.size());
+
+    for (size_t i = 0; i < args.size(); i++) {
+        raw_args[i] = args[i].data();
+    }
+
+    kernel.launch(stream, config, raw_args.get());
+}
+
+void RawKernelInstance::launch_args(GPUStream stream, const std::vector<KernelArg>& args) const {
+    std::unique_ptr<PendingCapture> capture;
+
+    if (state_->pending_capture.load() != nullptr) {
+        // Taking the pointer gives this thread sole ownership of the capture.
+        // If the capture throws, it is dropped and not retried.
+        capture.reset(state_->pending_capture.exchange(nullptr));
+
+        if (capture && !capture->pre_launch(state_->problem, stream, args)) {
+            // Not captured: put the capture back, unless a new one was set in the meantime.
+            PendingCapture* expected = nullptr;
+            PendingCapture* raw = capture.release();
+            if (!state_->pending_capture.compare_exchange_strong(expected, raw)) {
+                delete raw;
+            }
+        }
+    }
+
+    launch_kernel(*state_->kernel, state_->launch_config, stream, args);
+
+    if (capture) {
+        capture->post_launch(state_->problem, stream);
     }
 }
 
-void compile_impl(
-    WisdomKernelImpl* impl,
-    ProblemSize problem_size,
-    CudaContextHandle context,
-    std::vector<TypeInfo> param_types) {
-    const std::string& tuning_key = impl->builder_.tuning_key();
-    int capture_skip = 0;
+// Copies the contents of every buffer argument to the host. Non-buffer
+// arguments get an empty vector.
+static std::vector<std::vector<std::byte>>
+copy_buffers_to_host(GPUStream stream, const std::vector<KernelArg>& args) {
+    // Buffers may be written by work on other streams, so wait for the whole
+    // device before copying.
+    gpu_synchronize();
 
-    Config config = impl->settings_.load_config(
-        tuning_key,
-        impl->builder_,
-        problem_size,
-        context.device(),
-        &capture_skip);
+    std::vector<std::vector<std::byte>> result(args.size());
 
-    // Assign result to temporary variable since compile may throw
-    auto instance =
-        impl->builder_.compile(config, param_types, impl->compiler_, context);
+    for (size_t i = 0; i < args.size(); i++) {
+        const KernelArg& arg = args[i];
 
-    // Compile was successful. Overwrite fields of impl
-    impl->instance_ = std::move(instance);
-    impl->param_types_ = std::move(param_types);
-    impl->compiled_ = true;
-    impl->capture_required_ = capture_skip >= 0;
-    impl->capture_skip_ = capture_skip;
+        if (!arg.type().is_pointer() || arg.buffer_size() == 0) {
+            continue;
+        }
+
+        void* ptr;
+        std::memcpy(&ptr, arg.data(), sizeof(void*));
+
+        result[i].resize(arg.buffer_size());
+        gpu_copy(result[i].data(), ptr, arg.buffer_size(), stream);
+    }
+
+    gpu_synchronize(stream);
+
+    return result;
 }
 
-void WisdomKernel::compile(
-    ProblemSize problem_size,
+bool RawKernelInstance::PendingCapture::pre_launch(
+    const ProblemKey& problem,
+    GPUStream stream,
+    const std::vector<KernelArg>& args) {
+    // The arguments of a launch carry no buffer sizes. Building the problem
+    // key sets them, and also checks that the arguments match the problem
+    // this instance was compiled for.
+    std::vector<KernelArg> new_args = args;
+
+    try {
+        if (builder.build_problem_key(new_args) != problem) {
+            return false;
+        }
+    } catch (const std::exception&) {
+        return false;
+    }
+
+    if (skip_launches > 0) {
+        skip_launches--;
+        return false;
+    }
+
+    sized_args = std::move(new_args);
+    inputs = copy_buffers_to_host(stream, sized_args);
+    return true;
+}
+
+void RawKernelInstance::PendingCapture::post_launch(const ProblemKey& problem, GPUStream stream) {
+    auto outputs = copy_buffers_to_host(stream, sized_args);
+    wisdom->capture_kernel(GPUDevice::current(), builder, problem, sized_args, inputs, outputs);
+}
+
+RawKernelInstance compile_kernel_raw(
+    const KernelBuilder& builder,
+    const ProblemKey& problem,
+    const Config& config,
     std::vector<TypeInfo> param_types,
-    CudaContextHandle context) {
-    if (!impl_) {
-        throw std::runtime_error("WisdomKernel has not been initialized");
+    CompilerBase& compiler,
+    GPUContextRef context) {
+    GPUDevice device = context.device();
+
+    if (!builder.build_config_space(device, problem).is_valid(config)) {
+        throw std::runtime_error("config is not valid for this problem and device");
     }
 
-    std::lock_guard<std::mutex> guard(impl_->mutex_);
-    compile_impl(impl_.get(), problem_size, context, std::move(param_types));
+    KernelDef def = builder.build_kernel_def(device, config, problem, std::move(param_types));
+
+    auto kernel = compiler.compile(context, std::move(def));
+
+    // Querying the kernel's attributes requires its context to be current.
+    GPUContextGuard guard(context);
+    auto launch = builder.build_launch_config(device, *kernel, config, problem);
+
+    return RawKernelInstance(std::move(kernel), problem, config, launch);
 }
 
-void WisdomKernel::compile(
-    std::vector<KernelArg> args,
-    CudaContextHandle context) {
-    if (!impl_) {
-        throw std::runtime_error("WisdomKernel has not been initialized");
+struct KernelKey {
+    GPUContextRef context;
+    ProblemKey problem;
+    std::vector<TypeInfo> param_types;
+    size_t hash = 0;
+
+    KernelKey(GPUContextRef context, ProblemKey problem, std::vector<TypeInfo> param_types) :
+        context(context),
+        problem(std::move(problem)),
+        param_types(std::move(param_types)) {
+        // precompute the hash since it expensive to compute on each lookup
+        hash_combine(hash, this->context);
+        hash_combine(hash, this->problem);
+        hash_combine(hash, this->param_types);
     }
 
-    std::lock_guard<std::mutex> guard(impl_->mutex_);
-    ProblemSize problem_size = impl_->problem_processor_(args);
+    bool operator==(const KernelKey& that) const {
+        // Comparing the precomputed hash first is a cheap early-out.
+        return hash == that.hash  //
+            && problem == that.problem  //
+            && param_types == that.param_types  //
+            && context == that.context;
+    }
+};
+
+struct KernelKeyHash {
+    size_t operator()(const KernelKey& k) const noexcept {
+        return k.hash;
+    }
+};
+
+struct Kernel::Impl {
+    Impl(KernelBuilder&& builder, KernelSettings&& settings) :
+        builder(std::move(builder)),
+        compiler(std::move(settings.compiler)),
+        wisdom(std::move(settings.wisdom)) {
+        if (!compiler) {
+            compiler = std::make_shared<RuntimeCompiler>();
+        }
+    }
+
+    std::mutex mutex;
+    KernelBuilder builder;
+    std::shared_ptr<CompilerBase> compiler;
+    // May be null, in which case the default config is always used.
+    std::shared_ptr<WisdomProvider> wisdom;
+    std::unordered_map<KernelKey, RawKernelInstance, KernelKeyHash> instance_cache;
+};
+
+Kernel::Kernel(KernelBuilder builder, KernelSettings settings) :
+    impl_(std::make_shared<Impl>(std::move(builder), std::move(settings))) {}
+
+RawKernelInstance Kernel::compile_args(std::vector<KernelArg>& args, GPUContextRef context) {
+    if (!impl_) {
+        throw std::runtime_error("Kernel is not initialized");
+    }
+
+    // The builder is never modified, so this does not need the lock.
+    ProblemKey problem = impl_->builder.build_problem_key(args);
 
     std::vector<TypeInfo> param_types;
-    for (const KernelArg& arg : args) {
+    param_types.reserve(args.size());
+
+    for (const auto& arg : args) {
         param_types.push_back(arg.type());
     }
 
-    compile_impl(impl_.get(), problem_size, context, std::move(param_types));
+    return compile_for(std::move(problem), std::move(param_types), context);
 }
 
-static void assert_types_equal(
-    const std::vector<KernelArg>& args,
-    const std::vector<TypeInfo>& params) {
-    bool is_equal = true;
-    if (args.size() == params.size()) {
-        for (size_t i = 0; i < args.size(); i++) {
-            if (args[i].type().remove_const() != params[i].remove_const()) {
-                is_equal = false;
-            }
-        }
-    } else {
-        is_equal = false;
-    }
-
-    if (is_equal) {
-        return;
-    }
-
-    std::string msg =
-        "invalid argument types: kernel compiled for parameter types (";
-
-    for (size_t i = 0; i < params.size(); i++) {
-        if (i != 0) {
-            msg += ", ";
-        }
-        msg += params[i].name();
-    }
-
-    msg += "), but was called with argument types (";
-
-    for (size_t i = 0; i < args.size(); i++) {
-        if (i != 0) {
-            msg += ", ";
-        }
-        msg += args[i].type().name();
-    }
-
-    msg += ")";
-    throw std::runtime_error(msg);
-}
-
-static void launch_captured_impl(
-    WisdomKernelImpl* impl_,
-    cudaStream_t stream,
-    ProblemSize problem_size,
-    const std::vector<KernelArg>& args) {
-    const std::string& tuning_key = impl_->builder_.tuning_key();
-    std::vector<std::vector<uint8_t>> inputs;
-    std::vector<std::vector<uint8_t>> outputs;
-
-    KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
-
-    for (const KernelArg& arg : args) {
-        if (arg.is_array()) {
-            inputs.emplace_back(arg.copy_array());
-        }
-    }
-
-    impl_->instance_.launch(stream, problem_size, args);
-
-    KERNEL_LAUNCHER_CUDA_CHECK(cuStreamSynchronize(stream));
-    KERNEL_LAUNCHER_CUDA_CHECK(cuCtxSynchronize());
-
-    for (const KernelArg& arg : args) {
-        if (arg.is_array()) {
-            outputs.emplace_back(arg.copy_array());
-        }
-    }
-
-    try {
-        impl_->settings_.capture_kernel(
-            tuning_key,
-            impl_->builder_,
-            problem_size,
-            args,
-            inputs,
-            outputs);
-    } catch (const std::exception& err) {
-        log_warning() << "error ignored while writing tuning file for \""
-                      << tuning_key << "\": " << err.what();
-    }
-}
-
-void WisdomKernel::capture_next_launch(int skip_launches) {
+RawKernelInstance
+Kernel::compile_for(ProblemKey problem, std::vector<TypeInfo> param_types, GPUContextRef context) {
     if (!impl_) {
-        throw std::runtime_error("WisdomKernel has not been initialized");
+        throw std::runtime_error("Kernel is not initialized");
     }
 
-    std::lock_guard<std::mutex> guard(impl_->mutex_);
-    impl_->capture_required_ = true;
-    impl_->capture_skip_ = skip_launches;
-}
+    auto device = context.device();
 
-void WisdomKernel::launch_args(
-    cudaStream_t stream,
-    std::vector<KernelArg> args) {
-    if (!impl_) {
-        throw std::runtime_error("WisdomKernel has not been initialized");
+    std::lock_guard guard {impl_->mutex};
+    KernelKey kernel_key {context, std::move(problem), std::move(param_types)};
+
+    if (auto p = impl_->instance_cache.find(kernel_key); p != impl_->instance_cache.end()) {
+        return p->second;
     }
 
-    std::lock_guard<std::mutex> guard(impl_->mutex_);
-    ProblemSize problem_size = impl_->problem_processor_(args);
+    ConfigSpace space = impl_->builder.build_config_space(device, kernel_key.problem);
 
-    if (!impl_->compiled_) {
-        std::vector<TypeInfo> param_types;
-        for (const KernelArg& arg : args) {
-            param_types.push_back(arg.type());
-        }
+    TuningAction action = TuningAction::None;
+    Config config = impl_->wisdom
+        ? impl_->wisdom->load_config(device, space, kernel_key.problem, &action)
+        : space.default_config();
 
-        compile_impl(
-            impl_.get(),
-            problem_size,
-            CudaContextHandle::current(),
-            param_types);
+    RawKernelInstance instance = compile_kernel_raw(
+        impl_->builder,
+        kernel_key.problem,
+        config,
+        kernel_key.param_types,
+        *impl_->compiler,
+        context);
+
+    // The pending capture is shared with the cached copy, so only the first
+    // launch of this instance is captured.
+    if (action == TuningAction::Capture) {
+        instance.capture_next_launch(impl_->wisdom, impl_->builder);
     }
 
-    assert_types_equal(args, impl_->param_types_);
+    auto it = impl_->instance_cache.emplace(std::move(kernel_key), std::move(instance));
 
-    bool should_capture = false;
-    if (impl_->capture_required_) {
-        if (impl_->capture_skip_ <= 0) {
-            impl_->capture_required_ = false;
-            should_capture = true;
-        } else {
-            impl_->capture_skip_ -= 1;
-        }
-    }
-
-    if (should_capture) {
-        launch_captured_impl(impl_.get(), stream, problem_size, args);
-    } else {
-        impl_->instance_.launch(stream, problem_size, args);
-    }
+    return it.first->second;
 }
 
 }  // namespace kernel_launcher

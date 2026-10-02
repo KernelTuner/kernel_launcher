@@ -4,6 +4,6 @@ set (PROJECT_NAME kernel_launcher_matmul)
 project(${PROJECT_NAME} LANGUAGES CXX CUDA)
 
 add_executable(${PROJECT_NAME} "${PROJECT_SOURCE_DIR}/main.cu")
-target_link_libraries(${PROJECT_NAME} kernel_launcher)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel_launcher)
 
 kernel_launcher_embed_glob(${PROJECT_NAME} ${PROJECT_SOURCE_DIR} *.cuh *.cu)

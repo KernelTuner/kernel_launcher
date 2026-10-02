@@ -1,13 +1,7 @@
-cmake_minimum_required(VERSION 3.16)
+file(GLOB_RECURSE test_sources "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+add_executable(kernel_launcher_tests ${test_sources})
 
-project(tests)
-set(CMAKE_CXX_STANDARD 17)
-
-file(GLOB FILES *.cpp)
-add_executable(kernel_launcher_tests ${FILES})
-target_link_libraries(kernel_launcher_tests PRIVATE kernel_launcher)
-
-find_package(CUDA REQUIRED)
-target_include_directories(kernel_launcher_tests PRIVATE ${CUDA_TOOLKIT_INCLUDE})
-
-target_include_directories(kernel_launcher_tests PRIVATE "${PROJECT_SOURCE_DIR}/../thirdparty")
+target_include_directories(kernel_launcher_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(kernel_launcher_tests PRIVATE "${PROJECT_SOURCE_DIR}/thirdparty")
+target_link_libraries(kernel_launcher_tests PRIVATE kernel_launcher CUDA::cuda_driver)
+target_compile_definitions(kernel_launcher_tests PRIVATE KERNEL_LAUNCHER_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}")

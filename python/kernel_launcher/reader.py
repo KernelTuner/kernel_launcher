@@ -4,6 +4,7 @@ import hashlib
 import json
 import kernel_tuner
 import logging
+import math
 import numpy as np
 import os.path
 import re
@@ -221,6 +222,7 @@ class TuningProblem:
         self.environment = obj.get("environment", dict())
         self.key = obj["key"]
         self.problem_size = obj["problem_size"]
+        self.features = obj.get("features") or dict()
         self.args = []
         self.answers = []
 
@@ -515,6 +517,13 @@ class BinaryExpr(Expr):
     def evaluate(self, config):
         op = self.op
         lhs = self.lhs(config)
+
+        # The right operand is only evaluated if the left operand does not decide the result.
+        if op == "&&" or op == "and":
+            return bool(lhs) and bool(self.rhs(config))
+        if op == "||" or op == "or":
+            return bool(lhs) or bool(self.rhs(config))
+
         rhs = self.rhs(config)
 
         if op == "+":
@@ -536,7 +545,9 @@ class BinaryExpr(Expr):
                 # see above
                 return lhs - int(lhs / rhs) * rhs
             else:
-                return lhs % rhs
+                # Like `std::fmod`, the result has the sign of the dividend. This is different
+                # from Python's `%` operator, where it has the sign of the divisor.
+                return math.fmod(lhs, rhs)
         if op == "==":
             return lhs == rhs
         if op == "!=":
@@ -549,15 +560,19 @@ class BinaryExpr(Expr):
             return lhs <= rhs
         if op == ">=":
             return lhs >= rhs
-        if op == "&&" or op == "and":
-            return bool(lhs) and bool(rhs)
-        if op == "||" or op == "or":
-            return bool(lhs) or bool(rhs)
 
         raise ValueError(f"invalid binary operator: {self.op}")
 
     def visit_children(self, fun):
         lhs = fun(self.lhs)
+
+        # If the left operand decides the result, the right operand is not needed.
+        if isinstance(lhs, ValueExpr) and self.op in ("&&", "and", "||", "or"):
+            is_or = self.op in ("||", "or")
+
+            if bool(lhs.value) == is_or:
+                return ValueExpr(is_or)
+
         rhs = fun(self.rhs)
         expr = BinaryExpr(self.op, lhs, rhs)
 
@@ -569,6 +584,36 @@ class BinaryExpr(Expr):
 
     def __repr__(self):
         return f"({self.lhs!r} {self.op} {self.rhs!r})"
+
+
+def round_half_away_from_zero(v):
+    # Same as `std::round`. Python's `round` rounds halfway cases to even instead.
+    result = math.trunc(v)
+
+    if abs(v - result) >= 0.5:
+        result += 1 if v > 0 else -1
+
+    return result
+
+
+def to_integer(v):
+    # Same as `Primitive::to_integer`. Floats are only allowed if they are whole numbers.
+    if v is None or isinstance(v, str) or int(v) != v:
+        raise ValueError(f"could not convert {v!r} to an integer")
+
+    return int(v)
+
+
+def to_string(v):
+    # Same as `Primitive::to_string`.
+    if v is None:
+        return ""
+    if isinstance(v, (bool, np.bool_)):
+        return "true" if v else "false"
+    if isinstance(v, (float, np.floating)):
+        return f"{v:f}"
+
+    return str(v)
 
 
 class UnaryExpr(Expr):
@@ -586,6 +631,20 @@ class UnaryExpr(Expr):
             return -arg
         if op == "!" or op == "not":
             return not bool(arg)
+        if op == "round":
+            return round_half_away_from_zero(arg)
+        if op == "floor":
+            return math.floor(arg)
+        if op == "ceil":
+            return math.ceil(arg)
+        if op == "bool":
+            return bool(arg)
+        if op == "int":
+            return to_integer(arg)
+        if op == "float":
+            return float(arg)
+        if op == "str":
+            return to_string(arg)
 
         raise ValueError(f"invalid unary operator: {op}")
 

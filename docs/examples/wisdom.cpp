@@ -14,7 +14,7 @@ kl::KernelBuilder build_kernel() {
         .tuning_key("vector_add_float")
         .problem_size(kl::arg0)
         .block_size(threads_per_block)
-        .grid_divisors(threads_per_block * elements_per_thread)
+        .grid_divisor(threads_per_block * elements_per_thread)
         .template_args(kl::type_of<float>())
         .define("ELEMENTS_PER_THREAD", elements_per_thread);
 

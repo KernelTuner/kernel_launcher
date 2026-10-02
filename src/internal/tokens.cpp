@@ -1,7 +1,7 @@
-#include "kernel_launcher/internal/tokens.h"
+#include "kernel_launcher/internal/tokens.hpp"
 
 #include <algorithm>
-#include <iostream>
+#include <cctype>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -9,11 +9,10 @@
 namespace kernel_launcher {
 namespace internal {
 
-using index_t = uint16_t;
+using index_t = uint32_t;
 
 static bool iswhitespace(char c) {
-    return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\v'
-        || c == '\f';
+    return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\v' || c == '\f';
 }
 
 static bool isdigit(char c) {
@@ -21,12 +20,10 @@ static bool isdigit(char c) {
 }
 
 static bool isident(char c) {
-    return isdigit(c) || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-        || c == '_' || c == '$';
+    return isdigit(c) || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '$';
 }
 
-static index_t
-advance_single_line_comment(index_t i, const std::string& input) {
+static index_t advance_single_line_comment(index_t i, const std::string& input) {
     while (i < input.size() && input[i] != '\n') {
         i++;
     }
@@ -84,10 +81,9 @@ static index_t advance_string(index_t i, const std::string& input) {
     return i;
 }
 
-TokenKind char2_to_kind(char a, char b) {
-    if ((a == '=' && b == '=') || (a == '!' && b == '=')
-        || (a == '<' && b == '=') || (a == '>' && b == '=')
-        || (a == '&' && b == '&')
+static TokenKind char2_to_kind(char a, char b) {
+    if ((a == '=' && b == '=') || (a == '!' && b == '=') || (a == '<' && b == '=')
+        || (a == '>' && b == '=') || (a == '&' && b == '&')
         || (a == '|' && b == '|')
         //|| (a == '<' && b == '<') || (a == '>' && b == '>')
         || (a == ':' && b == ':')) {
@@ -97,7 +93,7 @@ TokenKind char2_to_kind(char a, char b) {
     return TokenKind::Unknown;
 }
 
-TokenKind char_to_kind(char c) {
+static TokenKind char_to_kind(char c) {
     switch (c) {
         case '{':
             return TokenKind::BraceL;
@@ -135,11 +131,13 @@ TokenKind char_to_kind(char c) {
     }
 }
 
-std::vector<Token> tokenize(const std::string& input) {
+static std::vector<Token> tokenize(const std::string& input) {
     std::vector<Token> tokens;
 
-    if (input.size() >= std::numeric_limits<index_t>::max()) {
-        throw std::runtime_error("TODO");
+    // Some slack is needed since `index + 1` is read below.
+    if (input.size() >= std::numeric_limits<index_t>::max() - 1) {
+        throw std::runtime_error(
+            "input is too large to tokenize: " + std::to_string(input.size()) + " bytes");
     }
 
     index_t index = 0;
@@ -211,13 +209,15 @@ TokenStream::TokenStream(std::string file, std::string input) :
 }
 
 void TokenStream::seek(Token t) {
-    auto it = std::lower_bound(
-        tokens_.begin(),
-        tokens_.end(),
-        t,
-        [&](const auto& lhs, const auto& rhs) {
+    auto it =
+        std::lower_bound(tokens_.begin(), tokens_.end(), t, [&](const auto& lhs, const auto& rhs) {
             return lhs.begin < rhs.begin;
         });
+
+    // Empty tokens at the end of the input can share the same `begin`.
+    while (it != tokens_.end() && it->begin == t.begin && *it != t) {
+        ++it;
+    }
 
     if (it == tokens_.end() || *it != t) {
         throw std::runtime_error("cannot reset to unknown token");
@@ -236,7 +236,7 @@ Token TokenStream::next() {
     return t;
 }
 
-Token TokenStream::peek() {
+Token TokenStream::peek() const {
     if (index_ >= tokens_.size()) {
         throw std::runtime_error("unexpected EOF while parsing");
     }
@@ -258,27 +258,19 @@ bool TokenStream::matches(Token t, char c) const {
     return text_[t.begin] == c;
 }
 
-bool TokenStream::matches(Token t, const char* needle) const {
-    if (t.end > text_.size()) {
+bool TokenStream::matches(Token t, std::string_view needle) const {
+    if (t.begin > t.end || t.end > text_.size()) {
         return false;
     }
 
-    for (index_t i = t.begin; i < t.end; i++) {
-        if (*needle != text_[i] || *needle == '\0') {
-            return false;
-        }
-
-        needle++;
-    }
-
-    return *needle == '\0';
+    return std::string_view(text_.data() + t.begin, t.end - t.begin) == needle;
 }
 
-static std::string clean_string(const std::string& input) {
+static std::string clean_string(std::string_view input) {
     std::stringstream output;
 
     for (char c : input) {
-        if (isprint(c) != 0) {
+        if (std::isprint(static_cast<unsigned char>(c)) != 0) {
             output << c;
         } else if (c == '\n') {
             output << "\\n";
@@ -320,6 +312,8 @@ static std::string token_description(TokenKind k) {
             return "<directive end>";
         case TokenKind::Ident:
             return "identifier";
+        case TokenKind::Punct:
+            return "operator";
         case TokenKind::Comma:
             return "','";
         case TokenKind::EndOfFile:
@@ -329,19 +323,16 @@ static std::string token_description(TokenKind k) {
     }
 }
 
-[[noreturn]] void
-TokenStream::throw_expecting_token(Token t, TokenKind k) const {
+[[noreturn]] void TokenStream::throw_expecting_token(Token t, TokenKind k) const {
     throw_unexpected_token(t, "expecting token " + token_description(k));
 }
 
-[[noreturn]] void
-TokenStream::throw_expecting_token(Token t, const char* c) const {
-    std::string reason = "expecting token \"" + clean_string(c) + "\"";
+[[noreturn]] void TokenStream::throw_expecting_token(Token t, std::string_view s) const {
+    std::string reason = "expecting token \"" + clean_string(s) + "\"";
     throw_unexpected_token(t, reason);
 }
 
-static std::string
-underlined_span(size_t begin, size_t end, const std::string& text) {
+static std::string underlined_span(size_t begin, size_t end, std::string_view text) {
     size_t begin_line = begin;
     while (begin_line > 0 && text[begin_line - 1] != '\n') {
         begin_line--;
@@ -353,8 +344,7 @@ underlined_span(size_t begin, size_t end, const std::string& text) {
     }
 
     // In these cases, there is nothing to underline (empty token? empty line?)
-    if (begin >= end || begin_line >= end_line || begin >= end_line
-        || begin_line >= end) {
+    if (begin >= end || begin_line >= end_line || begin >= end_line || begin_line >= end) {
         return "";
     }
 
@@ -375,8 +365,7 @@ underlined_span(size_t begin, size_t end, const std::string& text) {
     return msg.str();
 }
 
-static std::pair<int, int>
-extract_line_column(size_t offset, const std::string& text) {
+static std::pair<int, int> extract_line_column(size_t offset, std::string_view text) {
     int lineno = 1;
     int colno = 1;
 
@@ -392,16 +381,12 @@ extract_line_column(size_t offset, const std::string& text) {
     return {lineno, colno};
 }
 
-void TokenStream::throw_unexpected_token(
-    size_t begin,
-    size_t end,
-    const std::string& reason) const {
+void TokenStream::throw_unexpected_token(size_t begin, size_t end, std::string_view reason) const {
     auto line_col = extract_line_column(begin, text_);
 
     std::stringstream msg;
-    msg << "error:" << file_ << ":" << line_col.first << ":" << line_col.second
-        << ": error occured at token \"" << clean_string(span(begin, end))
-        << "\"";
+    msg << file_ << ":" << line_col.first << ":" << line_col.second
+        << ": error occurred at token \"" << clean_string(span(begin, end)) << "\"";
 
     if (!reason.empty()) {
         msg << ", " << reason;

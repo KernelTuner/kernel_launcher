@@ -52,9 +52,7 @@ __global__ __launch_bounds__(block_size_x* block_size_y) void convolution(
         const int gy = y0 + i - PAD_Y;
         for (int j = tx; j < TILE_W + HALO_W; j += block_size_x) {
             const int gx = x0 + j - PAD_X;
-            tile[i][j] = (gy >= 0 && gy < h && gx >= 0 && gx < w)
-                ? in[(size_t)gy * w + gx]
-                : 0.0f;
+            tile[i][j] = (gy >= 0 && gy < h && gx >= 0 && gx < w) ? in[(size_t)gy * w + gx] : 0.0f;
         }
     }
 #endif
@@ -87,9 +85,8 @@ __global__ __launch_bounds__(block_size_x* block_size_y) void convolution(
 #else
                     const int gy = y0 + ly + i - PAD_Y;
                     const int gx = x0 + lx + j - PAD_X;
-                    const float v = (gy >= 0 && gy < h && gx >= 0 && gx < w)
-                        ? in[(size_t)gy * w + gx]
-                        : 0.0f;
+                    const float v =
+                        (gy >= 0 && gy < h && gx >= 0 && gx < w) ? in[(size_t)gy * w + gx] : 0.0f;
                     acc[a][b] += coef * v;
 #endif
                 }

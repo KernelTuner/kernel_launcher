@@ -6,14 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "kernel_launcher.h"
+#include "kernel_launcher.hpp"
 
 namespace kl = kernel_launcher;
 
 static void cuda_check(cudaError_t code) {
     if (code != cudaSuccess) {
-        throw std::runtime_error(
-            std::string("CUDA error: ") + cudaGetErrorString(code));
+        throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(code));
     }
 }
 
@@ -26,14 +25,11 @@ static std::string kernel_directory() {
 // here bakes them into the compiled kernel, which is what lets the filter loops
 // unroll completely. The cost is a separate compilation per filter shape.
 static kl::KernelBuilder build_convolution(int fh, int fw) {
-    kl::KernelBuilder builder(
-        "convolution",
-        kernel_directory() + "convolution_kernel.cu");
+    kl::KernelBuilder builder("convolution", kernel_directory() + "convolution_kernel.cu");
 
     // A kernel compiled for a 3x3 filter has nothing to learn from a 9x9 one,
     // so give each shape its own tuning key and therefore its own wisdom.
-    builder.tuning_key(
-        "convolution_" + std::to_string(fh) + "x" + std::to_string(fw));
+    builder.tuning_key("convolution_" + std::to_string(fh) + "x" + std::to_string(fw));
 
     auto bx = builder.tune("block_size_x", {16, 32, 64}, 32);
     auto by = builder.tune("block_size_y", {1, 2, 4, 8, 16}, 4);
@@ -41,11 +37,10 @@ static kl::KernelBuilder build_convolution(int fh, int fw) {
     auto ty = builder.tune("tile_size_y", {1, 2, 4}, 2);
     auto shmem = builder.tune("use_shmem", {0, 1}, 1);
 
-    builder.restriction(bx * by <= kl::DEVICE_MAX_THREADS_PER_BLOCK);
+    builder.restriction(bx * by <= kl::device_attribute(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK));
     // Conservative: applied to use_shmem=0 configurations too, which do not
     // actually allocate the input tile.
-    builder.restriction(
-        4 * ((by * ty + fh - 1) * (bx * tx + fw - 1) + fh * fw) <= 48 * 1024);
+    builder.restriction(4 * ((by * ty + fh - 1) * (bx * tx + fw - 1) + fh * fw) <= 48 * 1024);
 
     auto [h, w, dst, src, filt] = kl::args<5>();
 
@@ -59,7 +54,7 @@ static kl::KernelBuilder build_convolution(int fh, int fw) {
         .define("filter_width", std::to_string(fw))
         .problem_size(w, h)  // x covers columns, y covers rows
         .block_size(bx, by)
-        .grid_divisors(bx * tx, by * ty);
+        .grid_divisor(bx * tx, by * ty);
 
     // define the buffers for captures
     builder.buffers(dst[h * w], src[h * w], filt[fh * fw]);
@@ -85,35 +80,23 @@ int main() {
     cuda_check(cudaMalloc(&src_dev, sizeof(float) * src.size()));
     cuda_check(cudaMalloc(&dst_dev, sizeof(float) * dst.size()));
     cuda_check(cudaMalloc(&filt_dev, sizeof(float) * filt.size()));
-    cuda_check(cudaMemcpy(
-        src_dev,
-        src.data(),
-        sizeof(float) * src.size(),
-        cudaMemcpyDefault));
-    cuda_check(cudaMemcpy(
-        filt_dev,
-        filt.data(),
-        sizeof(float) * filt.size(),
-        cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(src_dev, src.data(), sizeof(float) * src.size(), cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(filt_dev, filt.data(), sizeof(float) * filt.size(), cudaMemcpyDefault));
 
-    // build wisdom kernel.
-    kl::WisdomKernel convolution(build_convolution(fh, fw));
+    // build kernel.
+    kl::Kernel convolution(build_convolution(fh, fw));
 
     // run convolution
     convolution(
         h,
         w,
-        kl::cuda_span(dst_dev, dst.size()),
-        kl::cuda_span<const float>(src_dev, src.size()),
-        kl::cuda_span<const float>(filt_dev, filt.size()));
+        kl::gpu_span(dst_dev, dst.size()),
+        kl::gpu_span<const float>(src_dev, src.size()),
+        kl::gpu_span<const float>(filt_dev, filt.size()));
 
     // wait until completion
     cuda_check(cudaDeviceSynchronize());
-    cuda_check(cudaMemcpy(
-        dst.data(),
-        dst_dev,
-        sizeof(float) * dst.size(),
-        cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(dst.data(), dst_dev, sizeof(float) * dst.size(), cudaMemcpyDefault));
 
     // check a handful of pixels, including ones on the border.
     double worst = 0;
@@ -125,8 +108,7 @@ int main() {
             for (int j = 0; j < fw; j++) {
                 int gy = y + i - fh / 2, gx = x + j - fw / 2;
                 if (gy >= 0 && gy < h && gx >= 0 && gx < w) {
-                    ref += double(src[size_t(gy) * w + gx])
-                        * double(filt[size_t(i) * fw + j]);
+                    ref += double(src[size_t(gy) * w + gx]) * double(filt[size_t(i) * fw + j]);
                 }
             }
         }

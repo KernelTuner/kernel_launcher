@@ -1,18 +1,22 @@
 #include <unistd.h>
 
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 // This is just to check that `kernel_annotated.cu` is still valid C++/CUDA code
 #include "kernel_annotated.cu"
-#include "kernel_launcher.h"
-#include "kernel_launcher/pragma.h"
+#include "kernel_launcher.hpp"
+#include "kernel_launcher/pragma.hpp"
 
 namespace kl = kernel_launcher;
 
 void cuda_check(cudaError_t code) {
     if (code != cudaSuccess) {
-        throw std::runtime_error(
-            std::string("CUDA error: ") + cudaGetErrorString(code));
+        throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(code));
     }
 }
 
@@ -53,10 +57,8 @@ int main(int argc, char* argv[]) {
     cuda_check(cudaMalloc(&A_dev, sizeof(float) * n));
     cuda_check(cudaMalloc(&B_dev, sizeof(float) * n));
     cuda_check(cudaMalloc(&C_dev, sizeof(float) * n));
-    cuda_check(
-        cudaMemcpy(A_dev, A.data(), sizeof(float) * n, cudaMemcpyDefault));
-    cuda_check(
-        cudaMemcpy(B_dev, B.data(), sizeof(float) * n, cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(A_dev, A.data(), sizeof(float) * n, cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(B_dev, B.data(), sizeof(float) * n, cudaMemcpyDefault));
 
     // Call kernel
     kl::launch(
@@ -67,11 +69,7 @@ int main(int argc, char* argv[]) {
         (const float*)B_dev);
 
     // Copy results back
-    cuda_check(cudaMemcpy(
-        C_result.data(),
-        C_dev,
-        sizeof(float) * n,
-        cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(C_result.data(), C_dev, sizeof(float) * n, cudaMemcpyDefault));
 
     // Check results
     for (int i = 0; i < n; i++) {
@@ -79,8 +77,8 @@ int main(int argc, char* argv[]) {
         float answer = C_answer[i];
 
         if (result != answer) {
-            std::cout << "error: index " << i << " is incorrect: " << result
-                      << " != " << answer << "\n";
+            std::cout << "error: index " << i << " is incorrect: " << result << " != " << answer
+                      << "\n";
             return 1;
         }
     }

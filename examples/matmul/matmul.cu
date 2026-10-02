@@ -55,14 +55,12 @@ __launch_bounds__(block_size_x* block_size_y, blocks_per_sm)
         __syncthreads();
 #pragma unroll
         for (int i = 0; i < tile_size_y; i++) {
-            sA[ty + block_size_y * i][tx] =
-                A[(y + i * block_size_y) * WIDTH + k + tx];
+            sA[ty + block_size_y * i][tx] = A[(y + i * block_size_y) * WIDTH + k + tx];
 
 #pragma unroll
             for (int j = 0; j < tile_size_x; j++) {
                 sB[ty + block_size_y * i][tx + j * block_size_x] =
-                    B[(k + ty + block_size_y * i) * WIDTH + x
-                      + j * block_size_x];
+                    B[(k + ty + block_size_y * i) * WIDTH + x + j * block_size_x];
             }
         }
         __syncthreads();
@@ -74,8 +72,7 @@ __launch_bounds__(block_size_x* block_size_y, blocks_per_sm)
             for (int i = 0; i < tile_size_y; i++) {
 #pragma unroll
                 for (int j = 0; j < tile_size_x; j++) {
-                    sum[i][j] += sA[ty + block_size_y * i][kb]
-                        * sB[kb][tx + j * block_size_x];
+                    sum[i][j] += sA[ty + block_size_y * i][kb] * sB[kb][tx + j * block_size_x];
                 }
             }
         }
@@ -86,8 +83,7 @@ __launch_bounds__(block_size_x* block_size_y, blocks_per_sm)
     for (int i = 0; i < tile_size_y; i++) {
 #pragma unroll
         for (int j = 0; j < tile_size_x; j++) {
-            C[y * WIDTH + x + block_size_y * i * WIDTH + j * block_size_x] =
-                sum[i][j];
+            C[y * WIDTH + x + block_size_y * i * WIDTH + j * block_size_x] = sum[i][j];
         }
     }
 }

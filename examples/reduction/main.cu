@@ -5,14 +5,13 @@
 #include <string>
 #include <vector>
 
-#include "kernel_launcher.h"
+#include "kernel_launcher.hpp"
 
 namespace kl = kernel_launcher;
 
 static void cuda_check(cudaError_t code) {
     if (code != cudaSuccess) {
-        throw std::runtime_error(
-            std::string("CUDA error: ") + cudaGetErrorString(code));
+        throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(code));
     }
 }
 
@@ -25,14 +24,12 @@ static const int MAX_BLOCKS_PER_SM = 8;
 
 // One builder, two uses. `single_block` produces the final pass, which must
 // land on exactly one block so that it writes exactly one float.
-static kl::KernelBuilder build_reduce(bool single_block) {
-    kl::KernelBuilder builder(
-        "reduce",
-        kernel_directory() + "reduce_kernel.cu");
+static kl::KernelBuilder build_reduce(int max_blocks) {
+    kl::KernelBuilder builder("reduce", kernel_directory() + "reduce_kernel.cu");
 
     // The two passes see wildly different input sizes and grid shapes, so they
     // deserve separate wisdom.
-    builder.tuning_key(single_block ? "reduce_final" : "reduce_partial");
+    builder.tuning_key(max_blocks == 1 ? "reduce_final" : "reduce_partial");
 
     auto bs = builder.tune("block_size", {32, 64, 128, 256, 512, 1024}, 256);
     auto bpsm = builder.tune("blocks_per_sm", {1, 2, 3, 4, 5, 6, 7, 8}, 2);
@@ -40,30 +37,24 @@ static kl::KernelBuilder build_reduce(bool single_block) {
     auto vec = builder.tune("vector_size", {1, 2, 4}, 4);
     auto shuffle = builder.tune("use_shuffle", {0, 1}, 1);
 
-    builder.restriction(bs <= kl::DEVICE_MAX_THREADS_PER_BLOCK);
-    builder.restriction(bs * bpsm <= kl::DEVICE_MAX_THREADS_PER_MULTIPROCESSOR);
+    auto num_sms = kl::device_attribute(CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT);
 
-    auto [n, out, in] = kl::args<3>();
+    builder.restriction(bs <= kl::device_attribute(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK));
+    builder.restriction(
+        bs * bpsm <= kl::device_attribute(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_MULTIPROCESSOR));
+
+    auto [n, out, in] = kl::args("n", "out", "int");
+    auto num_blocks = kl::min(num_sms * bpsm, max_blocks);
 
     builder.define(bs)
         .define(bpsm)
         .define(ipt)
         .define(vec)
         .define(shuffle)
-        .problem_size(
-            n)  // not used for the grid; this is the wisdom lookup key
+        .problem_size(n)  // not used for the grid; this is the wisdom lookup key
         .block_size(bs)
-        .buffer_size(in, n);
-
-    if (single_block) {
-        builder.grid_size(1u);
-        builder.buffer_size(out, 1);
-    } else {
-        // The grid is sized to the machine, not to the problem. The kernel
-        // strides over whatever input it is given.
-        builder.grid_size(kl::DEVICE_MULTIPROCESSOR_COUNT * bpsm);
-        builder.buffer_size(out, kl::DEVICE_MULTIPROCESSOR_COUNT * bpsm);
-    }
+        .grid_size(num_blocks)
+        .buffers(out[num_blocks], in[n]);
 
     return builder;
 }
@@ -80,8 +71,7 @@ int main() {
 
     int num_sms = 0;
     cuda_check(cudaSetDevice(0));
-    cuda_check(
-        cudaDeviceGetAttribute(&num_sms, cudaDevAttrMultiProcessorCount, 0));
+    cuda_check(cudaDeviceGetAttribute(&num_sms, cudaDevAttrMultiProcessorCount, 0));
 
     // The tuner picks blocks_per_sm, so the host does not know how many
     // partials pass 1 will actually write. Allocate for the worst case and
@@ -93,30 +83,25 @@ int main() {
     cuda_check(cudaMalloc(&in_dev, sizeof(float) * size_t(n)));
     cuda_check(cudaMalloc(&partial_dev, sizeof(float) * size_t(max_blocks)));
     cuda_check(cudaMalloc(&result_dev, sizeof(float)));
-    cuda_check(cudaMemcpy(
-        in_dev,
-        in.data(),
-        sizeof(float) * size_t(n),
-        cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(in_dev, in.data(), sizeof(float) * size_t(n), cudaMemcpyDefault));
     cuda_check(cudaMemset(partial_dev, 0, sizeof(float) * size_t(max_blocks)));
 
-    kl::WisdomKernel reduce_partial(build_reduce(false));
-    kl::WisdomKernel reduce_final(build_reduce(true));
+    kl::Kernel reduce_partial(build_reduce(max_blocks));
+    kl::Kernel reduce_final(build_reduce(1));
 
     reduce_partial(
         n,
-        kl::cuda_span(partial_dev, size_t(max_blocks)),
-        kl::cuda_span<const float>(in_dev, size_t(n)));
+        kl::gpu_span(partial_dev, size_t(max_blocks)),
+        kl::gpu_span<const float>(in_dev, size_t(n)));
 
     reduce_final(
         max_blocks,
-        kl::cuda_span(result_dev, size_t(1)),
-        kl::cuda_span<const float>(partial_dev, size_t(max_blocks)));
+        kl::gpu_span(result_dev, size_t(1)),
+        kl::gpu_span<const float>(partial_dev, size_t(max_blocks)));
 
     float result = 0.0f;
     cuda_check(cudaDeviceSynchronize());
-    cuda_check(
-        cudaMemcpy(&result, result_dev, sizeof(float), cudaMemcpyDefault));
+    cuda_check(cudaMemcpy(&result, result_dev, sizeof(float), cudaMemcpyDefault));
 
     double rel = std::fabs(ref - result) / std::fabs(ref);
     std::printf("got %.1f, want %.1f (relative error %g)\n", result, ref, rel);

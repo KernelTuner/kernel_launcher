@@ -1,13 +1,13 @@
-#include "kernel_launcher.h"
+#include "kernel_launcher.hpp"
 
 // Namespace alias.
 namespace kl = kernel_launcher;
 
-class VectorAddDescriptor: kl::IKernelDescriptor {
+class VectorAddDescriptor: public kl::KernelDescriptor {
 public:
     template <typename T>
     static VectorAddDescriptor for_type() {
-        return VectorAddDescriptor(kl::type_of<T>());
+        return VectorAddDescriptor(kl::TypeInfo::of<T>());
     }
 
     VectorAddDescriptor(kl::TypeInfo t): element_type(t) {}
@@ -20,17 +20,17 @@ public:
         auto elements_per_block = threads_per_block * elements_per_thread;
 
         builder
-            .tuning_key("vector_add_" + this->element_type.name())
-            .problem_size(kl::arg0)
+            .tuning_key(kl::concat("vector_add_", element_type.name()))
+            .problem_size(kl::arg(0))
             .block_size(threads_per_block)
-            .grid_divisors(threads_per_block * elements_per_thread)
+            .grid_divisor(elements_per_block)
             .template_args(element_type)
             .define("ELEMENTS_PER_THREAD", elements_per_thread);
 
         return builder;
     }
 
-    bool equals(const IKernelDescriptor& other) const override {
+    bool equals(const kl::KernelDescriptor& other) const override {
         if (auto p = dynamic_cast<const VectorAddDescriptor*>(&other)) {
             return this->element_type == p->element_type;
         }
@@ -38,14 +38,15 @@ public:
         return false;
     }
 
+    size_t hash() const override {
+        return kl::hash_fields(element_type);
+    }
+
     private:
         kl::TypeInfo element_type;
 };
 
 int main() {
-    kl::set_global_wisdom_directory("wisdom/");
-    kl::set_global_capture_directory("captures/");
-
     // Initialize CUDA memory. This is outside the scope of kernel_launcher.
     unsigned int n = 1000000;
     float *dev_A, *dev_B, *dev_C;

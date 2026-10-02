@@ -11,7 +11,7 @@ This object will compile the kernel code on the first call and then keep the ker
 Typically, one would define the ``WisdomKernel`` object as part of a class or as a global variable.
 
 However, in certain scenarios, it is inconvenient or impractical to store ``WisdomKernel`` objects.
-In these cases, it is possible to use the ``KernelRegistry`` that essentially acts like a global table of compiled kernel instances.
+In these cases, it is possible to use the ``Registry`` that essentially acts like a global table of compiled kernel instances.
 
 
 Source code
@@ -33,26 +33,27 @@ In the second part, this class is searched in the global kernel registry.
 Defining a kernel descriptor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. literalinclude:: registry.cpp
-   :lines: 6-43
+   :lines: 6-47
    :lineno-start: 6
 
-This part of the code defines an ``IKernelDescriptor``:
+This part of the code defines a ``KernelDescriptor``:
 a class that encapsulates the information required to compile a kernel.
-This class should override two methods:
+This class should override three methods:
 
 - ``build`` to instantiate a ``KernelBuilder``,
--  ``equals`` to check for equality with another ``IKernelDescriptor``.
+- ``equals`` to check for equality with another ``KernelDescriptor``,
+- ``hash`` to compute a hash that is the same for descriptors that are equal.
 
-The last method is required since a kernel registry is essentially a hash table that maps ``IKernelDescriptor`` objects to kernel objects.
+The last two methods are required since a kernel registry is essentially a hash table that maps ``KernelDescriptor`` objects to kernel objects.
 The ``equals`` method is used to check if two descriptors (i.e., keys in the hash table) are equivalent.
 
 
-Using the KernelRegistry
-^^^^^^^^^^^^^^^^^^^^^^^^
+Using the Registry
+^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: registry.cpp
-   :lines: 54-57
-   :lineno-start: 54
+   :lines: 55-58
+   :lineno-start: 55
 
 Here, the vector-add kernel is searched in the registry and launched with the given arguments.
 It is important to note that this code can be called multiple times from different functions of a program, but the
@@ -60,8 +61,8 @@ kernel is only compiled once and stored in the registry.
 
 
 .. literalinclude:: registry.cpp
-   :lines: 59-60
-   :lineno-start: 59
+   :lines: 60-61
+   :lineno-start: 60
 
 Alternatively, it is possible to use the above short-hand syntax.
 This syntax also makes it easy to replace the element type ``float`` with some other type such as ``int``::
@@ -75,4 +76,4 @@ It is even possible to define a templated function that passes type ``T`` on to 
         kl::launch(VectorAddDescriptor::for_type<T>(), n, C, A, B);
     }
 
-Instead of using the global kernel registry, it is also possible to create a local registry by creating a ``KernelRegistry`` instance.
+Instead of using the global kernel registry, it is also possible to create a local registry by creating a ``Registry`` instance.

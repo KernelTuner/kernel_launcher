@@ -122,8 +122,8 @@ struct iterator_traits<T const*> {
 //   Joe Eaton: added IEEE float and double types, none of the smaller types
 //              using type specific structs since we can't template on floats.
 static const char* jitsafe_header_limits = R"(
-#ifndef __LIMITS_HEADER
-#define __LIMITS_HEADER
+#ifndef __CXX_LIMITS_HEADER
+#define __CXX_LIMITS_HEADER
 #include <cfloat>
 #include <climits>
 #include <cstdint>
@@ -562,30 +562,43 @@ static const char* jitsafe_header_stdint_h =
     "typedef signed char      int8_t;\n"
     "typedef signed short     int16_t;\n"
     "typedef signed int       int32_t;\n"
-    "typedef signed long long int64_t;\n"
     "typedef signed char      int_fast8_t;\n"
     "typedef signed short     int_fast16_t;\n"
     "typedef signed int       int_fast32_t;\n"
-    "typedef signed long long int_fast64_t;\n"
     "typedef signed char      int_least8_t;\n"
     "typedef signed short     int_least16_t;\n"
     "typedef signed int       int_least32_t;\n"
-    "typedef signed long long int_least64_t;\n"
-    "typedef signed long long intmax_t;\n"
     "typedef signed long      intptr_t; //optional\n"
     "typedef unsigned char      uint8_t;\n"
     "typedef unsigned short     uint16_t;\n"
     "typedef unsigned int       uint32_t;\n"
-    "typedef unsigned long long uint64_t;\n"
     "typedef unsigned char      uint_fast8_t;\n"
     "typedef unsigned short     uint_fast16_t;\n"
     "typedef unsigned int       uint_fast32_t;\n"
-    "typedef unsigned long long uint_fast64_t;\n"
     "typedef unsigned char      uint_least8_t;\n"
     "typedef unsigned short     uint_least16_t;\n"
     "typedef unsigned int       uint_least32_t;\n"
+    // The 64-bit types must be the same types as on the host, otherwise a
+    // kernel that takes an `int64_t*` does not match the host's `int64_t*`.
+    "#if defined _WIN32 || defined _WIN64\n"
+    "typedef signed long long int64_t;\n"
+    "typedef signed long long int_fast64_t;\n"
+    "typedef signed long long int_least64_t;\n"
+    "typedef signed long long intmax_t;\n"
+    "typedef unsigned long long uint64_t;\n"
+    "typedef unsigned long long uint_fast64_t;\n"
     "typedef unsigned long long uint_least64_t;\n"
     "typedef unsigned long long uintmax_t;\n"
+    "#else\n"
+    "typedef signed long int64_t;\n"
+    "typedef signed long int_fast64_t;\n"
+    "typedef signed long int_least64_t;\n"
+    "typedef signed long intmax_t;\n"
+    "typedef unsigned long uint64_t;\n"
+    "typedef unsigned long uint_fast64_t;\n"
+    "typedef unsigned long uint_least64_t;\n"
+    "typedef unsigned long uintmax_t;\n"
+    "#endif\n"
     "#define INT8_MIN    SCHAR_MIN\n"
     "#define INT16_MIN   SHRT_MIN\n"
     "#if defined _WIN32 || defined _WIN64\n"
@@ -840,29 +853,18 @@ static const char* jitsafe_header_stdlib_h = R"(
 
 const std::unordered_map<std::string, std::string>& jitsafe_headers() {
     static const std::unordered_map<std::string, std::string> result = {
-        {"float.h", jitsafe_header_float_h},
-        {"limits.h", jitsafe_header_limits_h},
-        {"stdint.h", jitsafe_header_stdint_h},
-        {"stddef.h", jitsafe_header_stddef_h},
-        {"stdio.h", jitsafe_header_stdio_h},
-        {"iterator", jitsafe_header_iterator},
-        {"limits", jitsafe_header_limits},
-        {"type_traits", jitsafe_header_type_traits},
-        {"utility", jitsafe_header_utility},
-        {"math.h", jitsafe_header_math_h},
-        {"complex", jitsafe_header_complex},
-        {"algorithm", jitsafe_header_algorithm},
-        {"stdlib.h", jitsafe_header_stdlib_h},
-        {"assert.h", jitsafe_header_assert_h},
+        {"float.h", jitsafe_header_float_h},   {"limits.h", jitsafe_header_limits_h},
+        {"stdint.h", jitsafe_header_stdint_h}, {"stddef.h", jitsafe_header_stddef_h},
+        {"stdio.h", jitsafe_header_stdio_h},   {"iterator", jitsafe_header_iterator},
+        {"limits", jitsafe_header_limits},     {"type_traits", jitsafe_header_type_traits},
+        {"utility", jitsafe_header_utility},   {"math.h", jitsafe_header_math_h},
+        {"complex", jitsafe_header_complex},   {"algorithm", jitsafe_header_algorithm},
+        {"stdlib.h", jitsafe_header_stdlib_h}, {"assert.h", jitsafe_header_assert_h},
 
-        {"cfloat", jitsafe_header_float_h},
-        {"cassert", jitsafe_header_assert_h},
-        {"cstdlib", jitsafe_header_stdlib_h},
-        {"cmath", jitsafe_header_math_h},
-        {"cstdio", jitsafe_header_stdio_h},
-        {"cstddef", jitsafe_header_stddef_h},
-        {"cstdint", jitsafe_header_stdint_h},
-        {"climits", jitsafe_header_limits_h},
+        {"cfloat", jitsafe_header_float_h},    {"cassert", jitsafe_header_assert_h},
+        {"cstdlib", jitsafe_header_stdlib_h},  {"cmath", jitsafe_header_math_h},
+        {"cstdio", jitsafe_header_stdio_h},    {"cstddef", jitsafe_header_stddef_h},
+        {"cstdint", jitsafe_header_stdint_h},  {"climits", jitsafe_header_limits_h},
     };
 
     return result;

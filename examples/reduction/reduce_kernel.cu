@@ -34,10 +34,9 @@ __device__ __forceinline__ float vec_sum(vec_t v) {
     #error "vector_size must be 1, 2 or 4"
 #endif
 
-__global__ __launch_bounds__(block_size, blocks_per_sm) void reduce(
-    int n,
-    float* __restrict__ out,
-    const float* __restrict__ in) {
+__global__ __launch_bounds__(
+    block_size,
+    blocks_per_sm) void reduce(int n, float* __restrict__ out, const float* __restrict__ in) {
     const unsigned tid = threadIdx.x;
     const size_t gid = (size_t)blockIdx.x * block_size + tid;
     const size_t stride = (size_t)block_size * gridDim.x;

@@ -1,11 +1,35 @@
-#include "kernel_launcher/config.h"
+#include "kernel_launcher/config.hpp"
+
+#include <ostream>
+#include <stdexcept>
 
 namespace kernel_launcher {
 
-bool Config::lookup(const Variable& v, Value& out) const {
-    if (const auto* ptr = dynamic_cast<const TunableParam*>(&v)) {
-        auto it = inner_.find(*ptr);
-        if (it != inner_.end()) {
+bool TunableParam::has_value(const Primitive& value) const {
+    for (const auto& v : impl_->values) {
+        if (v == value) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const Primitive& Config::get(std::string_view name) const {
+    // Compare by content, since interning `name` would keep it alive forever.
+    for (const auto& entry : values_) {
+        if (entry.first.get() == name) {
+            return entry.second;
+        }
+    }
+
+    throw std::runtime_error("unknown parameter: " + std::string(name));
+}
+
+bool Config::try_lookup(const Variable& v, Primitive& out) const {
+    if (const auto* param = dynamic_cast<const TunableParam*>(&v)) {
+        auto it = values_.find(param->name());
+        if (it != values_.end()) {
             out = it->second;
             return true;
         }
@@ -14,112 +38,104 @@ bool Config::lookup(const Variable& v, Value& out) const {
     return false;
 }
 
-void Config::insert(TunableParam k, Value v) {
-    const std::string& name = k.name();
+std::ostream& operator<<(std::ostream& stream, const Config& config) {
+    bool first = true;
+    stream << "{";
 
-    for (auto& it : inner_) {
-        if (it.first == k) {
-            it.second = v;
-            return;
+    for (const auto& entry : config.values_) {
+        if (!first) {
+            stream << ", ";
         }
 
-        if (it.first.name() == name) {
-            throw std::runtime_error(
-                "duplicate parameter: key " + name + " already exists");
-        }
+        first = false;
+        stream << entry.first << "=" << entry.second;
     }
 
-    inner_.emplace(std::move(k), std::move(v));
+    return stream << "}";
 }
 
-const Value& Config::at(const std::string& param) const {
-    for (const auto& it : inner_) {
-        if (it.first.name() == param) {
-            return it.second;
-        }
+TunableParam
+ConfigSpace::tune(std::string_view name, std::vector<Primitive> values, Primitive default_value) {
+    if (name.empty()) {
+        throw std::invalid_argument("parameter name cannot be empty");
     }
 
-    throw std::invalid_argument("unknown parameter: " + param);
-}
-
-const Value& Config::at(const TunableParam& param) const {
-    auto it = inner_.find(param);
-    if (it == inner_.end()) {
-        throw std::invalid_argument("unknown parameter: " + param.name());
+    if (values.empty()) {
+        throw std::invalid_argument(
+            concat("parameter \"", name, "\" must have at least one value"));
     }
 
-    return it->second;
-}
-
-std::ostream& operator<<(std::ostream& s, const Config& c) {
-    s << "{";
-    bool is_first = true;
-    for (const auto& p : c.inner_) {
-        if (is_first) {
-            is_first = false;
-        } else {
-            s << ", ";
-        }
-
-        s << "\"" << p.first.name() << "\": " << p.second;
-    }
-    return s << "}";
-}
-
-TunableParam ConfigSpace::add(
-    std::string name,
-    std::vector<Value> values,
-    std::vector<double> priors,
-    Value default_value) {
     for (const auto& p : params_) {
-        if (p.name() == name) {
-            throw std::runtime_error(
-                "duplicate parameter: key " + name + " already exists");
+        if (p.name().get() == name) {
+            throw std::invalid_argument(
+                concat("parameter \"", name, "\" has already been defined"));
         }
     }
 
-    TunableParam p {
-        std::move(name),
-        std::move(values),
-        std::move(priors),
-        std::move(default_value)};
-    params_.push_back(p);
-    return p;
+    auto impl = std::make_shared<TunableParam::Impl>();
+    impl->name = Symbol(name);
+    impl->values = std::move(values);
+    impl->default_value = std::move(default_value);
+
+    TunableParam param(std::move(impl));
+
+    if (!param.has_value(param.default_value())) {
+        throw std::invalid_argument(
+            concat("default value of parameter \"", name, "\" is not one of its values"));
+    }
+
+    params_.push_back(param);
+    return param;
 }
 
-ParamExpr ConfigSpace::at(const std::string& name) const {
+const TunableParam& ConfigSpace::at(std::string_view name) const {
     for (const auto& p : params_) {
-        if (p.name() == name) {
+        if (p.name().get() == name) {
             return p;
         }
     }
 
-    throw std::runtime_error("could not find key: " + name);
+    throw std::runtime_error("unknown parameter: " + std::string(name));
 }
 
-void ConfigSpace::restriction(TypedExpr<bool> e) {
-    restrictions_.push_back(e);
+ConfigSpace ConfigSpace::resolve(const EvalContext& context) const {
+    ConfigSpace result;
+    result.params_ = params_;
+
+    for (const auto& r : restrictions_) {
+        Expr<bool> resolved = r.resolve(context);
+
+        if (!resolved.is_constant()) {
+            result.restrictions_.push_back(std::move(resolved));
+        } else if (!resolved.eval(context)) {
+            throw std::runtime_error("restriction is never satisfied: " + r.to_string());
+        }
+    }
+
+    return result;
 }
 
 Config ConfigSpace::default_config() const {
     Config config;
 
-    for (const auto& param : params_) {
-        config.insert(param, param.default_value());
+    for (const auto& p : params_) {
+        config.insert(p.name(), p.default_value());
     }
 
     return config;
 }
 
-bool ConfigSpace::contains(const Eval& config) const {
+bool ConfigSpace::contains(const Config& config) const {
+    // Config must not have parameters that are not in this space.
+    if (config.size() != params_.size()) {
+        return false;
+    }
+
     for (const auto& p : params_) {
-        Value v;
+        Primitive value;
 
-        if (!config.lookup(p, v)) {
-            return false;
-        }
-
-        if (!p.has_value(v)) {
+        // Parameter must be present in the config with a valid value.
+        if (!config.try_lookup(p, value) || !p.has_value(value)) {
             return false;
         }
     }
@@ -127,17 +143,56 @@ bool ConfigSpace::contains(const Eval& config) const {
     return true;
 }
 
-bool ConfigSpace::is_valid(const Eval& config) const {
+bool ConfigSpace::is_valid(const Config& config) const {
     if (!contains(config)) {
         return false;
     }
 
     for (const auto& r : restrictions_) {
-        if (!config(r)) {
+        if (!r.eval(config)) {
             return false;
         }
     }
 
     return true;
 }
+
+std::vector<Config> ConfigSpace::valid_configs() const {
+    std::vector<Config> result;
+
+    // Indices of cartesian product of all parameter values.
+    std::vector<size_t> index(params_.size(), 0);
+
+    while (true) {
+        Config config;
+        for (size_t i = 0; i < params_.size(); i++) {
+            config.insert(params_[i].name(), params_[i].values()[index[i]]);
+        }
+
+        if (is_valid(config)) {
+            result.push_back(std::move(config));
+        }
+
+        // Advance to the next combination; stop once every digit wrapped.
+        size_t i = params_.size();
+        while (i > 0) {
+            i--;
+
+            if (++index[i] < params_[i].values().size()) {
+                break;
+            }
+
+            index[i] = 0;
+
+            if (i == 0) {
+                return result;
+            }
+        }
+
+        if (params_.empty()) {
+            return result;
+        }
+    }
+}
+
 }  // namespace kernel_launcher

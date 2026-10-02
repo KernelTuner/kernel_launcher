@@ -36,6 +36,7 @@ def should_skip_kernel(args, problem):
     for record in wisdom:
         if (
             record.get("problem_size") == problem_size
+            and (record.get("features") or dict()) == problem.features
             and record.get("environment", dict()).get("device_name") == device
         ):
             return True
@@ -64,6 +65,7 @@ def tune_kernel(filename, args):
     print(f"device name: {device_name()}")
     print(f"kernel name: {problem.key}")
     print(f"problem size: {problem.problem_size}")
+    print(f"features: {problem.features}")
 
     # Run kernel once with default configuration.
     default_config = problem.space.default_config()
